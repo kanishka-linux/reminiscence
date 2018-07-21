@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item active"><a href="/{{user.username}}">Home</a></li>
+{% endblock %}
+
+
+{% block content %}
+
+<form method="post" novalidate>
+        {% csrf_token %}
+            
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+
+    {% for field in form.visible_fields %}
+      <div class="form-inline">
+        <div class="mx-lg-5">
+        {{ field| add_class:'form-control'}}
+        {% for error in field.errors %}
+          <span class="help-block">{{ error }}</span>
+        {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-success">Submit</button>
+      </div>
+    {% endfor %}
+</form>
+</br>
+<div class="card">
+<table class="table table-hover" >
+<thead class="thead-dark" id="thead-dark">
+  <tr>
+    <th>Sr</th>
+    <th>Directory</th>
+    <th class="align-middle px-2">Links</th>
+    <th class="align-middle px-4">Action</th>
+  </tr>
+</thead>
+<tbody id="tbody">
+  {% for index, key, value, loc, rename_link, remove_link in usr_list %}
+    <tr>
+        <td>{{index}}</td>
+      <td>
+        <a href="{{ loc }}">{{ key }}</a>
+      </td>
+      <td class="align-middle">
+        {{ value }}
+      </td>
+      
+      <td>
+          
+           <div class="btn-group m-r-10">
+            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button"><span class="caret">Select</span></button>
+            <ul role="menu" class="dropdown-menu dropdown-menu-right">
+                <a class="dropdown-item" data-link="{{ rename_link }}" href="{{rename_link}}" title="{{key}}" data-val="dir">Rename</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" data-link="{{ remove_link }}" href="{{remove_link}}" title="{{key}}" data-val="dir">Remove</a>
+            </ul>
+          </div>
+
+      </td>
+      
+    </tr>
+  {% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}
+    

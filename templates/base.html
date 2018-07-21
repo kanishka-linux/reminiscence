@@ -1,0 +1,62 @@
+{% load static %}<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}Reminiscence{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+  </head>
+  {% block body %} 
+  <body>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}"><b>Reminiscence</b></a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="mainMenu">
+              
+            <ul class="navbar-nav ml-auto">
+                <nav class="navbar navbar-dark bg-dark">
+                  <div class="form-inline">
+                    <input id="search-box-top" onkeypress="search_entered_input(event, 0)" api-url="/{{user.username}}/api/request" class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                    <button id="search-button" class="btn btn-outline-secondary my-2 my-sm-0" type="submit" onclick="search_entered(event, 1)" hidden>Search</button>
+                  </div>
+                </nav>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="userMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ user.username }}
+                  </a>
+                  <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenu">
+                    <a class="dropdown-item" href="#">My account</a>
+                    <a class="dropdown-item" href="{% url 'password_change' %}">Change password</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'logout' %}">Log out</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'login' %}" class="dropdown-item">Log in</a>
+                    <a href="{% url 'signup' %}" class="dropdown-item">Sign up</a>
+                  </div>
+                </li>
+            </ul>
+            
+          </div>
+        
+      </div>
+    </nav>
+    <div class="container">
+      <ol class="breadcrumb my-3">
+        {% block breadcrumb %}
+        {% endblock %}
+      </ol>
+      {% block content %}
+      {% endblock %}
+    </div>
+  {% endblock body %} 
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootbox.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+  </body>
+</html>

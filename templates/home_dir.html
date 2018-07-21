@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item">
+        <a href="/{{user.username}}">
+            Home
+        </a> 
+    </li>
+    <li class="breadcrumb-item active">
+        <a href="{{base_dir}}">{{dirname}}</a>
+    </li>
+{% endblock %}
+
+
+{% block content %}
+
+<form method="post" novalidate>
+        {% csrf_token %}
+            
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+
+    {% for field in form.visible_fields %}
+        <div class="form-inline">
+            <div class="mx-lg-5">
+                {{ field| add_class:'form-control'}}
+                {% for error in field.errors %}
+                    <span class="help-block">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-success">Submit</button>
+        </div>
+    {% endfor %}
+</form>
+</br>
+<div class="card">
+<table class="table" >
+<thead class="thead-dark">
+  <tr>
+    <th></th>
+    <th class="align-middle">Title</th>
+    <th class="align-middle px-4">Action</th>
+  </tr>
+</thead>
+<tbody id="tbody">
+  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archieve, dir, rurl, idd, fav_path in usr_list %}
+    <tr>
+        <td>{% if fav_path %}<img width="24" src="{{fav_path}}">{% endif %}</td>
+      <td>
+        <a href="{{ archieve }}"><span class="text-lg-left">{{title}}</span></a></br>
+            <small>
+                <a href="{{loc}}" class="text-muted" id="netloc-muted">{{netloc}}</a>
+            </small>
+            {% if taglist %}
+                <div class="badges">
+                    {% for tag in taglist %}
+                        <a href="/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </td>
+        <td>
+        <div class="btn-group m-r-10 align-middle">
+            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button"><span class="caret">Select</span></button>
+            <ul role="menu" class="dropdown-menu dropdown-menu-right">
+                <span class="dropdown-item" data-link="{{ edit_b }}" title="{{title}}" data-val="url">Edit Bookmark</span>
+                <div class="dropdown-divider"></div>
+                
+                <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_read" data-url="/{{user.username}}/api/request">Read</span>
+                
+                <div class="dropdown-divider"></div>
+                <span class="dropdown-item" data-link="{{ ms }}" title="{{title}}" data-val="url" data-url="/{{user.username}}/api/request">Move To</span>
+                
+                <div class="dropdown-divider"></div>
+                <span class="dropdown-item" data-link="{{ archieve }}" title="{{title}}" data-val="url_archieve" data-url="/{{user.username}}/api/request" dir-name="{{dir}}" find-id="{{ms}}">Archieve</span>
+                
+                <div class="dropdown-divider"></div>
+                <span class="dropdown-item" data-link="{{ remove_link }}" title="{{title}}" data-val="url">Remove</span>
+            </ul>
+        </div>
+        </br>
+        <small>
+            <footer class="text-muted px-2 py-2">{{timestamp}}</footer>
+        </small>
+        </td>
+    </tr>
+  {% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}

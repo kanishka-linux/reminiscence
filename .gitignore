@@ -1,0 +1,6 @@
+*.log
+*.sqlite3
+*.pyc
+__pycache__/
+archieve/*/
+static/favicons/
