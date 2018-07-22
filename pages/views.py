@@ -19,7 +19,7 @@ from django.conf import settings
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
 
-from .models import Library, Tags, URLTags
+from .models import Library, Tags, URLTags, UserSettings
 from .forms import AddDir, RenameDir, RemoveDir, AddURL
 from .custom_read import CustomRead as cread
 from .dbaccess import DBAccess as dbxs
@@ -150,7 +150,8 @@ def navigate_directory(request, username, directory=None, tagname=None):
         if request.method == 'POST' and directory:
             form = AddURL(request.POST)
             if form.is_valid():
-                dbxs.add_new_url(usr, request, directory)
+                row = UserSettings.objects.filter(usrid=usr)
+                dbxs.add_new_url(usr, request, directory, row)
             else:
                 place_holder = 'Wrong Input, Enter URL'
         form = AddURL()
