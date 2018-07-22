@@ -8,7 +8,8 @@ from mimetypes import guess_extension
 from django.conf import settings
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
-from .models import Library, Tags, URLTags
+from .models import Library, Tags, URLTags, UserSettings
+from .summarize import Summarizer
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class DBAccess:
     vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
     
     @classmethod
-    def add_new_url(cls, usr, request, directory):
+    def add_new_url(cls, usr, request, directory, row):
         url_name = request.POST.get('add_url', '')
         if url_name:
             if url_name.startswith('ar:'):
@@ -26,23 +27,29 @@ class DBAccess:
                 archieve_html = True
             else:
                 archieve_html = False
+            if row:
+                settings_row = row[0]
+            else:
+                settings_row = None
             url_list = Library.objects.filter(usr=usr,
                                               directory=directory,
                                               url=url_name)
             if not url_list and url_name:
                 cls.process_add_url(usr, url_name,
-                                    directory, archieve_html)
+                                    directory, archieve_html, 
+                                    settings_row=settings_row)
                                 
     @classmethod
     def process_add_url(cls, usr, url_name, directory,
-                        archieve_html, row=None):
+                        archieve_html, row=None,
+                        settings_row=None):
         ext = None
         save = False
         save_text = False
         favicon_link = None
-        
+        summary = 'none'
         req = cls.vnt.get(url_name)
-        
+        tags_list = []
         if req and req.content_type:
             if ';' in req.content_type:
                 content_type = req.content_type.split(';')[0].strip()
@@ -67,6 +74,8 @@ class DBAccess:
                         
                 if archieve_html:
                     save_text = True
+                if settings_row and (settings_row.autotag or settings_row.auto_summary):
+                    summary, tags_list = Summarizer.get_summary_and_tags(req.html)
             else:
                 title = url_name.rsplit('/')[-1]
                 save_text = True
@@ -79,7 +88,8 @@ class DBAccess:
         if row is None:
             row = Library.objects.create(usr=usr,
                                          directory=directory,
-                                         url=url_name, title=title)
+                                         url=url_name, title=title,
+                                         summary=summary)
         else:
             print('row - exists')
         if ext and ext.startswith('.'):
@@ -108,6 +118,8 @@ class DBAccess:
             else:
                 with open(media_path, 'w') as fd:
                     fd.write(req.html)
+        if settings_row and tag_list:
+            cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         return row.id
 
     @staticmethod
@@ -327,40 +339,56 @@ class DBAccess:
             Library.objects.filter(id=url_id).update(url=nurl)
             msg = msg + ' Link'
         if tags or tags_old:
-            tags_list = [i.lower().strip() for i in tags.split(',')]
-            tags_list_old = [i.lower().strip() for i in tags_old.split(',')]
-            tags_list = [i for i in tags_list if i]
-            tags_list_old = [i for i in tags_list_old if i]
-            all_tags = Tags.objects.all()
-            all_tags_list = [i.tag for i in all_tags if i.tag]
-            all_tags_set = set(all_tags_list)
-            tags_new_add = set(tags_list) - set(tags_list_old)
-            tags_old_delete = set(tags_list_old) - set(tags_list)
-            for tag in tags_list:
-                if tag not in all_tags_set:
-                    row =Tags.objects.create(tag=tag)
-                    row.save()
-            lib_list = Library.objects.filter(id=url_id)
-            lib_obj = lib_list[0]
-            for tag in tags_new_add:
-                tag_obj = Tags.objects.filter(tag=tag)
-                tagid = URLTags.objects.filter(usr_id=usr,
-                                               url_id=lib_obj,
-                                               tag_id=tag_obj[0])
-                if not tagid:
-                    row = URLTags.objects.create(usr_id=usr,
-                                                 url_id=lib_obj,
-                                                 tag_id=tag_obj[0])
-                    row.save()
-            for tag in tags_old_delete:
-                tag_obj = Tags.objects.filter(tag=tag)
-                tagid = URLTags.objects.filter(usr_id=usr,
-                                               url_id=lib_obj,
-                                               tag_id=tag_obj[0])
-                if tagid:
-                    URLTags.objects.filter(usr_id=usr,
+            msg = DBAccess.edit_tags(usr, url_id, tags, tags_old) 
+        return msg
+        
+    @staticmethod
+    def edit_tags(usr, url_id, tags, tags_old):
+        tags_list = [i.lower().strip() for i in tags.split(',')]
+        tags_list_old = [i.lower().strip() for i in tags_old.split(',')]
+        tags_list = [i for i in tags_list if i]
+        tags_list_old = [i for i in tags_list_old if i]
+        all_tags = Tags.objects.all()
+        
+        tags_new_add = set(tags_list) - set(tags_list_old)
+        tags_old_delete = set(tags_list_old) - set(tags_list)
+        insert_list = []
+        for tag in tags_list:
+            if not all_tags.filter(tag=tag).exists():
+                insert_list.append(Tags(tag=tag))
+            else:
+                logger.info('Tag: {} exists'.format(tag))
+        if insert_list:
+            Tags.objects.bulk_create(insert_list)
+            
+        lib_list = Library.objects.filter(id=url_id)
+        lib_obj = lib_list[0]
+        tagins_list = []
+        for tag in tags_new_add:
+            tag_obj = Tags.objects.filter(tag=tag)
+            tagid = URLTags.objects.filter(usr_id=usr,
                                            url_id=lib_obj,
-                                           tag_id=tag_obj[0]).delete()
-            msg = ('Edited Tags: new-tags-addition={}::old-tags-delete={}'
-                   .format(tags_new_add, tags_old_delete))
+                                           tag_id=tag_obj[0])
+            if not tagid:
+                row = tagins_list.append(
+                        URLTags(
+                            usr_id=usr,
+                            url_id=lib_obj,
+                            tag_id=tag_obj[0]
+                        )
+                )
+        if tagins_list:
+            URLTags.objects.bulk_create(tagins_list)
+            
+        for tag in tags_old_delete:
+            tag_obj = Tags.objects.filter(tag=tag)
+            tagid = URLTags.objects.filter(usr_id=usr,
+                                           url_id=lib_obj,
+                                           tag_id=tag_obj[0])
+            if tagid:
+                URLTags.objects.filter(usr_id=usr,
+                                       url_id=lib_obj,
+                                       tag_id=tag_obj[0]).delete()
+        msg = ('Edited Tags: new-tags-addition={}::old-tags-delete={}'
+               .format(tags_new_add, tags_old_delete))
         return msg
