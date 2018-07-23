@@ -25,7 +25,7 @@ class Summarizer:
             )
     
     @classmethod
-    def get_summary_and_tags(cls, content):
+    def get_summary_and_tags(cls, content, total_tags):
         cls.check_data_path()
         soup = BeautifulSoup(content, 'lxml')
         text = ''
@@ -44,7 +44,7 @@ class Summarizer:
                 filtered.append(w[0])
 
         freq = Counter(filtered)
-        tags = freq.most_common(10)
+        tags = freq.most_common(total_tags)
         final_tags = []
         for i, j in enumerate(tags):
             ps = stemmer.stem(j[0])
