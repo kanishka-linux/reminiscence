@@ -91,6 +91,53 @@ function dropdown_menu_clicked(element){
     }else if(link == 'url_read'){
         var nlink = $(element).attr('data-link');
         window.location.href = nlink;
+    }else if(link == 'settings'){ 
+        var nlink = $(element).attr('api-url');
+        var csrftoken = getCookie('csrftoken');
+        var client = new postRequest();
+        console.log(nlink);
+        client.post(nlink, 'get_settings=yes', csrftoken, function(response) {
+            console.log(response);
+            var json = JSON.parse(response);
+            var autotag = json['autotag'];
+            if (autotag){
+                autotag = 'checked';
+            }else{
+                autotag = '';
+            }
+            var auto_summary = json['auto_summary'];
+            if (auto_summary){
+                auto_summary = 'checked';
+            }else{
+                auto_summary = '';
+            }
+            var total_tags = json['total_tags'];
+            var buddy_list = json['buddy'];
+            
+            var msg = getsettings_html(autotag, auto_summary, total_tags, buddy_list);
+            console.log(autotag, auto_summary, total_tags, buddy_list);
+            var resp = bootbox.confirm(msg, function(resp){
+                if (resp){
+                    console.log(resp);
+                    var autotag = $('#autotag').is(':checked');
+                    var auto_summary = $('#auto_summary').is(':checked');
+                    console.log(autotag, auto_summary);
+                    var total_tags = $('#total_tags').val();
+                    var buddy_list = $('#buddy_list').val();
+                    if(buddy_list == null){
+                        buddy_list = "";
+                    }
+                    var post_data = `set_settings=yes&autotag=${autotag}&auto_summary=${auto_summary}&total_tags=${total_tags}`;
+                    post_data = post_data + `&buddy_list=${buddy_list}`;
+                    console.log(total_tags, buddy_list, post_data);
+                    var client = new postRequest();
+                    client.post(nlink, post_data, csrftoken, function(response) {
+                        console.log(response);
+                    })
+                }
+            })
+            
+        })
     }else if(link == 'url_archieve'){
         var nlink = $(element).attr('data-link');
         console.log(nlink)
@@ -383,6 +430,37 @@ function onsearch_dropdown(event, id){
     var nlm = $(`#${id}`);
     console.log(nlm.text());
     dropdown_menu_clicked(nlm);
+}
+
+function getsettings_html(autotag, auto_summary, total_tags, buddy_list){
+    var html = `<div class="form-check">
+        <input class="form-check-input" type="checkbox" value="autotag" id="autotag" ${autotag}>
+        <label class="form-check-label" for="autotag">
+        Automatic Tagging of URL
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="auto_summary" id="auto_summary" ${auto_summary}>
+        <label class="form-check-label" for="auto_summary">
+        Automatic Summary Extract
+        </label>
+    </div>
+    
+    <div></div>
+    
+    <div class="form-group">
+        <label>Total Tags Allowed</label>
+        <input class="form-control" type="text" value="${total_tags}" id="total_tags">
+        
+    </div>
+    
+    <div class="form-group">
+        <label>Group</label>
+        <input class="form-control" type="text" value="${buddy_list}" id="buddy_list"\
+         placeholder="Comma separated list of users for group access">
+        
+    </div>`;
+    return html;
 }
 
 function getcheckbox_string(list){
