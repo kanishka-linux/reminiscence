@@ -75,7 +75,8 @@ class DBAccess:
                 if archieve_html:
                     save_text = True
                 if settings_row and (settings_row.autotag or settings_row.auto_summary):
-                    summary, tags_list = Summarizer.get_summary_and_tags(req.html)
+                    summary, tags_list = Summarizer.get_summary_and_tags(req.html,
+                                                                         settings_row.total_tags)
             else:
                 title = url_name.rsplit('/')[-1]
                 save_text = True
@@ -118,7 +119,7 @@ class DBAccess:
             else:
                 with open(media_path, 'w') as fd:
                     fd.write(req.html)
-        if settings_row and tag_list:
+        if settings_row and tags_list:
             cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         return row.id
 
