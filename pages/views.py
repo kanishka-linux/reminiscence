@@ -186,6 +186,8 @@ def api_points(request, username):
         req_list = request.POST.get('listdir', '')
         req_search = request.POST.get('search', '')
         req_archieve = request.POST.get('archieve', '')
+        req_get_settings = request.POST.get('get_settings', '')
+        req_set_settings = request.POST.get('set_settings', '')
         if req_list and req_list == 'yes':
             q_list = Library.objects.filter(usr=usr)
             dir_list = set()
@@ -213,6 +215,65 @@ def api_points(request, username):
             print(mode, search_term)
             usr_list = dbxs.get_rows_by_directory(usr, search_mode=mode, search=search_term)
             ndict = dbxs.populate_usr_list(usr, usr_list, create_dict=True)
+            return HttpResponse(json.dumps(ndict))
+        elif req_get_settings and req_get_settings == 'yes':
+            qlist = UserSettings.objects.filter(usrid=usr)
+            print(qlist)
+            if qlist:
+                row = qlist[0]
+                ndict = {
+                    'autotag': row.autotag,
+                    'auto_summary':row.auto_summary,
+                    'total_tags': row.total_tags
+                }
+                if row.buddy_list:
+                    ndict.update({'buddy':row.buddy_list})
+                else:
+                    ndict.update({'buddy':''})
+            else:
+                ndict = {
+                    'autotag': False,
+                    'auto_summary': False,
+                    'total_tags': 5,
+                    'buddy':""
+                }
+            return HttpResponse(json.dumps(ndict))
+        elif req_set_settings and req_set_settings == 'yes':
+            autotag = request.POST.get('autotag', 'false')
+            auto_summary = request.POST.get('auto_summary', 'false')
+            total_tags = request.POST.get('total_tags', '5')
+            buddy_list = request.POST.get('buddy_list', '')
+            if autotag == 'true':
+                autotag = True
+            else:
+                autotag = False
+            if auto_summary == 'true':
+                auto_summary = True
+            else:
+                auto_summary = False
+            if total_tags.isnumeric():
+                total_tags = int(total_tags)
+            else:
+                total_tags = 5
+            if buddy_list:
+                buddy_list = [i.strip() for i in buddy_list.split(',') if i.strip()]
+                buddy_list = ','.join(buddy_list)
+            print(autotag, auto_summary, total_tags, buddy_list)
+            qlist = UserSettings.objects.filter(usrid=usr)
+            if qlist:
+                qlist[0].autotag = autotag
+                qlist[0].auto_summary = auto_summary
+                qlist[0].total_tags = total_tags
+                qlist[0].buddy_list = buddy_list
+                qlist[0].save()
+            else:
+                row = UserSettings.objects.create(usrid=usr, autotag=autotag,
+                                                  auto_summary=auto_summary,
+                                                  total_tags=total_tags,
+                                                  buddy_list=buddy_list)
+                row.save()
+                
+            ndict = {'status':'ok'}
             return HttpResponse(json.dumps(ndict))
         elif req_archieve and req_archieve in ['yes', 'force']:
             url_id = request.POST.get('url_id', '')
