@@ -54,7 +54,8 @@ class UserSettings(models.Model):
                                on_delete=models.CASCADE)
     autotag = models.BooleanField(default=False)
     auto_summary = models.BooleanField(default=False)
-
+    total_tags = models.PositiveSmallIntegerField(default=5)
+    buddy_list = models.CharField(max_length=8192, null=True)
 
 class GroupTable(models.Model):
     
