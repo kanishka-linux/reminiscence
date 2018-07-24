@@ -1,0 +1,62 @@
+{% load static %}<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}Reminiscence{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+  </head>
+<body>
+    
+
+{% block content %}
+
+<div class="card">
+<table class="table" >
+<thead class="thead-dark">
+  <tr>
+    <th></th>
+    <th class="align-middle">Title</th>
+    <th class="align-middle px-4">Action</th>
+  </tr>
+</thead>
+<tbody id="tbody">
+  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archieve, dir, rurl, idd, fav_path in usr_list %}
+    <tr>
+        <td>{% if fav_path %}<img width="24" src="{{fav_path}}">{% endif %}</td>
+      <td>
+        <a href="{{ archieve }}"><span class="text-lg-left">{{title}}</span></a></br>
+            <small>
+                <a href="{{loc}}" class="text-muted" id="netloc-muted">{{netloc}}</a>
+            </small>
+            {% if taglist %}
+                <div class="badges">
+                    {% for tag in taglist %}
+                        <a href="/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </td>
+        <td>
+        <div class="btn-group m-r-10 align-middle">
+            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button"><span class="caret">Select</span></button>
+        </div>
+        </br>
+        <small>
+            <footer class="text-muted px-2 py-2">{{timestamp}}</footer>
+        </small>
+        </td>
+    </tr>
+  {% endfor %}
+</tbody>
+</table>
+</div>
+{% endblock %}
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootbox.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+  </body>
+</html>
