@@ -113,8 +113,10 @@ function dropdown_menu_clicked(element){
             }
             var total_tags = json['total_tags'];
             var buddy_list = json['buddy'];
-            
-            var msg = getsettings_html(autotag, auto_summary, total_tags, buddy_list);
+            var public_dir = json['public_dir'];
+            var group_dir = json['group_dir'];
+            var msg = getsettings_html(autotag, auto_summary, total_tags,
+                                       buddy_list, public_dir, group_dir);
             console.log(autotag, auto_summary, total_tags, buddy_list);
             var resp = bootbox.confirm(msg, function(resp){
                 if (resp){
@@ -124,11 +126,19 @@ function dropdown_menu_clicked(element){
                     console.log(autotag, auto_summary);
                     var total_tags = $('#total_tags').val();
                     var buddy_list = $('#buddy_list').val();
+                    var public_dir = $('#public_dir').val();
+                    var group_dir = $('#group_dir').val();
                     if(buddy_list == null){
                         buddy_list = "";
                     }
+                    if (public_dir == null){
+                        public_dir = "";
+                    }
+                    if (group_dir == null){
+                        group_dir = "";
+                    }
                     var post_data = `set_settings=yes&autotag=${autotag}&auto_summary=${auto_summary}&total_tags=${total_tags}`;
-                    post_data = post_data + `&buddy_list=${buddy_list}`;
+                    post_data = post_data + `&buddy_list=${buddy_list}&public_dir=${public_dir}&group_dir=${group_dir}`;
                     console.log(total_tags, buddy_list, post_data);
                     var client = new postRequest();
                     client.post(nlink, post_data, csrftoken, function(response) {
@@ -432,7 +442,7 @@ function onsearch_dropdown(event, id){
     dropdown_menu_clicked(nlm);
 }
 
-function getsettings_html(autotag, auto_summary, total_tags, buddy_list){
+function getsettings_html(autotag, auto_summary, total_tags, buddy_list, public_dir, group_dir){
     var html = `<div class="form-check">
         <input class="form-check-input" type="checkbox" value="autotag" id="autotag" ${autotag}>
         <label class="form-check-label" for="autotag">
@@ -449,13 +459,23 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list){
     <div></div>
     
     <div class="form-group">
-        <label>Total Tags Allowed</label>
+        <label>Total Tags Per URL</label>
         <input class="form-control" type="text" value="${total_tags}" id="total_tags">
         
     </div>
     
     <div class="form-group">
-        <label>Group</label>
+        <label>Public Directory</label>
+        <input class="form-control" type="text" value="${public_dir}" id="public_dir">
+    </div>
+    
+    <div class="form-group">
+        <label>Group Directory</label>
+        <input class="form-control" type="text" value="${group_dir}" id="group_dir">
+    </div>
+    
+    <div class="form-group">
+        <label>Group Users</label>
         <input class="form-control" type="text" value="${buddy_list}" id="buddy_list"\
          placeholder="Comma separated list of users for group access">
         
