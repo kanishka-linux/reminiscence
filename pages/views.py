@@ -137,7 +137,51 @@ def perform_link_operation(request, username, directory, url_id):
 def default_dest(request):
     return redirect('home')
 
+def public_profile(request, username):
+    qlist = User.objects.filter(username=username)
+    if qlist:
+        usr = qlist[0]
+        qlist = UserSettings.objects.filter(usrid=usr)
+        if qlist:
+            public_dir = qlist[0].public_dir
+            if public_dir:
+                usr_list = dbxs.get_rows_by_directory(usr, directory=public_dir)
+                nlist = dbxs.populate_usr_list(usr, usr_list)
+                base_dir = '/{}/{}'.format(usr, public_dir)
+                return render(
+                            request, 'public.html',
+                            {
+                                'usr_list': nlist, 'form':"",
+                                'base_dir':base_dir, 'dirname':public_dir
+                            }
+                        )
+    return HttpResponse('No Public Profile Available')
 
+@login_required
+def group_profile(request, username):
+    group_usr = request.user
+    qlist = User.objects.filter(username=username)
+    if qlist:
+        usr = qlist[0]
+        qlist = UserSettings.objects.filter(usrid=usr)
+        if qlist:
+            buddy_list = qlist[0].buddy_list
+            group_dir = qlist[0].group_dir
+            if buddy_list and group_dir:
+                nbuddy = [i.strip() for i in buddy_list.split(',') if i.strip()]
+                if group_usr.username in nbuddy:
+                    usr_list = dbxs.get_rows_by_directory(usr, directory=group_dir)
+                    nlist = dbxs.populate_usr_list(usr, usr_list)
+                    base_dir = '/{}/{}'.format(usr, group_dir)
+                    return render(
+                                request, 'home_dir.html',
+                                {
+                                    'usr_list': nlist, 'form':"",
+                                    'base_dir':base_dir, 'dirname':group_dir
+                                }
+                            )
+    return HttpResponse('No Group Profile Available')
+    
 @login_required
 def navigate_directory(request, username, directory=None, tagname=None):
     usr = request.user
@@ -221,10 +265,20 @@ def api_points(request, username):
             print(qlist)
             if qlist:
                 row = qlist[0]
+                if row.public_dir:
+                    public_dir = row.public_dir
+                else:
+                    public_dir = ""
+                if row.group_dir:
+                    group_dir = row.group_dir
+                else:
+                    group_dir = ""
                 ndict = {
                     'autotag': row.autotag,
                     'auto_summary':row.auto_summary,
-                    'total_tags': row.total_tags
+                    'total_tags': row.total_tags,
+                    'public_dir': public_dir,
+                    'group_dir': group_dir
                 }
                 if row.buddy_list:
                     ndict.update({'buddy':row.buddy_list})
@@ -235,7 +289,9 @@ def api_points(request, username):
                     'autotag': False,
                     'auto_summary': False,
                     'total_tags': 5,
-                    'buddy':""
+                    'buddy': "",
+                    'public_dir': "",
+                    'group_dir': ""
                 }
             return HttpResponse(json.dumps(ndict))
         elif req_set_settings and req_set_settings == 'yes':
@@ -243,6 +299,8 @@ def api_points(request, username):
             auto_summary = request.POST.get('auto_summary', 'false')
             total_tags = request.POST.get('total_tags', '5')
             buddy_list = request.POST.get('buddy_list', '')
+            public_dir = request.POST.get('public_dir', '')
+            group_dir = request.POST.get('group_dir', '')
             if autotag == 'true':
                 autotag = True
             else:
@@ -265,12 +323,16 @@ def api_points(request, username):
                 qlist[0].auto_summary = auto_summary
                 qlist[0].total_tags = total_tags
                 qlist[0].buddy_list = buddy_list
+                qlist[0].public_dir = public_dir
+                qlist[0].group_dir = group_dir
                 qlist[0].save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
                                                   auto_summary=auto_summary,
                                                   total_tags=total_tags,
-                                                  buddy_list=buddy_list)
+                                                  buddy_list=buddy_list,
+                                                  public_dir=public_dir,
+                                                  group_dir=group_dir)
                 row.save()
                 
             ndict = {'status':'ok'}
