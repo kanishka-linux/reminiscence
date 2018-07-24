@@ -10,6 +10,7 @@ from vinanti import Vinanti
 from bs4 import BeautifulSoup
 from readability import Document
 from .models import Library
+from .dbaccess import DBAccess as dbxs
 
 logger = logging.getLogger(__name__)
 
@@ -169,12 +170,20 @@ class CustomRead:
                 <meta name="referrer" content="no-referrer">
             </head>
         <body>
-            <div class='card text-left bg-light mb-3'>
-                <div class='card-header'>
-                    <h6>{title}</h6>
-                </div>
-                <div class='card-body'>
-                    {content}
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm"></div>
+                    <div class="col-sm">
+                        <div class='card text-left bg-light mb-3'>
+                            <div class='card-header'>
+                                <h6>{title}</h6>
+                            </div>
+                            <div class='card-body'>
+                                {content}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm"></div>
                 </div>
             </div>
         </body>
@@ -220,14 +229,14 @@ class CustomRead:
             ilink = soup.find('link', {'rel':'icon'})
             slink = soup.find('link', {'rel':'shortcut icon'})
             if ilink:
-                favicon_link = format_link(ilink.get('href'), url_name)
+                favicon_link = dbxs.format_link(ilink.get('href'), url_name)
             elif slink:
-                favicon_link = format_link(slink.get('href'), url_name)
+                favicon_link = dbxs.format_link(slink.get('href'), url_name)
             else:
                 for i in links:
                     rel = i.get('href')
                     if (rel and (rel.endswith('.ico') or '.ico' in rel)):
-                        favicon_link = format_link(rel, url_name)
+                        favicon_link = dbxs.format_link(rel, url_name)
             if favicon_link:
                 cls.vnt.get(favicon_link, out=final_favicon_path)
     
