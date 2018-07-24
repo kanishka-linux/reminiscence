@@ -55,6 +55,8 @@ class UserSettings(models.Model):
     autotag = models.BooleanField(default=False)
     auto_summary = models.BooleanField(default=False)
     total_tags = models.PositiveSmallIntegerField(default=5)
+    public_dir = models.CharField(max_length=2048, null=True)
+    group_dir = models.CharField(max_length=2048, null=True)
     buddy_list = models.CharField(max_length=8192, null=True)
 
 class GroupTable(models.Model):
