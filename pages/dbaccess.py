@@ -11,6 +11,9 @@ from bs4 import BeautifulSoup
 from .models import Library, Tags, URLTags, UserSettings
 from .summarize import Summarizer
 
+import subprocess
+from celery.decorators import task
+
 logger = logging.getLogger(__name__)
 
 
@@ -119,10 +122,38 @@ class DBAccess:
             else:
                 with open(media_path, 'w') as fd:
                     fd.write(req.html)
+            if settings_row:
+                cls.convert_html_pdf(media_path_parent, settings_row, row, url_name)
         if settings_row and tags_list:
             cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         return row.id
-
+    
+    @classmethod
+    def convert_html_pdf(cls, media_path_parent, settings_row, row, url_name):
+        if settings_row.save_pdf or True:
+            pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
+            cmd = ['wkhtmltopdf', url_name, pdf]
+            if settings.USE_CELERY:
+                cls.convert_to_pdf.delay(cmd)
+            else:
+                subprocess.Popen(cmd)
+        if settings_row.save_png or True:
+            png = os.path.join(media_path_parent, str(row.id)+'.png')
+            cmd = ['wkhtmltoimage', '--quality', '85', url_name, png]
+            if settings.USE_CELERY:
+                cls.convert_to_png.delay(cmd)
+            else:
+                subprocess.Popen(cmd)
+        
+    
+    @task(name="convert-to-pdf")
+    def convert_to_pdf(cmd):
+        subprocess.call(cmd)
+    
+    @task(name="convert-to-png")
+    def convert_to_png(cmd):
+        subprocess.call(cmd)
+    
     @staticmethod
     def get_rows_by_directory(usr, directory=None, search=None, search_mode='title'):
         #usr_list = URLTags.objects.filter(url_id__usr=usr).select_related()
