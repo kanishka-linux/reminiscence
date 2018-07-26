@@ -186,3 +186,11 @@ ARCHIEVE_LOCATION = os.path.join(BASE_DIR, 'archieve')
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
 
 NLTK_DATA_PATH = os.path.join(BASE_DIR, 'static', 'nltk_data')
+
+USE_CELERY = False
+BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
