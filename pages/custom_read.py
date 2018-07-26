@@ -29,11 +29,17 @@ class CustomRead:
     fav_path = settings.FAVICONS_STATIC
     
     @classmethod
-    def get_archieved_file(cls, url_id):
+    def get_archieved_file(cls, url_id, mode='html'):
         qset = Library.objects.filter(id=url_id)
         if qset:
             row = qset[0]
             media_path = row.media_path
+            if mode in ['pdf', 'png'] and media_path:
+                fln, ext = media_path.rsplit('.', 1)
+                if mode == 'pdf':
+                    media_path = fln + '.pdf'
+                elif mode == 'png':
+                    media_path = fln + '.png'
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
                 if not mtype:
@@ -54,20 +60,21 @@ class CustomRead:
                         data = fd.read()
                 response = HttpResponse()
                 response['mimetype'] = mtype
+                response['content-type'] = mtype
+                filename = filename.replace(' ', '.')
+                print(filename, mtype)
                 if not cls.is_human_readable(mtype):
-                    response['Content-Disposition'] = (
-                        'attachment; filename={}'.format(filename)
-                    )
+                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
                 response.write(data)
                 return response
             else:
-                return HttpResponse('File has not been archieved')
+                return HttpResponse('File has not been archieved in this format')
         else:
             return HttpResponse('No url exists for this query')
     
     @classmethod
     def read_customized(cls, url_id):
-        qlist = Library.objects.filter(id=url_id)
+        qlist = Library.objects.filter(id=url_id).select_related()
         data = b"<html>Not Available</html>"
         mtype = 'text/htm'
         if qlist:
@@ -144,22 +151,32 @@ class CustomRead:
                         link['href'] = ourld + '/' + lnk
         if custom_html:
             ndata = soup.prettify()
+            title = soup.title.text
             data = Document(ndata)
             data_sum = data.summary()
             if data_sum:
                 nsoup = BeautifulSoup(data_sum, 'lxml')
                 if nsoup.text.strip():
-                    data = cls.custom_template(soup.title.text, nsoup.prettify())
+                    data = cls.custom_template(title, nsoup.prettify(), row)
                 else:
-                    data = cls.custom_soup(ndata, soup.title.text)
+                    data = cls.custom_soup(ndata, title, row)
             else:
-                data = cls.custom_soup(ndata, soup.title.text)
+                data = cls.custom_soup(ndata, title, row)
         else:
             data = soup.prettify()
         return bytes(data, 'utf-8')
         
     @staticmethod
-    def custom_template(title, content):
+    def custom_template(title, content, row):
+        if row:
+            base_dir = '/{}/{}/{}'.format(row.usr.username, row.directory, row.id)
+            read_url = base_dir + '/read'
+            read_pdf = base_dir + '/read-pdf'
+            read_png = base_dir + '/read-png'
+            read_html = base_dir + '/read-html'
+        else:
+            read_url = read_pdf = read_png = read_html = '#'
+            
         template = """
         <html>
             <head>
@@ -176,9 +193,23 @@ class CustomRead:
                     <div class="col-sm">
                         <div class='card text-left bg-light mb-3'>
                             <div class='card-header'>
-                                <h6>{title}</h6>
+                                <ul class="nav nav-tabs card-header-tabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="{read_url}">Custom</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{read_html}">HTML</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{read_pdf}">PDF</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{read_png}">PNG</a>
+                                    </li>
+                                </ul>
                             </div>
                             <div class='card-body'>
+                                <h5 class="card-title">{title}</h5>
                                 {content}
                             </div>
                         </div>
@@ -188,11 +219,13 @@ class CustomRead:
             </div>
         </body>
         </html>
-        """.format(title=title, content=content)
+        """.format(title=title, content=content,
+                   read_url=read_url, read_pdf=read_pdf,
+                   read_png=read_png, read_html=read_html)
         return template
 
     @classmethod
-    def custom_soup(cls, data, title):
+    def custom_soup(cls, data, title, row=None):
         soup = BeautifulSoup(data, 'lxml')
         text_result = soup.find_all(text=True)
         final_result = []
@@ -217,7 +250,7 @@ class CustomRead:
                 final_result.append(ntag)
         result = ''.join(final_result)
         result = re.sub(r'(</br>)+', '', result)
-        content = cls.custom_template(title, result)
+        content = cls.custom_template(title, result, row)
         return content
     
     @classmethod
