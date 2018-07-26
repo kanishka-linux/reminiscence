@@ -1,11 +1,17 @@
+amqp==2.3.2
 beautifulsoup4==4.6.0
+billiard==3.5.0.4
 bs4==0.0.1
+celery==4.2.1
 chardet==3.0.4
 cssselect==1.0.3
 Django==2.0.7
 django-widget-tweaks==1.4.2
+kombu==4.2.1
 lxml==4.2.3
 nltk==3.3
 pytz==2018.5
 readability-lxml==0.7
+redis==2.10.6
 six==1.11.0
+vine==1.1.4
