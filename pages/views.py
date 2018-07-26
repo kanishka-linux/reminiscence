@@ -127,6 +127,12 @@ def perform_link_operation(request, username, directory, url_id):
                 return cread.get_archieved_file(url_id)
             elif request.path_info.endswith('read'):
                 return cread.read_customized(url_id)
+            elif request.path_info.endswith('read-pdf'):
+                return cread.get_archieved_file(url_id, mode='pdf')
+            elif request.path_info.endswith('read-png'):
+                return cread.get_archieved_file(url_id, mode='png')
+            elif request.path_info.endswith('read-html'):
+                return cread.get_archieved_file(url_id)
         else:
             return HttpResponse('Method not Permitted')
     else:
@@ -351,7 +357,14 @@ def api_points(request, username):
                     if media_path and os.path.exists(media_path) and req_archieve == 'yes':
                         dict_val.update({'status':'already archieved'})
                     else:
-                        dbxs.process_add_url(usr, row.url, dirname, archieve_html=True, row=row)
+                        qlist = UserSettings.objects.filter(usrid=usr)
+                        if qlist:
+                            set_row = qlist[0]
+                        else:
+                            set_row = None
+                        dbxs.process_add_url(usr, row.url, dirname,
+                                             archieve_html=True, row=row,
+                                             settings_row=set_row)
                         dict_val.update({'status':'ok'})
                     return HttpResponse(json.dumps(dict_val))
                         
