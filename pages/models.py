@@ -57,6 +57,9 @@ class UserSettings(models.Model):
     total_tags = models.PositiveSmallIntegerField(default=5)
     public_dir = models.CharField(max_length=2048, null=True)
     group_dir = models.CharField(max_length=2048, null=True)
+    save_pdf = models.BooleanField(default=False)
+    save_png = models.BooleanField(default=False)
+    png_quality = models.PositiveSmallIntegerField(default=85)
     buddy_list = models.CharField(max_length=8192, null=True)
 
 class GroupTable(models.Model):
