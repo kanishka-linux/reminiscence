@@ -136,18 +136,28 @@ class DBAccess:
     def convert_html_pdf(cls, media_path_parent, settings_row, row, url_name):
         if settings_row.save_pdf:
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
-            cmd = ['wkhtmltopdf', url_name, pdf]
+            cmd = [
+                'wkhtmltopdf', '--custom-header',
+                'User-Agent', settings.USER_AGENT,
+                url_name, pdf
+            ]
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                subprocess.Popen(cmd)
+                subprocess.call(cmd)
+                logger.info(cmd)
         if settings_row.save_png:
             png = os.path.join(media_path_parent, str(row.id)+'.png')
-            cmd = ['wkhtmltoimage', '--quality', '85', url_name, png]
+            cmd = [
+                'wkhtmltoimage', '--quality', str(settings_row.png_quality),
+                '--custom-header', 'User-Agent', settings.USER_AGENT,
+                url_name, png
+            ]
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                subprocess.Popen(cmd)
+                subprocess.call(cmd)
+                logger.info(cmd)
         
     @task(name="convert-to-pdf-png")
     def convert_to_pdf_png(cmd):
