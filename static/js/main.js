@@ -111,23 +111,40 @@ function dropdown_menu_clicked(element){
             }else{
                 auto_summary = '';
             }
+            var save_pdf = json['save_pdf'];
+            if (save_pdf){
+                save_pdf = 'checked';
+            }else{
+                save_pdf = '';
+            }
+            var save_png = json['save_png'];
+            if (save_png){
+                save_png = 'checked';
+            }else{
+                save_png = '';
+            }
+            var png_quality = json['png_quality'];
             var total_tags = json['total_tags'];
             var buddy_list = json['buddy'];
             var public_dir = json['public_dir'];
             var group_dir = json['group_dir'];
             var msg = getsettings_html(autotag, auto_summary, total_tags,
-                                       buddy_list, public_dir, group_dir);
+                                       buddy_list, public_dir, group_dir,
+                                       save_pdf, save_png, png_quality);
             console.log(autotag, auto_summary, total_tags, buddy_list);
             var resp = bootbox.confirm(msg, function(resp){
                 if (resp){
                     console.log(resp);
                     var autotag = $('#autotag').is(':checked');
                     var auto_summary = $('#auto_summary').is(':checked');
+                    var save_pdf = $('#arch-pdf').is(':checked');
+                    var save_png = $('#arch-png').is(':checked');
                     console.log(autotag, auto_summary);
                     var total_tags = $('#total_tags').val();
                     var buddy_list = $('#buddy_list').val();
                     var public_dir = $('#public_dir').val();
                     var group_dir = $('#group_dir').val();
+                    var png_quality = $('#arch-png-quality').val();
                     if(buddy_list == null){
                         buddy_list = "";
                     }
@@ -139,6 +156,7 @@ function dropdown_menu_clicked(element){
                     }
                     var post_data = `set_settings=yes&autotag=${autotag}&auto_summary=${auto_summary}&total_tags=${total_tags}`;
                     post_data = post_data + `&buddy_list=${buddy_list}&public_dir=${public_dir}&group_dir=${group_dir}`;
+                    post_data = post_data + `&save_pdf=${save_pdf}&save_png=${save_png}&png_quality=${png_quality}`;
                     console.log(total_tags, buddy_list, post_data);
                     var client = new postRequest();
                     client.post(nlink, post_data, csrftoken, function(response) {
@@ -442,7 +460,9 @@ function onsearch_dropdown(event, id){
     dropdown_menu_clicked(nlm);
 }
 
-function getsettings_html(autotag, auto_summary, total_tags, buddy_list, public_dir, group_dir){
+function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
+                          public_dir, group_dir, arch_pdf, arch_png,
+                          arch_png_quality){
     var html = `<div class="form-check">
         <input class="form-check-input" type="checkbox" value="autotag" id="autotag" ${autotag}>
         <label class="form-check-label" for="autotag">
@@ -475,13 +495,13 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list, public_
                 </label>
             </div>
             <div class="form-check-inline">
-                <input class="form-check-input" type="checkbox" value="arch-pdf" id="arch-pdf">
+                <input class="form-check-input" type="checkbox" value="arch-pdf" id="arch-pdf" ${arch_pdf}>
                 <label class="form-check-label" for="arch-pdf">
                 PDF
                 </label>
             </div>
             <div class="form-check-inline">
-                <input class="form-check-input" type="checkbox" value="arch-png" id="arch-png">
+                <input class="form-check-input" type="checkbox" value="arch-png" id="arch-png" ${arch_png}>
                 <label class="form-check-label" for="arch-png">
                 PNG
                 </label>
@@ -491,7 +511,7 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list, public_
     <div class="form-group row py-2">
         <label class="col-sm-4 col-form-label">PNG Quality</label>
         <div class="col-sm-8">
-        <input class="form-control" type="text" value="" id="arch-png-quality" placeholder="0-100">
+        <input class="form-control" type="text" id="arch-png-quality" value="${arch_png_quality}" placeholder="0-100">
         </div>
     </div>
     
