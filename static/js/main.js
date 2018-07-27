@@ -455,30 +455,67 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list, public_
         Automatic Summary Extract
         </label>
     </div>
-    
-    <div></div>
-    
-    <div class="form-group">
-        <label>Total Tags Per URL</label>
+    <div class="form-group row py-2">
+        <label class="col-sm-4 col-form-label">Total Tags Per URL</label>
+        <div class="col-sm-8">
         <input class="form-control" type="text" value="${total_tags}" id="total_tags">
-        
+        </div>
     </div>
     
-    <div class="form-group">
-        <label>Public Directory</label>
+    <div class="dropdown-divider"></div>
+    <div class="row">
+        <div class="col-sm-4">
+            Archieve Formats
+        </div>
+        <div class="col-sm-8">
+            <div class="form-check-inline">
+                <input class="form-check-input" type="checkbox" value="arch-html" id="arch-html" Disabled checked>
+                <label class="form-check-label" for="arch-html">
+                HTML
+                </label>
+            </div>
+            <div class="form-check-inline">
+                <input class="form-check-input" type="checkbox" value="arch-pdf" id="arch-pdf">
+                <label class="form-check-label" for="arch-pdf">
+                PDF
+                </label>
+            </div>
+            <div class="form-check-inline">
+                <input class="form-check-input" type="checkbox" value="arch-png" id="arch-png">
+                <label class="form-check-label" for="arch-png">
+                PNG
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="form-group row py-2">
+        <label class="col-sm-4 col-form-label">PNG Quality</label>
+        <div class="col-sm-8">
+        <input class="form-control" type="text" value="" id="arch-png-quality" placeholder="0-100">
+        </div>
+    </div>
+    
+    <div class="dropdown-divider"></div>
+    <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Public Directory</label>
+        <div class="col-sm-8">
         <input class="form-control" type="text" value="${public_dir}" id="public_dir">
+        </div>
     </div>
     
-    <div class="form-group">
-        <label>Group Directory</label>
+    <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Group Directory</label>
+        <div class="col-sm-8">
         <input class="form-control" type="text" value="${group_dir}" id="group_dir">
+        </div>
     </div>
     
-    <div class="form-group">
-        <label>Group Users</label>
+    <div class="form-group row">
+        <label class="col-sm-4 col-form-label">Group Users</label>
+        <div class="col-sm-8">
         <input class="form-control" type="text" value="${buddy_list}" id="buddy_list"\
          placeholder="Comma separated list of users for group access">
-        
+        </div>
     </div>`;
     return html;
 }
