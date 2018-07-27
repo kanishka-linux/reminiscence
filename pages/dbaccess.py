@@ -58,7 +58,11 @@ class DBAccess:
                 content_type = req.content_type.split(';')[0].strip()
             else:
                 content_type = req.content_type
-            ext = guess_extension(content_type)
+            if content_type == 'text/plain':
+                ext = '.txt'
+            else:
+                ext = guess_extension(content_type)
+            print(content_type, '------', ext)
         if req and req.html and not req.binary:
             if 'text/html' in req.content_type:
                 soup = BeautifulSoup(req.html, 'html.parser')
