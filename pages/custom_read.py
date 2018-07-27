@@ -68,15 +68,15 @@ class CustomRead:
                 response.write(data)
                 return response
             else:
-                return HttpResponse('File has not been archieved in this format')
+                return HttpResponse('<html>File has not been archieved in this format</html>')
         else:
-            return HttpResponse('No url exists for this query')
+            return HttpResponse('<html>No url exists for this query</html>')
     
     @classmethod
     def read_customized(cls, url_id):
         qlist = Library.objects.filter(id=url_id).select_related()
         data = b"<html>Not Available</html>"
-        mtype = 'text/htm'
+        mtype = 'text/html'
         if qlist:
             row = qlist[0]
             media_path = row.media_path
@@ -86,10 +86,13 @@ class CustomRead:
                 if mtype in cls.mtype_list:
                     data = cls.format_html(row, media_path,
                                            custom_html=True)
+                    if mtype == 'text/plain':
+                        mtype = 'text/html'
             elif row.url:
                 data = cls.get_content(row, url_id, media_path)
         response = HttpResponse()
         response['mimetype'] = mtype
+        response['content-type'] = mtype
         response.write(data)
         return response
     
@@ -151,7 +154,10 @@ class CustomRead:
                         link['href'] = ourld + '/' + lnk
         if custom_html:
             ndata = soup.prettify()
-            title = soup.title.text
+            if soup.title:
+                title = soup.title.text
+            else:
+                title = row.url.rsplit('/')[-1]
             data = Document(ndata)
             data_sum = data.summary()
             if data_sum:
@@ -195,10 +201,10 @@ class CustomRead:
                             <div class='card-header'>
                                 <ul class="nav nav-tabs card-header-tabs">
                                     <li class="nav-item">
-                                        <a class="nav-link active" href="{read_url}">Custom</a>
+                                        <a class="nav-link active" href="{read_url}">HTML</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" href="{read_html}">HTML</a>
+                                        <a class="nav-link" href="{read_html}">Original</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{read_pdf}">PDF</a>
