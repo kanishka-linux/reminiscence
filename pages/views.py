@@ -284,7 +284,10 @@ def api_points(request, username):
                     'auto_summary':row.auto_summary,
                     'total_tags': row.total_tags,
                     'public_dir': public_dir,
-                    'group_dir': group_dir
+                    'group_dir': group_dir,
+                    'save_pdf': row.save_pdf,
+                    'save_png': row.save_png,
+                    'png_quality': row.png_quality
                 }
                 if row.buddy_list:
                     ndict.update({'buddy':row.buddy_list})
@@ -297,7 +300,10 @@ def api_points(request, username):
                     'total_tags': 5,
                     'buddy': "",
                     'public_dir': "",
-                    'group_dir': ""
+                    'group_dir': "",
+                    'save_pdf': False,
+                    'save_png': False,
+                    'png_quality': 85
                 }
             return HttpResponse(json.dumps(ndict))
         elif req_set_settings and req_set_settings == 'yes':
@@ -307,6 +313,9 @@ def api_points(request, username):
             buddy_list = request.POST.get('buddy_list', '')
             public_dir = request.POST.get('public_dir', '')
             group_dir = request.POST.get('group_dir', '')
+            save_pdf = request.POST.get('save_pdf', '')
+            save_png = request.POST.get('save_png', '')
+            png_quality = request.POST.get('png_quality', '')
             if autotag == 'true':
                 autotag = True
             else:
@@ -319,6 +328,18 @@ def api_points(request, username):
                 total_tags = int(total_tags)
             else:
                 total_tags = 5
+            if save_pdf == 'true':
+                save_pdf = True
+            else:
+                save_pdf = False
+            if save_png == 'true':
+                save_png = True
+            else:
+                save_png = False
+            if png_quality and png_quality.isnumeric():
+                png_quality = int(png_quality) if int(png_quality) in range(0, 101) else 85
+            else:
+                png_quality = 85
             if buddy_list:
                 buddy_list = [i.strip() for i in buddy_list.split(',') if i.strip()]
                 buddy_list = ','.join(buddy_list)
@@ -331,6 +352,9 @@ def api_points(request, username):
                 qlist[0].buddy_list = buddy_list
                 qlist[0].public_dir = public_dir
                 qlist[0].group_dir = group_dir
+                qlist[0].save_pdf = save_pdf
+                qlist[0].save_png = save_png
+                qlist[0].png_quality = png_quality
                 qlist[0].save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
@@ -338,7 +362,10 @@ def api_points(request, username):
                                                   total_tags=total_tags,
                                                   buddy_list=buddy_list,
                                                   public_dir=public_dir,
-                                                  group_dir=group_dir)
+                                                  group_dir=group_dir,
+                                                  save_pdf=save_pdf,
+                                                  save_png=save_png,
+                                                  png_quality=png_quality)
                 row.save()
                 
             ndict = {'status':'ok'}
