@@ -126,7 +126,7 @@ class DBAccess:
             else:
                 with open(media_path, 'w') as fd:
                     fd.write(req.html)
-            if settings_row:
+            if settings_row and ext in ['.htm', '.html']:
                 cls.convert_html_pdf(media_path_parent, settings_row, row, url_name)
         if settings_row and tags_list:
             cls.edit_tags(usr, row.id, ','.join(tags_list), '')
