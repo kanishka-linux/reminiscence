@@ -83,9 +83,10 @@ class Summarizer:
         for i, j in enumerate(final):
             nsum = j[1].strip()
             nsum = re.sub(r' +', ' ', nsum)
+            nsum = re.sub(r'\n', '. ', nsum)
             if i == 0:
                 sumr = nsum
             else:
-                sumr = sumr + '\n' +nsum
+                sumr = sumr + '\n\n' +nsum
         
         return sumr.strip(), final_tags
