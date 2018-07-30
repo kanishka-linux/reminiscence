@@ -166,6 +166,37 @@ function dropdown_menu_clicked(element){
             })
             
         })
+    }else if(link == 'url_summary'){
+        var nlink = $(element).attr('data-link');
+        var csrftoken = getCookie('csrftoken');
+        var api_link = $(element).attr('data-url');
+        var url_id = nlink.split('/').reverse()[1];
+        post_data = `req_summary=yes&url_id=${url_id}`;
+        console.log(post_data);
+        var client = new postRequest();
+        client.post(
+                    api_link,
+                    post_data,
+                    csrftoken,
+                    function(response) {
+                        var json = JSON.parse(response);
+                        var summary = json['summary'];
+                        var summary_str = getsummary(summary);
+                        var resp = bootbox.confirm(summary_str, function(resp){
+                            if(resp){
+                                var newsum = $('#summary-text').val().trim();
+                                if(summary != newsum){
+                                    console.log(newsum);
+                                    var post_data = `req_summary=modify&url_id=${url_id}&modified_summary=`+encodeURIComponent(newsum);
+                                    var client = new postRequest();
+                                    client.post(api_link, post_data, csrftoken, function(response) {
+                                        console.log(response);
+                                    })
+                                    
+                                }
+                            }
+                        })
+                    })
     }else if(link == 'url_archieve'){
         var nlink = $(element).attr('data-link');
         console.log(nlink)
@@ -179,9 +210,9 @@ function dropdown_menu_clicked(element){
         var api_link = $(element).attr('data-url');
         var url_id = idlink.split('/').reverse()[1];
         post_data = `archieve=force&dirname=${dirname}&url_id=${url_id}`;
-        console.log(post_data)
-        console.log(idlink)
-        console.log(nlink, footer_al.attr('href'))
+        console.log(post_data);
+        console.log(idlink);
+        console.log(nlink, footer_al.attr('href'));
         if (nlink == footer_al.attr('href')){
             var client = new postRequest();
             client.post(
@@ -577,6 +608,16 @@ function getstr(title, url, tags){
         </div>
     </div>
     </form>`;
+    return str;
+}
+
+function getsummary(summary){
+    var str = `
+    <div class="form-group row">
+        <textarea rows=10 id='summary-text' type='text' name='summary-text' class="form-control">
+            ${summary}
+        </textarea>
+    </div>`;
     return str;
 }
 
