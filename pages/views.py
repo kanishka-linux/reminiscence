@@ -283,6 +283,15 @@ def api_points(request, username):
                         summary = re.sub(' +', ' ', summary)
             ndict.update({'summary':summary})
             return HttpResponse(json.dumps(ndict))
+        elif req_summary and req_summary == 'modify':
+            reqid = request.POST.get('url_id', '')
+            summary = request.POST.get('modified_summary', '')
+            msg = "no modied"
+            print(summary)
+            if reqid and reqid.isnumeric() and summary:
+                qlist = Library.objects.filter(id=int(reqid)).update(summary=summary)
+                msg = 'modified summary'
+            return HttpResponse(msg)
         elif req_get_settings and req_get_settings == 'yes':
             qlist = UserSettings.objects.filter(usrid=usr)
             print(qlist)
