@@ -1,6 +1,7 @@
 import os
-from bs4 import BeautifulSoup
+import re
 import nltk
+from bs4 import BeautifulSoup
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize, sent_tokenize
@@ -79,7 +80,12 @@ class Summarizer:
         final = sorted(final, key=lambda x: x[0])
         
         sumr = ''
-        for i in final:
-            sumr = sumr + ' ' +i[1]
+        for i, j in enumerate(final):
+            nsum = j[1].strip()
+            nsum = re.sub(r' +', ' ', nsum)
+            if i == 0:
+                sumr = nsum
+            else:
+                sumr = sumr + '\n' +nsum
         
         return sumr.strip(), final_tags
