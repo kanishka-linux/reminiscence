@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import shutil
 import logging
@@ -238,6 +239,7 @@ def api_points(request, username):
         req_archieve = request.POST.get('archieve', '')
         req_get_settings = request.POST.get('get_settings', '')
         req_set_settings = request.POST.get('set_settings', '')
+        req_summary = request.POST.get('req_summary', '')
         if req_list and req_list == 'yes':
             q_list = Library.objects.filter(usr=usr)
             dir_list = set()
@@ -265,6 +267,21 @@ def api_points(request, username):
             print(mode, search_term)
             usr_list = dbxs.get_rows_by_directory(usr, search_mode=mode, search=search_term)
             ndict = dbxs.populate_usr_list(usr, usr_list, create_dict=True)
+            return HttpResponse(json.dumps(ndict))
+        elif req_summary and req_summary == 'yes':
+            ndict = {}
+            reqid = request.POST.get('url_id', '')
+            summary = 'not available'
+            if reqid and reqid.isnumeric():
+                qlist = Library.objects.filter(id=int(reqid))
+                if qlist:
+                    summary = qlist[0].summary
+                    if not summary:
+                        summary = ('Automatic Summary not generated!\
+                                    First enable automatic summary generation\
+                                    from settings. Remove this link and add it again.')
+                        summary = re.sub(' +', ' ', summary)
+            ndict.update({'summary':summary})
             return HttpResponse(json.dumps(ndict))
         elif req_get_settings and req_get_settings == 'yes':
             qlist = UserSettings.objects.filter(usrid=usr)
