@@ -26,7 +26,7 @@ Self-hosted Bookmark and Archieve manager
 
 # Installation
 
-First make sure that **python 3.5+** and **python-setuptools** and **virtualenv** are properly installed. Then execute following commands in terminal.
+First make sure that **python 3.5+**, **python-setuptools** and **virtualenv** are properly installed. One can install virtualenv either using pip or native package manager of distro. Then execute following commands in terminal.
 
     1. mkdir reminiscence
     
