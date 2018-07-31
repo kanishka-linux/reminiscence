@@ -28,21 +28,19 @@ Self-hosted Bookmark and Archieve manager
 
 First make sure that **python 3.5+** is installed on system and install following packages using native package manager.
 
-    1. python-setuptools
-    
-    2. python-virtualenv
+    2. virtualenv
     
     3. wkhtmltopdf (for html to pdf/png conversion)
     
-    4. redis (optional)
+    4. redis-server (optional)
     
 Installation of above dependencies in Arch or Arch based distros
 
-    $ sudo pacman -S python-setuptools python-virtualenv wkhtmltopdf redis
+    $ sudo pacman -S python-virtualenv wkhtmltopdf redis
     
 Installation of above dependencies in Debian or Ubuntu based distros
 
-    $ sudo apt install python3-setuptools python3-virtualenv wkhtmltopdf redis-server
+    $ sudo apt install virtualenv wkhtmltopdf redis-server
     
     
 #### Now execute following commands in terminal.
