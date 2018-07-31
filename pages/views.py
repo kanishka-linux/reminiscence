@@ -184,7 +184,8 @@ def group_profile(request, username):
                                 request, 'home_dir.html',
                                 {
                                     'usr_list': nlist, 'form':"",
-                                    'base_dir':base_dir, 'dirname':group_dir
+                                    'base_dir':base_dir, 'dirname':group_dir,
+                                    'refresh': 'no'
                                 }
                             )
     return HttpResponse('No Group Profile Available')
@@ -196,6 +197,7 @@ def navigate_directory(request, username, directory=None, tagname=None):
     usr_list = []
     if username and usr.username != username:
         return redirect('/'+usr.username)
+    add_url = 'no'
     if directory or tagname:
         place_holder = 'Enter URL'
         if request.method == 'POST' and directory:
@@ -203,6 +205,7 @@ def navigate_directory(request, username, directory=None, tagname=None):
             if form.is_valid():
                 row = UserSettings.objects.filter(usrid=usr)
                 dbxs.add_new_url(usr, request, directory, row)
+                add_url = 'yes'
             else:
                 place_holder = 'Wrong Input, Enter URL'
         form = AddURL()
@@ -220,7 +223,8 @@ def navigate_directory(request, username, directory=None, tagname=None):
                     request, 'home_dir.html',
                     {
                         'usr_list': nlist, 'form':form,
-                        'base_dir':base_dir, 'dirname':directory
+                        'base_dir':base_dir, 'dirname':directory,
+                        'refresh':add_url
                     }
                 )
     else:
@@ -313,7 +317,8 @@ def api_points(request, username):
                     'group_dir': group_dir,
                     'save_pdf': row.save_pdf,
                     'save_png': row.save_png,
-                    'png_quality': row.png_quality
+                    'png_quality': row.png_quality,
+                    'auto_archieve': row.auto_archieve
                 }
                 if row.buddy_list:
                     ndict.update({'buddy':row.buddy_list})
@@ -329,7 +334,8 @@ def api_points(request, username):
                     'group_dir': "",
                     'save_pdf': False,
                     'save_png': False,
-                    'png_quality': 85
+                    'png_quality': 85,
+                    'auto_archieve': False
                 }
             return HttpResponse(json.dumps(ndict))
         elif req_set_settings and req_set_settings == 'yes':
@@ -342,6 +348,7 @@ def api_points(request, username):
             save_pdf = request.POST.get('save_pdf', '')
             save_png = request.POST.get('save_png', '')
             png_quality = request.POST.get('png_quality', '')
+            auto_archieve = request.POST.get('auto_archieve', '')
             if autotag == 'true':
                 autotag = True
             else:
@@ -362,6 +369,10 @@ def api_points(request, username):
                 save_png = True
             else:
                 save_png = False
+            if auto_archieve == 'true':
+                auto_archieve = True
+            else:
+                auto_archieve = False
             if png_quality and png_quality.isnumeric():
                 png_quality = int(png_quality) if int(png_quality) in range(0, 101) else 85
             else:
@@ -369,7 +380,7 @@ def api_points(request, username):
             if buddy_list:
                 buddy_list = [i.strip() for i in buddy_list.split(',') if i.strip()]
                 buddy_list = ','.join(buddy_list)
-            print(autotag, auto_summary, total_tags, buddy_list)
+            print(autotag, auto_summary, total_tags, buddy_list, auto_archieve, '>>>>')
             qlist = UserSettings.objects.filter(usrid=usr)
             if qlist:
                 qlist[0].autotag = autotag
@@ -381,6 +392,7 @@ def api_points(request, username):
                 qlist[0].save_pdf = save_pdf
                 qlist[0].save_png = save_png
                 qlist[0].png_quality = png_quality
+                qlist[0].auto_archieve = auto_archieve
                 qlist[0].save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
@@ -391,7 +403,8 @@ def api_points(request, username):
                                                   group_dir=group_dir,
                                                   save_pdf=save_pdf,
                                                   save_png=save_png,
-                                                  png_quality=png_quality)
+                                                  png_quality=png_quality,
+                                                  auto_archieve=auto_archieve)
                 row.save()
                 
             ndict = {'status':'ok'}
