@@ -26,39 +26,37 @@ Self-hosted Bookmark and Archieve manager
 
 # Installation
 
-First make sure that python 3.5+ and python-setuptools are properly installed. Then execute following commands in terminal.
+First make sure that **python 3.5+** and **python-setuptools** and **virtualenv** are properly installed. Then execute following commands in terminal.
 
-    1. sudo pip install virtualenv
+    1. mkdir reminiscence
     
-    2. mkdir reminiscence
+    2. cd reminiscence
     
-    3. cd reminiscence
+    3. virtualenv -p python3 venv
     
-    4. virtualenv -p python3 venv
+    4. source venv/bin/activate
     
-    5. source venv/bin/activate
+    5. cd venv
     
-    6. cd venv
+    6. git clone https://github.com/kanishka-linux/reminiscence.git
     
-    7. git clone https://github.com/kanishka-linux/reminiscence.git
+    7. cd reminiscence
     
-    8. cd reminiscence
+    8. pip install -r requirements.txt
     
-    9. pip install -r requirements.txt
+    9. python manage.py generatesecretkey
     
-    10. python manage.py generatesecretkey
+    10. python manage.py migrate
     
-    11. python manage.py migrate
-    
-    12. python manage.py createsuperuser
+    11. python manage.py createsuperuser
 
-    13. python manage.py runserver 127.0.0.1:8000 
+    12. python manage.py runserver 127.0.0.1:8000 
     
-    14. open 127.0.0.1:8000 from any browser, login and start adding links
+    13. open 127.0.0.1:8000 from any browser, login and start adding links
     
 **Note:** replace localhost address with local ip address of your server to access web-interface from anywhere on the local network
     
-PDF's and PNG's are generated using wkhtmltopdf, so install it using package manager of your distro.
+PDF's and PNG's are generated using **wkhtmltopdf**, so install it using package manager of your distro.
 
     For Arch or arch-based distros
 
