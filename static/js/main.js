@@ -123,20 +123,29 @@ function dropdown_menu_clicked(element){
             }else{
                 save_png = '';
             }
+            var auto_archieve = json['auto_archieve'];
+            if (auto_archieve){
+                auto_archieve = 'checked';
+            }else{
+                auto_archieve = '';
+            }
             var png_quality = json['png_quality'];
             var total_tags = json['total_tags'];
             var buddy_list = json['buddy'];
             var public_dir = json['public_dir'];
             var group_dir = json['group_dir'];
+            
             var msg = getsettings_html(autotag, auto_summary, total_tags,
                                        buddy_list, public_dir, group_dir,
-                                       save_pdf, save_png, png_quality);
+                                       save_pdf, save_png, png_quality,
+                                       auto_archieve);
             console.log(autotag, auto_summary, total_tags, buddy_list);
             var resp = bootbox.confirm(msg, function(resp){
                 if (resp){
                     console.log(resp);
                     var autotag = $('#autotag').is(':checked');
                     var auto_summary = $('#auto_summary').is(':checked');
+                    var auto_archieve = $('#auto_archieve').is(':checked');
                     var save_pdf = $('#arch-pdf').is(':checked');
                     var save_png = $('#arch-png').is(':checked');
                     console.log(autotag, auto_summary);
@@ -157,6 +166,7 @@ function dropdown_menu_clicked(element){
                     var post_data = `set_settings=yes&autotag=${autotag}&auto_summary=${auto_summary}&total_tags=${total_tags}`;
                     post_data = post_data + `&buddy_list=${buddy_list}&public_dir=${public_dir}&group_dir=${group_dir}`;
                     post_data = post_data + `&save_pdf=${save_pdf}&save_png=${save_png}&png_quality=${png_quality}`;
+                    post_data = post_data + `&auto_archieve=${auto_archieve}`;
                     console.log(total_tags, buddy_list, post_data);
                     var client = new postRequest();
                     client.post(nlink, post_data, csrftoken, function(response) {
@@ -394,7 +404,6 @@ function move_to_bookmark(post_data, api_link, nlink, csrftoken, el){
     })
 }
 
-
 function create_badge_nodes(usr, taglist, mode){
     var string = '';
     if (usr == null){
@@ -493,7 +502,7 @@ function onsearch_dropdown(event, id){
 
 function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
                           public_dir, group_dir, arch_pdf, arch_png,
-                          arch_png_quality){
+                          arch_png_quality, auto_archieve){
     var html = `<div class="form-check">
         <input class="form-check-input" type="checkbox" value="autotag" id="autotag" ${autotag}>
         <label class="form-check-label" for="autotag">
@@ -514,6 +523,12 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
     </div>
     
     <div class="dropdown-divider"></div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="auto_archieve" id="auto_archieve" ${auto_archieve}>
+        <label class="form-check-label" for="auto_archieve">
+        Automatic Archieve Generation
+        </label>
+    </div>
     <div class="row">
         <div class="col-sm-4">
             Archieve Formats
@@ -667,4 +682,10 @@ var postRequest = function() {
 
 
 
-
+$(document).ready(function(){
+    var refresh_page = $('.table').attr('data-refresh');
+    if (refresh_page == 'yes'){
+        setTimeout(function(){window.location.href = window.location.href;}, 5000);
+        console.log('refresh after 5 seconds');
+    };
+});
