@@ -26,68 +26,77 @@ Self-hosted Bookmark and Archieve manager
 
 # Installation
 
-First make sure that **python 3.5+**, **python-setuptools** and **virtualenv** are properly installed. One can install virtualenv either using pip or native package manager of distro. Then execute following commands in terminal.
+First make sure that **python 3.5+** is installed on system and install following packages using native package manager.
 
-    1. mkdir reminiscence
+    1. python-setuptools
     
-    2. cd reminiscence
+    2. python-virtualenv
     
-    3. virtualenv -p python3 venv
+    3. wkhtmltopdf (for html to pdf/png conversion)
     
-    4. source venv/bin/activate
+    4. redis (optional)
     
-    5. cd venv
-    
-    6. git clone https://github.com/kanishka-linux/reminiscence.git
-    
-    7. cd reminiscence
-    
-    8. pip install -r requirements.txt
-    
-    9. python manage.py generatesecretkey
-    
-    10. python manage.py migrate
-    
-    11. python manage.py createsuperuser
+Installation of above dependencies in Arch or Arch based distros
 
-    12. python manage.py runserver 127.0.0.1:8000 
+    $ sudo pacman -S python-setuptools python-virtualenv wkhtmltopdf redis
     
-    13. open 127.0.0.1:8000 from any browser, login and start adding links
-    
-**Note:** replace localhost address with local ip address of your server to access web-interface from anywhere on the local network
-    
-PDF's and PNG's are generated using **wkhtmltopdf**, so install it using package manager of your distro.
+Installation of above dependencies in Debian or Ubuntu based distros
 
-    For Arch or arch-based distros
+    $ sudo apt install python3-setuptools python3-virtualenv wkhtmltopdf redis-server
+    
+    
+Now execute following commands in terminal.
 
-        $ sudo pacman -S wkhtmltopdf 
+    $ mkdir reminiscence
     
-    For debian or ubuntu based distros
+    $ cd reminiscence
     
-        $ sudo apt install wkhtmltopdf
+    $ virtualenv -p python3 venv
+    
+    $ source venv/bin/activate
+    
+    $ cd venv
+    
+    $ git clone https://github.com/kanishka-linux/reminiscence.git
+    
+    $ cd reminiscence
+    
+    $ pip install -r requirements.txt
+    
+    $ python manage.py generatesecretkey
+    
+    $ python manage.py migrate
+    
+    $ python manage.py createsuperuser
+
+    $ python manage.py runserver 127.0.0.1:8000 
+    
+    open 127.0.0.1:8000 from any browser, login and start adding links
+    
+    **Note:** replace localhost address with local ip address of your server
+            
+              to access web-interface from anywhere on the local network
+              
         
 Setting up Celery (optional):
 
-Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery which will be then executed in the background and will release load on the application. 
+Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
     
     1. Edit reminiscence/settings.py file and set USE_CELERY = True
     
-    Now open another terminal in the same project directory
+    * Now open another terminal in the same topmost project directory and execute following commands:
     
-    2. cd venv
+    $ cd venv
     
-    3. source bin/activate
+    $ source bin/activate
     
-    4. cd venv/reminiscence
+    $ cd venv/reminiscence
     
-    5. celery -A reminiscence worker --loglevel=info
+    $ celery -A reminiscence worker --loglevel=info
     
-    6. Install and launch redis-server
+    * launch redis-server from another terminal
+    
+    $ redis-server
         
-        (Arch) $ sudo pacman -S redis
-        
-        (Ubuntu) $ sudo apt install redis-server
-        
-        launch: redis-server from another separate terminal
             
 
