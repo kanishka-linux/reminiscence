@@ -26,7 +26,7 @@ Self-hosted Bookmark and Archieve manager
 
 # Installation
 
-* First make sure that python 3.5+ and python-setuptools are properly installed. Then execute following commands in terminal:
+..* First make sure that python 3.5+ and python-setuptools are properly installed. Then execute following commands in terminal:
 
     1. sudo pip install virtualenv
     
@@ -68,7 +68,7 @@ Self-hosted Bookmark and Archieve manager
     
         $ sudo apt install wkhtmltopdf
         
-* Setting up Celery (optional):
+..* Setting up Celery (optional):
 
     Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery which will be then executed in the background and will release load on the application. 
     
