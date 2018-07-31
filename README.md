@@ -45,7 +45,7 @@ Installation of above dependencies in Debian or Ubuntu based distros
     $ sudo apt install python3-setuptools python3-virtualenv wkhtmltopdf redis-server
     
     
-Now execute following commands in terminal.
+## Now execute following commands in terminal.
 
     $ mkdir reminiscence
     
@@ -78,13 +78,13 @@ Now execute following commands in terminal.
               to access web-interface from anywhere on the local network
               
         
-Setting up Celery (optional):
+## Setting up Celery (optional):
 
 Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
     
     1. Edit reminiscence/settings.py file and set USE_CELERY = True
     
-    * Now open another terminal in the same topmost project directory and execute following commands:
+* Now open another terminal in the same topmost project directory and execute following commands:
     
     $ cd venv
     
