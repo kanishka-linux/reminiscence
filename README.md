@@ -61,6 +61,8 @@ Installation of above dependencies in Debian or Ubuntu based distros
     
     $ pip install -r requirements.txt
     
+    $ mkdir logs archieve
+    
     $ python manage.py generatesecretkey
     
     $ python manage.py migrate
