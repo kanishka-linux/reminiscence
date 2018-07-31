@@ -2,6 +2,7 @@ import os
 import json
 import shutil
 import logging
+from functools import partial
 from urllib.parse import urlparse
 from mimetypes import guess_extension
 
@@ -19,7 +20,10 @@ logger = logging.getLogger(__name__)
 
 class DBAccess:
     
-    vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
+    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT})
+    vnt_task = Vinanti(block=False, group_task=False,
+                       backend='function', multiprocess=True,
+                       max_requests=5)
     
     @classmethod
     def add_new_url(cls, usr, request, directory, row):
@@ -46,12 +50,20 @@ class DBAccess:
     def process_add_url(cls, usr, url_name, directory,
                         archieve_html, row=None,
                         settings_row=None):
+        part = partial(cls.url_fetch_completed, usr, url_name,
+                       directory, archieve_html, row, settings_row)
+        cls.vnt.get(url_name, onfinished=part)
+    
+    @classmethod
+    def url_fetch_completed(cls, usr, url_name, directory,
+                            archieve_html, row, settings_row,
+                            *args):
         ext = None
         save = False
         save_text = False
         favicon_link = None
         summary = 'none'
-        req = cls.vnt.get(url_name)
+        req = args[-1]
         tags_list = []
         if req and req.content_type:
             if ';' in req.content_type:
@@ -79,7 +91,7 @@ class DBAccess:
                         if (rel and (rel.endswith('.ico') or '.ico' in rel)):
                             favicon_link = cls.format_link(rel, url_name)
                         
-                if archieve_html:
+                if archieve_html or (settings_row and settings_row.auto_archieve):
                     save_text = True
                 if settings_row and (settings_row.autotag or settings_row.auto_summary):
                     summary, tags_list = Summarizer.get_summary_and_tags(req.html,
@@ -139,24 +151,28 @@ class DBAccess:
             cmd = [
                 'wkhtmltopdf', '--custom-header',
                 'User-Agent', settings.USER_AGENT,
+                '--javascript-delay', '500',
                 url_name, pdf
             ]
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                subprocess.call(cmd)
+                #subprocess.Popen(cmd)
+                cls.vnt_task.function(cls.convert_to_pdf_png, cmd)
                 logger.info(cmd)
         if settings_row.save_png:
             png = os.path.join(media_path_parent, str(row.id)+'.png')
             cmd = [
                 'wkhtmltoimage', '--quality', str(settings_row.png_quality),
                 '--custom-header', 'User-Agent', settings.USER_AGENT,
+                '--javascript-delay', '500',
                 url_name, png
             ]
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                subprocess.call(cmd)
+                #subprocess.Popen(cmd)
+                cls.vnt_task.function(cls.convert_to_pdf_png, cmd)
                 logger.info(cmd)
         
     @task(name="convert-to-pdf-png")
@@ -315,9 +331,9 @@ class DBAccess:
             elif lnk.startswith('/'):
                 lnk = ourld + lnk
             elif lnk.startswith('./'): 
-                lnk = ""
+                lnk = url.rsplit('/', 1)[0] + lnk[1:]
             elif lnk.startswith('../'):
-                lnk = ""
+                lnk = url.rsplit('/', 2)[0] + lnk[2:]
             elif not lnk.startswith('http'):
                 lnk = ourld + '/' + lnk
         return lnk
