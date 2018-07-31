@@ -26,7 +26,7 @@ Self-hosted Bookmark and Archieve manager
 
 # Installation
 
-First make sure that python 3.5+ and python-setuptools are properly installed. Then execute following commands in terminal:
+First make sure that python 3.5+ and python-setuptools are properly installed. Then execute following commands in terminal.
 
     1. sudo pip install virtualenv
     
@@ -56,7 +56,7 @@ First make sure that python 3.5+ and python-setuptools are properly installed. T
     
     14. open 127.0.0.1:8000 from any browser, login and start adding links
     
-    Note: replace localhost address with local ip address of your server to access web-interface from anywhere on the local network
+**Note:** replace localhost address with local ip address of your server to access web-interface from anywhere on the local network
     
 PDF's and PNG's are generated using wkhtmltopdf, so install it using package manager of your distro.
 
@@ -70,7 +70,7 @@ PDF's and PNG's are generated using wkhtmltopdf, so install it using package man
         
 Setting up Celery (optional):
 
-    Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery which will be then executed in the background and will release load on the application. 
+Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery which will be then executed in the background and will release load on the application. 
     
     1. Edit reminiscence/settings.py file and set USE_CELERY = True
     
