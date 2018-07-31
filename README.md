@@ -61,7 +61,7 @@ Installation of above dependencies in Debian or Ubuntu based distros
     
     $ pip install -r requirements.txt
     
-    $ mkdir logs archieve
+    $ mkdir logs archieve archieve/favicons
     
     $ python manage.py generatesecretkey
     
