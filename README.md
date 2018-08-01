@@ -65,6 +65,8 @@ Installation of above dependencies in Debian or Ubuntu based distros
     
     $ python manage.py generatesecretkey
     
+    $ python manage.py nltkdownload
+    
     $ python manage.py migrate
     
     $ python manage.py createsuperuser
