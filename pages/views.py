@@ -6,7 +6,7 @@ import logging
 
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
-from mimetypes import guess_extension
+from mimetypes import guess_extension, guess_type
 from collections import Counter
 
 from django.shortcuts import render, redirect
@@ -25,6 +25,7 @@ from .forms import AddDir, RenameDir, RemoveDir, AddURL
 from .custom_read import CustomRead as cread
 from .dbaccess import DBAccess as dbxs
 from .summarize import Summarizer
+from .utils import ImportBookmarks
 
 logger = logging.getLogger(__name__)
 
@@ -245,6 +246,9 @@ def api_points(request, username):
         req_get_settings = request.POST.get('get_settings', '')
         req_set_settings = request.POST.get('set_settings', '')
         req_summary = request.POST.get('req_summary', '')
+        req_import = request.POST.get('import-bookmark', '')
+        print(req_import)
+        print(request.FILES)
         if req_list and req_list == 'yes':
             q_list = Library.objects.filter(usr=usr)
             dir_list = set()
@@ -256,6 +260,23 @@ def api_points(request, username):
             dir_list.sort()
             dir_dict = {'dir':dir_list}
             return HttpResponse(json.dumps(dir_dict))
+        elif req_import and req_import == 'yes':
+            req_file = request.FILES.get('file-upload', '')
+            if req_file:
+                filename = req_file.name
+                print(filename)
+                mime_type = guess_type(filename)[0]
+                print(mime_type)
+                if mime_type in ['text/html', 'text/htm']:
+                    content = req_file.read().decode('utf-8')
+                    qlist = UserSettings.objects.filter(usrid=usr)
+                    if qlist:
+                        settings_row = qlist[0]
+                    else:
+                        settings_row = None
+                    ImportBookmarks.import_bookmarks(usr, settings_row,
+                                                     content, mode='content')
+            return HttpResponse('OK')
         elif req_search and len(req_search) > 2:
             if req_search.startswith('tag:'):
                 search_term = req_search.split(':', 1)[1]
@@ -381,7 +402,6 @@ def api_points(request, username):
             if buddy_list:
                 buddy_list = [i.strip() for i in buddy_list.split(',') if i.strip()]
                 buddy_list = ','.join(buddy_list)
-            print(autotag, auto_summary, total_tags, buddy_list, auto_archieve, '>>>>')
             qlist = UserSettings.objects.filter(usrid=usr)
             if qlist:
                 qlist[0].autotag = autotag
