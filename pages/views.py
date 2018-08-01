@@ -24,6 +24,7 @@ from .models import Library, Tags, URLTags, UserSettings
 from .forms import AddDir, RenameDir, RemoveDir, AddURL
 from .custom_read import CustomRead as cread
 from .dbaccess import DBAccess as dbxs
+from .summarize import Summarizer
 
 logger = logging.getLogger(__name__)
 
@@ -406,7 +407,8 @@ def api_points(request, username):
                                                   png_quality=png_quality,
                                                   auto_archieve=auto_archieve)
                 row.save()
-                
+            if (autotag or auto_summary) and not os.path.exists(settings.NLTK_DATA_PATH):
+                dbxs.vnt_task.function(Summarizer.check_data_path)
             ndict = {'status':'ok'}
             return HttpResponse(json.dumps(ndict))
         elif req_archieve and req_archieve in ['yes', 'force']:
