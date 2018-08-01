@@ -20,10 +20,10 @@ logger = logging.getLogger(__name__)
 
 class DBAccess:
     
-    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT})
+    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT}, max_requests=5)
     vnt_task = Vinanti(block=False, group_task=False,
                        backend='function', multiprocess=True,
-                       max_requests=5)
+                       max_requests=2)
     
     @classmethod
     def add_new_url(cls, usr, request, directory, row):
@@ -160,7 +160,7 @@ class DBAccess:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
                 #subprocess.Popen(cmd)
-                cls.vnt_task.function(cls.convert_to_pdf_png, cmd)
+                cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
                 logger.info(cmd)
         if settings_row.save_png:
             png = os.path.join(media_path_parent, str(row.id)+'.png')
@@ -174,9 +174,12 @@ class DBAccess:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
                 #subprocess.Popen(cmd)
-                cls.vnt_task.function(cls.convert_to_pdf_png, cmd)
+                cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
                 logger.info(cmd)
-        
+    
+    def convert_to_pdf_png_task(cmd):
+        subprocess.call(cmd)
+    
     @task(name="convert-to-pdf-png")
     def convert_to_pdf_png(cmd):
         subprocess.call(cmd)
