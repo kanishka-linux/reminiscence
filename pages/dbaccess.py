@@ -122,6 +122,8 @@ class DBAccess:
         media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
         if not os.path.exists(media_dir):
             os.makedirs(media_dir)
+        if not os.path.exists(settings.FAVICONS_STATIC):
+            os.makedirs(settings.FAVICONS_STATIC)
         media_path_parent = os.path.join(media_dir, str(row.id))
         final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
         media_path = os.path.join(media_path_parent, out_title)
