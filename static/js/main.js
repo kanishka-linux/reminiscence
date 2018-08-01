@@ -91,6 +91,22 @@ function dropdown_menu_clicked(element){
     }else if(link == 'url_read'){
         var nlink = $(element).attr('data-link');
         window.location.href = nlink;
+    }else if (link == 'import-settings'){
+        var nlink = $(element).attr('api-url');
+        var csrftoken = getCookie('csrftoken');
+        var html = create_upload_field(nlink);
+        var resp = bootbox.confirm(html, function(resp){
+            if(resp){
+                var file = document.getElementById('upload-file-field').files[0];
+                var formdata = new FormData();
+                formdata.append('import-bookmark', 'yes');
+                formdata.append('file-upload', file);
+                var client = new postRequestUpload();
+                client.post(nlink, formdata, csrftoken, function(response) {
+                    console.log(response);
+                })
+            }
+        })
     }else if(link == 'settings'){ 
         var nlink = $(element).attr('api-url');
         var csrftoken = getCookie('csrftoken');
@@ -429,6 +445,14 @@ function create_directory_badge(usr, dirname){
     return string
 }
 
+function create_upload_field(api){
+    string = `<form>
+                Browse for file ... <input id="upload-file-field" type="file"/>
+                </form>
+            `;
+    return string;
+}
+
 function create_table_rows(usr, badge_nodes, index, title, netloc,
                            loc, timestamp, edit_b, ms, remove_link,
                            archieve_media, dirname, dir_badge,
@@ -680,7 +704,18 @@ var postRequest = function() {
     }
 };
 
-
+var postRequestUpload = function() {
+    this.post = function(url, params, token, callbak) {
+        var http_req = new XMLHttpRequest();
+        http_req.onreadystatechange = function() { 
+            if (http_req.readyState == 4 && http_req.status == 200)
+                {callbak(http_req.responseText);}
+        }
+        http_req.open( "POST", url, true );
+        http_req.setRequestHeader("X-CSRFToken", token);
+        http_req.send(params);
+    }
+};
 
 $(document).ready(function(){
     var refresh_page = $('.table').attr('data-refresh');
