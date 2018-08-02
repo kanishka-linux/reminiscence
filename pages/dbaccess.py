@@ -163,7 +163,7 @@ class DBAccess:
                 url_name, pdf
             ]
             if settings.USE_XVFB:
-                cmd = ['xvfb-run'] + cmd
+                cmd = ['xvfb-run', '--auto-servernum'] + cmd
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
@@ -177,7 +177,7 @@ class DBAccess:
                 url_name, png
             ]
             if settings.USE_XVFB:
-                cmd = ['xvfb-run'] + cmd
+                cmd = ['xvfb-run', '--auto-servernum'] + cmd
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
