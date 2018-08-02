@@ -23,7 +23,7 @@ class DBAccess:
     vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT}, max_requests=5)
     vnt_task = Vinanti(block=False, group_task=False,
                        backend='function', multiprocess=True,
-                       max_requests=2)
+                       max_requests=4)
     
     @classmethod
     def add_new_url(cls, usr, request, directory, row):
@@ -144,24 +144,28 @@ class DBAccess:
                 with open(media_path, 'w') as fd:
                     fd.write(req.html)
             if settings_row and ext in ['.htm', '.html']:
-                cls.convert_html_pdf(media_path_parent, settings_row, row, url_name)
+                cls.convert_html_pdf(media_path_parent, settings_row,
+                                     row, url_name, media_path)
         if settings_row and tags_list:
             cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         return row.id
     
     @classmethod
-    def convert_html_pdf(cls, media_path_parent, settings_row, row, url_name):
+    def convert_html_pdf(cls, media_path_parent,
+                         settings_row, row, url_name,
+                         media_path):
         if settings_row.save_pdf:
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
-                'chromium', '--headless', '--disable-gpu',
-                '--print-to-pdf="{}"'.format(pdf), url_name
+                'wkhtmltopdf', '--custom-header',
+                'User-Agent', settings.USER_AGENT,
+                '--javascript-delay', '500',
+                url_name, pdf
             ]
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
                 cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
-                logger.info(cmd)
         if settings_row.save_png:
             png = os.path.join(media_path_parent, str(row.id)+'.png')
             cmd = [
@@ -176,15 +180,19 @@ class DBAccess:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
                 cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
-                logger.info(cmd)
     
     def convert_to_pdf_png_task(cmd):
-        print(cmd)
-        subprocess.call(cmd)
+        if os.name == 'posix':
+            subprocess.call(cmd)
+        else:
+            subprocess.call(cmd, shell=True)
     
     @task(name="convert-to-pdf-png")
     def convert_to_pdf_png(cmd):
-        subprocess.call(cmd)
+        if os.name == 'posix':
+            subprocess.call(cmd)
+        else:
+            subprocess.call(cmd, shell=True)
     
     @staticmethod
     def get_rows_by_directory(usr, directory=None, search=None, search_mode='title'):
