@@ -162,6 +162,8 @@ class DBAccess:
                 '--javascript-delay', '500',
                 url_name, pdf
             ]
+            if settings.USE_XVFB:
+                cmd = ['xvfb-run'] + cmd
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
