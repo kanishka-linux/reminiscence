@@ -21,6 +21,7 @@ class Library(models.Model):
     media_path = models.CharField(max_length=4096, null=True)
     access = models.PositiveSmallIntegerField(choices=ACCESS_CHOICES, default=PRIVATE)
     summary = models.TextField(null=True)
+    tags = models.CharField(max_length=4096, null=True)
     
     def __str__(self):
         return '{}. {}'.format(self.id, self.title)
