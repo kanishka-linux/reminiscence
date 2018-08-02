@@ -78,7 +78,10 @@ class DBAccess:
         if req and req.html and not req.binary:
             if 'text/html' in req.content_type:
                 soup = BeautifulSoup(req.html, 'html.parser')
-                title = soup.title.text
+                if soup.title:
+                    title = soup.title.text
+                else:
+                    title = url_name.rsplit('/')[-1]
                 ilink = soup.find('link', {'rel':'icon'})
                 slink = soup.find('link', {'rel':'shortcut icon'})
                 if ilink:
@@ -159,7 +162,6 @@ class DBAccess:
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                #subprocess.Popen(cmd)
                 cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
                 logger.info(cmd)
         if settings_row.save_png:
@@ -173,11 +175,11 @@ class DBAccess:
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                #subprocess.Popen(cmd)
                 cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
                 logger.info(cmd)
     
     def convert_to_pdf_png_task(cmd):
+        print(cmd)
         subprocess.call(cmd)
     
     @task(name="convert-to-pdf-png")
@@ -186,64 +188,31 @@ class DBAccess:
     
     @staticmethod
     def get_rows_by_directory(usr, directory=None, search=None, search_mode='title'):
-        #usr_list = URLTags.objects.filter(url_id__usr=usr).select_related()
         
         usr_list = []
         
         if search and search_mode != 'dir':
-            url_list = URLTags.objects.filter(usr_id=usr).select_related('url_id').order_by('url_id')
-            url_id_list = [i.url_id.id for i in url_list]
             if search_mode == 'title':
-                usr_list = Library.objects.filter(
-                                usr=usr, title__icontains=search
-                            ).exclude(id__in=url_id_list)
+                usr_list = Library.objects.filter(usr=usr, title__icontains=search)
             elif search_mode == 'url':
-                usr_list = Library.objects.filter(
-                                usr=usr, url__icontains=search
-                            ).exclude(id__in=url_id_list)
+                usr_list = Library.objects.filter(usr=usr, url__icontains=search)
         else:
             if not directory and search and search_mode == 'dir':
                 directory = search
-            url_list = URLTags.objects.filter(usr_id=usr).select_related('url_id').order_by('url_id')
-            url_id_list = [i.url_id.id for i in url_list]
-            usr_list = Library.objects.filter(
-                            usr=usr, directory=directory
-                        ).exclude(id__in=url_id_list)
+            usr_list = Library.objects.filter(usr=usr, directory=directory)
                         
-        tag_no_list = [
-                (
-                    i.title, i.url, i.id, i.timestamp,
-                    [], i.directory, i.media_path
-                ) for i in usr_list if i.url
-            ]
-        udict = {}
-        for i in url_list:
-            url = i.url_id.url
-            tagname = i.tag_id.tag
-            dirname = i.url_id.directory
-            title = i.url_id.title
-            media_path = i.url_id.media_path
-            update_udict = False
-            if (search and ((search_mode == 'title' and search in title.lower())
-                    or (search_mode == 'url' and search in url.lower())
-                    or (search_mode == 'tag' and search == tagname))):
-                update_udict = True
-            if url in udict:
-                udict[url][-3] = udict[url][-3] + [tagname]
-            elif (directory and directory == dirname) or update_udict:
-                udict.update(
-                    {
-                        url:[
-                            title, url, i.url_id.id,
-                            i.url_id.timestamp, [tagname],
-                            dirname, media_path
-                        ]
-                    }
+        nusr_list = []
+        for row in usr_list:
+            if row.url:
+                if not row.tags:
+                    tags = []
+                else:
+                    tags = row.tags.split(',')
+                nusr_list.append(
+                    (row.title, row.url, row.id, row.timestamp,
+                     tags, row.directory, row.media_path)
                 )
-        list_with_tag = [tuple(value) for key, value in udict.items()]
-        usr_list = list_with_tag + tag_no_list
-        
-        return usr_list
+        return nusr_list
 
     @staticmethod
     def get_rows_by_tag(usr, tagname):
@@ -407,6 +376,7 @@ class DBAccess:
     @staticmethod
     def edit_tags(usr, url_id, tags, tags_old):
         tags_list = [i.lower().strip() for i in tags.split(',')]
+        tags_list_library = ','.join(list(set(tags_list)))
         tags_list_old = [i.lower().strip() for i in tags_old.split(',')]
         tags_list = [i for i in tags_list if i]
         tags_list_old = [i for i in tags_list_old if i]
@@ -425,6 +395,8 @@ class DBAccess:
             
         lib_list = Library.objects.filter(id=url_id)
         lib_obj = lib_list[0]
+        lib_obj.tags = tags_list_library
+        lib_obj.save()
         tagins_list = []
         for tag in tags_new_add:
             tag_obj = Tags.objects.filter(tag=tag)
