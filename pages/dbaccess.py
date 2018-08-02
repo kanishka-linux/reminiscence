@@ -154,10 +154,8 @@ class DBAccess:
         if settings_row.save_pdf:
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
-                'wkhtmltopdf', '--custom-header',
-                'User-Agent', settings.USER_AGENT,
-                '--javascript-delay', '500',
-                url_name, pdf
+                'chromium', '--headless', '--disable-gpu',
+                '--print-to-pdf="{}"'.format(pdf), url_name
             ]
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
@@ -172,6 +170,8 @@ class DBAccess:
                 '--javascript-delay', '500',
                 url_name, png
             ]
+            if settings.USE_XVFB:
+                cmd = ['xvfb-run'] + cmd
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
