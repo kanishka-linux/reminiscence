@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class DBAccess:
     
-    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT}, max_requests=5)
+    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT}, max_requests=20)
     vnt_task = Vinanti(block=False, group_task=False,
                        backend='function', multiprocess=True,
                        max_requests=4)
