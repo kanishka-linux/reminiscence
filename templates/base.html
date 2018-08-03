@@ -31,6 +31,7 @@
                   <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userMenu">
                     <span class="dropdown-item" data-val="settings" api-url="/{{user.username}}/api/request">Settings</span>
                     <span class="dropdown-item" data-val="import-settings" api-url="/{{user.username}}/api/request">Import</span>
+                    <span class="dropdown-item" data-val="upload-settings" api-url="/{{user.username}}/api/request">Upload</span>
                     <a class="dropdown-item" href="{% url 'password_change' %}">Password</a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="{% url 'logout' %}">Log out</a>
