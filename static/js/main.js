@@ -94,13 +94,42 @@ function dropdown_menu_clicked(element){
     }else if (link == 'import-settings'){
         var nlink = $(element).attr('api-url');
         var csrftoken = getCookie('csrftoken');
-        var html = create_upload_field(nlink);
+        var html = create_upload_field(nlink, 'import');
         var resp = bootbox.confirm(html, function(resp){
             if(resp){
                 var file = document.getElementById('upload-file-field').files[0];
                 var formdata = new FormData();
                 formdata.append('import-bookmark', 'yes');
                 formdata.append('file-upload', file);
+                var dialog = bootbox.dialog({message:'<p class="text-center">Please Wait..</p>', closebutton:false});
+                var client = new postRequestUpload();
+                client.post(nlink, formdata, csrftoken, function(response) {
+                    console.log(response);
+                    dialog.find('.bootbox-body').html(`<p class="text-center">OK, ${file.name} file uploaded.\
+                                                       You can close the dialog, if it is not auto-closed!`);
+                    setTimeout(function(){dialog.modal('hide')}, 1000);
+                })
+                
+            }
+        })
+    }else if(link == 'upload-settings'){
+        var nlink = $(element).attr('api-url');
+        var dirname = $('.breadcrumb-item').find('a').eq(1).text().trim();
+        console.log(dirname)
+        var csrftoken = getCookie('csrftoken');
+        var html = create_upload_field(nlink, 'upload');
+        var resp = bootbox.confirm(html, function(resp){
+            if(resp){
+                var file = document.getElementById('upload-file-field');
+                var formdata = new FormData();
+                formdata.append('upload-binary', 'yes');
+                formdata.append('dirname', dirname);
+                var index = 0;
+                for(var x =0 ; x < file.files.length; x++){
+                    formdata.append(`file-upload-${index}`, file.files[x]);
+                    console.log(file.files[x].name);
+                    index += 1;
+                }
                 var dialog = bootbox.dialog({message:'<p class="text-center">Please Wait..</p>', closebutton:false});
                 var client = new postRequestUpload();
                 client.post(nlink, formdata, csrftoken, function(response) {
@@ -453,14 +482,20 @@ function create_directory_badge(usr, dirname){
     return string
 }
 
-function create_upload_field(api){
+function create_upload_field(api, value){
+    var label_text = 'Import Netscape Bookmark File in HTML Format';
+    var multiple = "";
+    if (value == 'upload'){
+        label_text = 'Select Multiple Files To Upload';
+        multiple = 'multiple';
+    }
     string = `<form>
                 <div class="row py-4">
-                    <label class="col-sm-4 btn btn-primary">
-                        Browse for file ... <input id="upload-file-field" type="file" onchange="display_upload_file_name(event)"hidden>
+                    <label class="col-sm-4 btn btn-primary" id="upload-input-button">
+                        Browse for file ... <input id="upload-file-field" ${multiple} type="file" onchange="display_upload_file_name(event)" hidden>
                     </label>
                     <label class="col-sm-8" id="upload-label">
-                        Netscape Bookmark File in HTML Format
+                        ${label_text}
                     <label>
                 </div>
                 </form>
@@ -469,13 +504,22 @@ function create_upload_field(api){
 }
 
 function display_upload_file_name(event){
-    var file = document.getElementById('upload-file-field').files[0];
-    var filename = file.name;
-    if (filename.length > 20){
-        var last_5 = filename.substr(filename.length - 5);
-        filename = filename.slice(0, 20) + '...' + last_5;
+    var file = document.getElementById('upload-file-field');
+    var nfilename = ""
+    for(var x = 0; x < file.files.length; x++){
+        var filename = file.files[x].name;
+        if (filename.length > 20){
+            var last_5 = filename.substr(filename.length - 5);
+            filename = filename.slice(0, 20) + '...' + last_5;
+        }
+        if (x == 0){
+            nfilename = filename;
+        }else{
+            nfilename = nfilename + '; ' +filename;
+        }
+        
     }
-    $('#upload-label').text(filename);
+    $('#upload-label').text(nfilename);
 }
 
 function create_table_rows(usr, badge_nodes, index, title, netloc,
