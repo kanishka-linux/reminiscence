@@ -101,10 +101,15 @@ function dropdown_menu_clicked(element){
                 var formdata = new FormData();
                 formdata.append('import-bookmark', 'yes');
                 formdata.append('file-upload', file);
+                var dialog = bootbox.dialog({message:'<p class="text-center">Please Wait..</p>', closebutton:false});
                 var client = new postRequestUpload();
                 client.post(nlink, formdata, csrftoken, function(response) {
                     console.log(response);
+                    dialog.find('.bootbox-body').html(`<p class="text-center">OK, ${file.name} file uploaded.\
+                                                       You can close the dialog, if it is not auto-closed!`);
+                    setTimeout(function(){dialog.modal('hide')}, 1000);
                 })
+                
             }
         })
     }else if(link == 'settings'){ 
@@ -213,9 +218,12 @@ function dropdown_menu_clicked(element){
                                 var newsum = $('#summary-text').val().trim();
                                 if(summary != newsum){
                                     console.log(newsum);
-                                    var post_data = `req_summary=modify&url_id=${url_id}&modified_summary=`+encodeURIComponent(newsum);
-                                    var client = new postRequest();
-                                    client.post(api_link, post_data, csrftoken, function(response) {
+                                    var formdata = new FormData;
+                                    formdata.append('req_summary', 'modify');
+                                    formdata.append('url_id', url_id);
+                                    formdata.append('modified_summary', newsum)
+                                    var client = new postRequestUpload();
+                                    client.post(api_link, formdata, csrftoken, function(response) {
                                         console.log(response);
                                     })
                                     
@@ -447,10 +455,27 @@ function create_directory_badge(usr, dirname){
 
 function create_upload_field(api){
     string = `<form>
-                Browse for file ... <input id="upload-file-field" type="file"/>
+                <div class="row py-4">
+                    <label class="col-sm-4 btn btn-primary">
+                        Browse for file ... <input id="upload-file-field" type="file" onchange="display_upload_file_name(event)"hidden>
+                    </label>
+                    <label class="col-sm-8" id="upload-label">
+                        Netscape Bookmark File in HTML Format
+                    <label>
+                </div>
                 </form>
             `;
     return string;
+}
+
+function display_upload_file_name(event){
+    var file = document.getElementById('upload-file-field').files[0];
+    var filename = file.name;
+    if (filename.length > 20){
+        var last_5 = filename.substr(filename.length - 5);
+        filename = filename.slice(0, 20) + '...' + last_5;
+    }
+    $('#upload-label').text(filename);
 }
 
 function create_table_rows(usr, badge_nodes, index, title, netloc,
