@@ -4,7 +4,7 @@ import shutil
 import logging
 from functools import partial
 from urllib.parse import urlparse
-from mimetypes import guess_extension
+from mimetypes import guess_extension, guess_type
 
 from django.conf import settings
 from vinanti import Vinanti
@@ -149,6 +149,46 @@ class DBAccess:
         if settings_row and tags_list:
             cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         return row.id
+    
+    @classmethod
+    def save_in_binary_format(cls, usr, request, directory):
+        url_list = []
+        for key, value in request.FILES.items():
+            title = value.name
+            content = value.read()
+            ext = None
+            content_type = guess_type(title)[0]
+            if content_type and content_type == 'text/plain':
+                ext = '.txt'
+            elif content_type:
+                ext = guess_extension(content_type)
+            print(content_type, '------', ext)
+            if not ext:
+                ext = '.bin'
+            out_dir = ext[1:].upper()
+            row = Library.objects.create(usr=usr,
+                                         directory=directory,
+                                         title=title)
+            
+            out_title = str(row.id) + str(ext)
+            media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
+            if not os.path.exists(media_dir):
+                os.makedirs(media_dir)
+            
+            media_path_parent = os.path.join(media_dir, str(row.id))
+            if not os.path.exists(media_path_parent):
+                os.makedirs(media_path_parent)
+                    
+            media_path = os.path.join(media_path_parent, out_title)
+            row.media_path = media_path
+            url = '/{}/{}/{}/archieve'.format(usr.username, directory, row.id)
+            row.url = url
+            row.save()
+            with open(media_path, 'wb') as fd:
+                fd.write(content)
+            url_list.append(url)
+            
+        return url_list
     
     @classmethod
     def convert_html_pdf(cls, media_path_parent,
