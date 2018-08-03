@@ -247,6 +247,7 @@ def api_points(request, username):
         req_set_settings = request.POST.get('set_settings', '')
         req_summary = request.POST.get('req_summary', '')
         req_import = request.POST.get('import-bookmark', '')
+        req_upload = request.POST.get('upload-binary', '')
         print(req_import)
         print(request.FILES)
         if req_list and req_list == 'yes':
@@ -276,6 +277,15 @@ def api_points(request, username):
                         settings_row = None
                     ImportBookmarks.import_bookmarks(usr, settings_row,
                                                      content, mode='content')
+            return HttpResponse('OK')
+        elif req_upload and req_upload == 'yes':
+            dirname = request.POST.get('dirname', '')
+            if not dirname:
+                dirname = 'Uploads'
+                qdir = Library.objects.filter(usr=usr, directory=dirname)
+                if not qdir:
+                    Library.objects.create(usr=usr, directory=dirname).save()
+            dbxs.save_in_binary_format(usr, request, dirname)
             return HttpResponse('OK')
         elif req_search and len(req_search) > 2:
             if req_search.startswith('tag:'):
