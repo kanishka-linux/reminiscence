@@ -206,6 +206,10 @@ class DBAccess:
                 usr_list = Library.objects.filter(usr=usr, title__icontains=search)
             elif search_mode == 'url':
                 usr_list = Library.objects.filter(usr=usr, url__icontains=search)
+            elif search_mode == 'tag':
+                usr_list = Library.objects.filter(usr=usr, tags__icontains=search)
+            elif search_mode == 'summary':
+                usr_list = Library.objects.filter(usr=usr, summary__icontains=search)
         else:
             if not directory and search and search_mode == 'dir':
                 directory = search
