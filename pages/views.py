@@ -287,6 +287,9 @@ def api_points(request, username):
             elif req_search.startswith('dir:'):
                 search_term = req_search.split(':', 1)[1]
                 mode = 'dir'
+            elif req_search.startswith('sum:'):
+                search_term = req_search.split(':', 1)[1]
+                mode = 'summary'
             else:
                 search_term = req_search
                 mode = 'title'
