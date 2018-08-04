@@ -16,6 +16,7 @@ class Library(models.Model):
     usr = models.ForeignKey(User, related_name='usr', on_delete=models.CASCADE)
     directory = models.CharField(max_length=2048)
     url = models.CharField(max_length=4096, null=True)
+    icon_url = models.CharField(max_length=4096, null=True)
     title = models.CharField(max_length=2048, null=True)
     timestamp = models.DateTimeField(auto_now_add=True, null=True)
     media_path = models.CharField(max_length=4096, null=True)
