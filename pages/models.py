@@ -46,7 +46,7 @@ class URLTags(models.Model):
                                on_delete=models.CASCADE)
                                
     def __str__(self):
-        return '{}, {}'.format(url_id, tag_id)
+        return '{}, {}'.format(self.url_id, self.tag_id)
 
         
 class UserSettings(models.Model):
