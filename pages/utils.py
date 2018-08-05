@@ -5,6 +5,7 @@ import logging
 from .models import Library
 from .dbaccess import DBAccess as dbxs
 from datetime import datetime
+from django.utils import timezone
 from mimetypes import guess_type, guess_extension
 from django.conf import settings
 from vinanti import Vinanti
@@ -29,7 +30,7 @@ class ImportBookmarks:
             if dirname:
                 qdir = Library.objects.filter(usr=usr, directory=dirname)
                 if not qdir:
-                    dirlist = Library(usr=usr, directory=dirname)
+                    dirlist = Library(usr=usr, directory=dirname, timestamp=timezone.now())
                     insert_dir_list.append(dirlist)
         if insert_dir_list:
             Library.objects.bulk_create(insert_dir_list)
@@ -40,7 +41,7 @@ class ImportBookmarks:
                 logger.info(val)
                 add_date = datetime.fromtimestamp(int(add_date))
                 lib = Library(usr=usr, directory=dirname, url=url,
-                              icon_url=icon_u,
+                              icon_url=icon_u, timestamp=add_date,
                               title=title, summary=descr)
                 insert_links_list.append(lib)
                 url_list.append(url)
