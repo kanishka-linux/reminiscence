@@ -265,9 +265,9 @@ def api_points(request, username):
             req_file = request.FILES.get('file-upload', '')
             if req_file:
                 filename = req_file.name
-                print(filename)
+                logger.info(filename)
                 mime_type = guess_type(filename)[0]
-                print(mime_type)
+                logger.info(mime_type)
                 if mime_type in ['text/html', 'text/htm']:
                     content = req_file.read().decode('utf-8')
                     qlist = UserSettings.objects.filter(usrid=usr)
@@ -326,7 +326,7 @@ def api_points(request, username):
             reqid = request.POST.get('url_id', '')
             summary = request.POST.get('modified_summary', '')
             msg = "no modied"
-            print(summary)
+            logger.debug(summary)
             if reqid and reqid.isnumeric() and summary:
                 qlist = Library.objects.filter(id=int(reqid)).update(summary=summary)
                 msg = 'modified summary'
