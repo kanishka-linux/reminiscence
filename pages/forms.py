@@ -1,6 +1,7 @@
 import re
 import logging
 from django import forms
+from django.utils import timezone
 from .models import Library
 from .dbaccess import DBAccess as dbxs
 
@@ -24,7 +25,7 @@ class AddDir(forms.Form):
                                           directory=self.DEFAULT_DIRECTORY)
             logger.info('adding {} to Bookmark'.format(url))
             if not qdir and len(url) > 9:
-                Library.objects.create(usr=usr, directory=self.DEFAULT_DIRECTORY).save()
+                Library.objects.create(usr=usr, directory=self.DEFAULT_DIRECTORY, timestamp=timezone.now()).save()
                 dbxs.process_add_url(usr, url, self.DEFAULT_DIRECTORY, False)
                 print('add--bookmark')
             elif qdir and len(url) > 9:
@@ -38,7 +39,7 @@ class AddDir(forms.Form):
             if dirname:
                 qdir = Library.objects.filter(usr=usr, directory=dirname)
                 if not qdir:
-                    Library.objects.create(usr=usr, directory=dirname).save()
+                    Library.objects.create(usr=usr, directory=dirname, timestamp=timezone.now()).save()
         
         
 class AddURL(forms.Form):
