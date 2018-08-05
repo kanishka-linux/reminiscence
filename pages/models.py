@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -18,7 +17,7 @@ class Library(models.Model):
     url = models.CharField(max_length=4096, null=True)
     icon_url = models.CharField(max_length=4096, null=True)
     title = models.CharField(max_length=2048, null=True)
-    timestamp = models.DateTimeField(auto_now_add=True, null=True)
+    timestamp = models.DateTimeField(null=True)
     media_path = models.CharField(max_length=4096, null=True)
     access = models.PositiveSmallIntegerField(choices=ACCESS_CHOICES, default=PRIVATE)
     summary = models.TextField(null=True)
