@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from mimetypes import guess_extension, guess_type
 from collections import Counter
-
+from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views import View
@@ -284,7 +284,7 @@ def api_points(request, username):
                 dirname = 'Uploads'
                 qdir = Library.objects.filter(usr=usr, directory=dirname)
                 if not qdir:
-                    Library.objects.create(usr=usr, directory=dirname).save()
+                    Library.objects.create(usr=usr, directory=dirname, timestamp=timezone.now()).save()
             dbxs.save_in_binary_format(usr, request, dirname)
             return HttpResponse('OK')
         elif req_search and len(req_search) > 2:
