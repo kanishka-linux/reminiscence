@@ -49,15 +49,16 @@ class DBAccess:
     @classmethod
     def process_add_url(cls, usr, url_name, directory,
                         archieve_html, row=None,
-                        settings_row=None):
+                        settings_row=None, media_path=None):
         part = partial(cls.url_fetch_completed, usr, url_name,
-                       directory, archieve_html, row, settings_row)
+                       directory, archieve_html, row, settings_row,
+                       media_path)
         cls.vnt.get(url_name, onfinished=part)
     
     @classmethod
     def url_fetch_completed(cls, usr, url_name, directory,
                             archieve_html, row, settings_row,
-                            *args):
+                            media_path, *args):
         ext = None
         save = False
         save_text = False
@@ -65,6 +66,7 @@ class DBAccess:
         summary = 'none'
         req = args[-1]
         tags_list = []
+        save_summary = False
         if req and req.content_type:
             if ';' in req.content_type:
                 content_type = req.content_type.split(';')[0].strip()
@@ -93,6 +95,9 @@ class DBAccess:
                         rel = link.get('href')
                         if (rel and (rel.endswith('.ico') or '.ico' in rel)):
                             favicon_link = cls.format_link(rel, url_name)
+                    if not favicon_link:
+                        urlp = urlparse(url_name)
+                        favicon_link = urlp.scheme + '://' + urlp.netloc + '/favicon.ico'
                         
                 if archieve_html or (settings_row and settings_row.auto_archieve):
                     save_text = True
@@ -115,26 +120,38 @@ class DBAccess:
                                          summary=summary)
         else:
             print('row - exists')
-        if ext and ext.startswith('.'):
-            out_dir = ext[1:].upper()
-        else:
-            out_dir = str(ext).upper()
-        if not ext:
-            print(req.content_type)
-        out_title = str(row.id) + str(ext)
-        media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
-        if not os.path.exists(media_dir):
-            os.makedirs(media_dir)
-        if not os.path.exists(settings.FAVICONS_STATIC):
-            os.makedirs(settings.FAVICONS_STATIC)
-        media_path_parent = os.path.join(media_dir, str(row.id))
-        final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
-        media_path = os.path.join(media_path_parent, out_title)
-        row.media_path = media_path
-        row.save()
-        if not os.path.exists(final_favicon_path) and favicon_link:
-            cls.vnt.get(favicon_link, out=final_favicon_path)
-        print(favicon_link, final_favicon_path)
+        if not media_path:
+            if ext and ext.startswith('.'):
+                out_dir = ext[1:].upper()
+            else:
+                out_dir = str(ext).upper()
+            if not ext:
+                print(req.content_type)
+            out_title = str(row.id) + str(ext)
+            media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
+            if not os.path.exists(media_dir):
+                os.makedirs(media_dir)
+            if not os.path.exists(settings.FAVICONS_STATIC):
+                os.makedirs(settings.FAVICONS_STATIC)
+            media_path_parent = os.path.join(media_dir, str(row.id))
+            final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
+            media_path = os.path.join(media_path_parent, out_title)
+            row.media_path = media_path
+            row.save()
+            if not os.path.exists(final_favicon_path) and favicon_link:
+                cls.vnt.get(favicon_link, out=final_favicon_path)
+        elif media_path and row:
+            final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
+            media_path_parent, out_title = os.path.split(media_path)
+            if settings_row and settings_row.auto_summary and summary:
+                row.summary = summary
+            if settings_row and not tags_list:
+                row.save()
+            else:
+                save_summary = True
+            if not os.path.exists(final_favicon_path) and favicon_link:
+                cls.vnt.get(favicon_link, out=final_favicon_path)
+        #print(favicon_link, final_favicon_path)
         if save or save_text:
             if not os.path.exists(media_path_parent):
                 os.makedirs(media_path_parent)
@@ -147,7 +164,10 @@ class DBAccess:
                 cls.convert_html_pdf(media_path_parent, settings_row,
                                      row, url_name, media_path)
         if settings_row and tags_list:
-            cls.edit_tags(usr, row.id, ','.join(tags_list), '')
+            if save_summary:
+                cls.edit_tags(usr, row.id, ','.join(tags_list), '', old_row=row)
+            else:
+                cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         return row.id
     
     @classmethod
@@ -428,7 +448,7 @@ class DBAccess:
         return msg
         
     @staticmethod
-    def edit_tags(usr, url_id, tags, tags_old):
+    def edit_tags(usr, url_id, tags, tags_old, old_row=None):
         tags_list = [i.lower().strip() for i in tags.split(',')]
         tags_list_library = ','.join(list(set(tags_list)))
         tags_list_old = [i.lower().strip() for i in tags_old.split(',')]
@@ -446,9 +466,11 @@ class DBAccess:
                 logger.info('Tag: {} exists'.format(tag))
         if insert_list:
             Tags.objects.bulk_create(insert_list)
-            
-        lib_list = Library.objects.filter(id=url_id)
-        lib_obj = lib_list[0]
+        if old_row:
+            lib_obj = old_row
+        else:
+            lib_list = Library.objects.filter(id=url_id)
+            lib_obj = lib_list[0]
         lib_obj.tags = tags_list_library
         lib_obj.save()
         tagins_list = []
