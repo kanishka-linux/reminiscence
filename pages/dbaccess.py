@@ -5,7 +5,8 @@ import logging
 from functools import partial
 from urllib.parse import urlparse
 from mimetypes import guess_extension, guess_type
-
+from datetime import datetime
+from django.utils import timezone
 from django.conf import settings
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
@@ -117,7 +118,8 @@ class DBAccess:
             row = Library.objects.create(usr=usr,
                                          directory=directory,
                                          url=url_name, title=title,
-                                         summary=summary)
+                                         summary=summary,
+                                         timestamp=timezone.now())
         else:
             print('row - exists')
         if not media_path:
@@ -188,7 +190,7 @@ class DBAccess:
             out_dir = ext[1:].upper()
             row = Library.objects.create(usr=usr,
                                          directory=directory,
-                                         title=title)
+                                         title=title, timestamp=timezone.now())
             
             out_title = str(row.id) + str(ext)
             media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
@@ -263,17 +265,17 @@ class DBAccess:
         
         if search and search_mode != 'dir':
             if search_mode == 'title':
-                usr_list = Library.objects.filter(usr=usr, title__icontains=search)
+                usr_list = Library.objects.filter(usr=usr, title__icontains=search).order_by('-timestamp')
             elif search_mode == 'url':
-                usr_list = Library.objects.filter(usr=usr, url__icontains=search)
+                usr_list = Library.objects.filter(usr=usr, url__icontains=search).order_by('-timestamp')
             elif search_mode == 'tag':
-                usr_list = Library.objects.filter(usr=usr, tags__icontains=search)
+                usr_list = Library.objects.filter(usr=usr, tags__icontains=search).order_by('-timestamp')
             elif search_mode == 'summary':
-                usr_list = Library.objects.filter(usr=usr, summary__icontains=search)
+                usr_list = Library.objects.filter(usr=usr, summary__icontains=search).order_by('-timestamp')
         else:
             if not directory and search and search_mode == 'dir':
                 directory = search
-            usr_list = Library.objects.filter(usr=usr, directory=directory)
+            usr_list = Library.objects.filter(usr=usr, directory=directory).order_by('-timestamp')
                         
         nusr_list = []
         for row in usr_list:
