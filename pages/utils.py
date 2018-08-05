@@ -1,6 +1,7 @@
 import re
 import os
 import html
+import logging
 from .models import Library
 from .dbaccess import DBAccess as dbxs
 from datetime import datetime
@@ -8,13 +9,20 @@ from mimetypes import guess_type, guess_extension
 from django.conf import settings
 from vinanti import Vinanti
 
-class ImportBookmarks:
+logger = logging.getLogger(__name__)
 
+class ImportBookmarks:
+    
+    vnt = Vinanti(block=False,
+                  hdrs={'User-Agent':settings.USER_AGENT},
+                  max_requests=20)
+    
     @classmethod
     def import_bookmarks(cls, usr, settings_row, import_file, mode='file'):
         book_dict = cls.convert_bookmark_to_dict(import_file, mode=mode)
         insert_links_list = []
         insert_dir_list = []
+        url_list = []
         for dirname in book_dict:
             if '/' in dirname or ':' in dirname:
                 dirname = re.sub(r'/|:', '-', dirname)
@@ -25,26 +33,22 @@ class ImportBookmarks:
                     insert_dir_list.append(dirlist)
         if insert_dir_list:
             Library.objects.bulk_create(insert_dir_list)
-            """
-            for link in links:
-                dbxs.process_add_url(usr, link, dirname,
-                                     archieve_html=False, 
-                                     settings_row=settings_row)
-            """
+            
         for dirname, links in book_dict.items():
             for val in links:
                 url, icon_u, add_date, title, descr = val
-                print(val)
+                logger.info(val)
                 add_date = datetime.fromtimestamp(int(add_date))
                 lib = Library(usr=usr, directory=dirname, url=url,
                               icon_url=icon_u,
                               title=title, summary=descr)
                 insert_links_list.append(lib)
+                url_list.append(url)
                 
         if insert_links_list:
             Library.objects.bulk_create(insert_links_list)
             
-        qlist = Library.objects.filter(usr=usr)
+        qlist = Library.objects.filter(usr=usr, url__in=url_list)
         row_list = []
         for row in qlist:
             icon_url = row.icon_url
@@ -57,8 +61,18 @@ class ImportBookmarks:
             row.save()
         for iurl, dest in row_list:
             if iurl and iurl.startswith('http'):
-                dbxs.vnt.get(iurl, out=dest)
+                cls.vnt.get(iurl, out=dest)
         
+        if (settings_row and (settings_row.auto_archieve
+                or settings_row.auto_summary or settings_row.autotag)):
+            for row in qlist:
+                if row.url:
+                    dbxs.process_add_url(usr, row.url, row.directory,
+                                         archieve_html=False, row=row,
+                                         settings_row=settings_row,
+                                         media_path=row.media_path)
+            
+            
     @staticmethod
     def get_media_path(url, row_id):
         content_type = guess_type(url)[0]
@@ -99,8 +113,11 @@ class ImportBookmarks:
             for i, j in enumerate(links_group):
                 j = j + '<DT>'
                 nlinks.clear()
-                k = re.search('>(?P<dir>.*?)</H3>', j)
-                dirname = k.group('dir')
+                dirfield = re.search('>(?P<dir>.*?)</H3>', j)
+                if dirfield:
+                    dirname = html.unescape(dirfield.group('dir'))
+                else:
+                    dirname = 'Unknown'
                 links = re.findall('A HREF="(?P<url>.*?)"(?P<extra>.*?)<DT>', j)
                 for url, extra in links:
                     dt = re.search('ADD_DATE="(?P<add_date>.*?)"', extra)
@@ -111,12 +128,16 @@ class ImportBookmarks:
                     else:
                         icon_u = ''
                     dt = re.search('>(?P<title>.*?)</A>', extra)
-                    title = dt.group('title')
+                    if dt:
+                        title = html.unescape(dt.group('title'))
+                    else:
+                        title = 'No Title'
                     dt = re.search('<DD>(?P<descr>.*?)(<DT>)?', extra)
                     if dt:
                         descr = html.unescape(dt.group('descr'))
                     else:
                         descr = 'Not Available'
+                    logger.debug(url)
                     nlinks.append((url, icon_u, add_date, title, descr))
                 if dirname in links_dict:
                     dirname = '{}-{}'.format(dirname, nsr)
