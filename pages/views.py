@@ -101,6 +101,34 @@ def remove_operation(request, username, directory):
 
 
 @login_required
+def get_resources(request, username, directory, url_id):
+    usr = request.user
+    logger.info(request.path_info)
+    if username and usr.username != username:
+        return HttpResponse('Not Allowed')
+    elif directory and url_id:
+        if request.method == 'GET':
+            resource_dir = os.path.join(settings.ARCHIEVE_LOCATION, 'resources', str(url_id))
+            loc = request.path_info.rsplit('/', 1)[1]
+            if loc.endswith('.css'):
+                content_type = 'text/css'
+            else:
+                content_type = 'image/jpeg'
+            resource_loc = os.path.join(resource_dir, loc)
+            logger.debug('resource-loc: {}'.format(resource_loc))
+            if os.path.exists(resource_loc):
+                data = b"0"
+                with open(resource_loc, 'rb') as fd:
+                    data = fd.read()
+                response = HttpResponse()
+                response['content-type'] = content_type
+                response.write(data)
+                return response
+            else:
+                logger.debug('resource: {} not available'.format(resource_loc))
+    return HttpResponse('Not Found')
+
+@login_required
 def perform_link_operation(request, username, directory, url_id):
     usr = request.user
     print(request.path_info)
