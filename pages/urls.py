@@ -30,6 +30,7 @@ urlpatterns = [
     path('<username>/<str:directory>/<int:url_id>/read-pdf', perform_link_operation, name='read_pdf'),
     path('<username>/<str:directory>/<int:url_id>/read-png', perform_link_operation, name='read_png'),
     path('<username>/<str:directory>/<int:url_id>/read-html', perform_link_operation, name='read_html'),
+    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.@+-]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources'),
     path('<username>/<str:directory>/<int:url_id>/edit-bookmark', perform_link_operation, name='edit_bookmark'),
     path('<username>/<str:directory>/<int:url_id>/move-bookmark', perform_link_operation, name='move_bookmark'),
     path('<username>/<str:directory>/<int:url_id>/move-bookmark-multiple', perform_link_operation, name='move_bookmark_multiple')
