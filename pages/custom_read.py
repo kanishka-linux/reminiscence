@@ -1,11 +1,13 @@
 import os
 import re
 import logging
+import hashlib
 from urllib.parse import urlparse
 from mimetypes import guess_type
 
 from django.http import HttpResponse
 from django.conf import settings
+from django.urls import reverse
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
 from readability import Document
@@ -26,6 +28,7 @@ class CustomRead:
         'text/htm', 'text/html', 'text/plain'
     ]
     vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
+    vnt_noblock = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT})
     fav_path = settings.FAVICONS_STATIC
     
     @classmethod
@@ -117,6 +120,11 @@ class CustomRead:
                     
     @classmethod
     def format_html(cls, row, media_path, content=None, custom_html=False):
+        media_dir, file_path = os.path.split(media_path)
+        resource_dir = os.path.join(settings.ARCHIEVE_LOCATION, 'resources', str(row.id))
+        resource_link = '/{}/{}/{}/{}'.format(row.usr.username, row.directory, str(row.id), 'resources')
+        if not os.path.exists(resource_dir):
+            os.makedirs(resource_dir)
         if not content:
             content = ""
             with open(media_path, encoding='utf-8', mode='r') as fd:
@@ -124,7 +132,8 @@ class CustomRead:
         soup = BeautifulSoup(content, 'lxml')
         for script in soup.find_all('script'):
             script.decompose()
-        ourl = urlparse(row.url)
+        url_path = row.url
+        ourl = urlparse(url_path)
         ourld = ourl.scheme + '://' + ourl.netloc
         link_list = soup.find_all(['a', 'link', 'img'])
         for link in link_list:
@@ -133,25 +142,28 @@ class CustomRead:
             else:
                 lnk = link.get('href', '')
             if lnk and lnk != '#':
-                if lnk.startswith('//'):
+                if link.name == 'img' or (link.name == 'link' and '.css' in lnk):
+                    lnk = dbxs.format_link(lnk, url_path)
+                    lnk_bytes = bytes(lnk, 'utf-8')
+                    h = hashlib.sha256(lnk_bytes)
+                    lnk_hash = h.hexdigest()
                     if link.name == 'img':
-                        link['src'] = ourl.scheme + ':' + lnk
+                        link['src'] = resource_link + '/' + lnk_hash
                     else:
-                        link['href'] = ourl.scheme + ':' + lnk
-                elif lnk.startswith('/'):
-                    if link.name == 'img':
-                        link['src'] = ourld + lnk
-                    else:
-                        link['href'] = ourld + lnk
-                elif lnk.startswith('./'): 
+                        lnk_hash = lnk_hash + '.css'
+                        link['href'] = resource_link + '/' + lnk_hash
+                    file_image = os.path.join(resource_dir, lnk_hash)
+                    if not os.path.exists(file_image):
+                        cls.vnt_noblock.get(lnk, out=file_image)
+                        logger.info('getting file: {}, out: {}'.format(lnk, file_image))
+                elif lnk.startswith('http'):
                     pass
-                elif lnk.startswith('../'):
-                    pass
-                elif not lnk.startswith('http'):
+                else:
+                    nlnk = dbxs.format_link(lnk, url_path)
                     if link.name == 'img':
-                        link['src'] = ourld + '/' + lnk
+                        link['src'] = nlnk
                     else:
-                        link['href'] = ourld + '/' + lnk
+                        link['href'] = nlnk
         if custom_html:
             ndata = soup.prettify()
             if soup.title:
