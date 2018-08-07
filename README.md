@@ -110,11 +110,11 @@ Self-hosted Bookmark and Archieve manager
         
             
 # Documentation
-                                         
-                                         
-:---------------------------------------:|:-------------------------------------------:
-![reminiscence](/Images/default.png)     |  ![reminiscence](/Images/bookmark_urls.png)                             
-                                         
+
+![reminiscence](/Images/default.png)
+
+![reminiscence](/Images/bookmark_urls.png)
+
 
 1. **Automatic Tagging and Summarization**
 
