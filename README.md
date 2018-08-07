@@ -34,7 +34,7 @@ Self-hosted Bookmark and Archieve manager
 
 # Installation
 
-First make sure that **python 3.5.2+** is installed on system and install following packages using native package manager.
+1. First make sure that **python 3.5.2+** is installed on system and install following packages using native package manager.
 
     1. virtualenv
     
@@ -42,13 +42,13 @@ First make sure that **python 3.5.2+** is installed on system and install follow
     
     3. redis-server (optional)
     
-Installation of above dependencies in Arch or Arch based distros
+2. Installation of above dependencies in Arch or Arch based distros
 
-    $ sudo pacman -S python-virtualenv wkhtmltopdf redis
+        $ sudo pacman -S python-virtualenv wkhtmltopdf redis
     
-Installation of above dependencies in Debian or Ubuntu based distros
+3. Installation of above dependencies in Debian or Ubuntu based distros
 
-    $ sudo apt install virtualenv wkhtmltopdf redis-server
+        $ sudo apt install virtualenv wkhtmltopdf redis-server
     
     
 #### Now execute following commands in terminal.
@@ -90,11 +90,11 @@ Installation of above dependencies in Debian or Ubuntu based distros
         
 #### Setting up Celery (optional):
 
-Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
+1. Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
     
     1. Edit reminiscence/settings.py file and set USE_CELERY = True
     
-Now open another terminal in the same topmost project directory and execute following commands:
+2. Now open another terminal in the same topmost project directory and execute following commands:
     
     $ cd venv
     
@@ -104,7 +104,7 @@ Now open another terminal in the same topmost project directory and execute foll
     
     $ celery -A reminiscence worker --loglevel=info
     
-launch redis-server from another terminal
+3. launch redis-server from another terminal
     
     $ redis-server
         
@@ -113,7 +113,7 @@ launch redis-server from another terminal
 
 1. **Automatic Tagging and Summarization**
 
-    This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwaords contained in it. After that highests score sentences (forming atleast 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, and hence not perfect. There are many advance methods which may give even more better results which users can find in [this paper] (https://arxiv.org/pdf/1707.02268.pdf). This feature needs to be activated from **Settings** box. It is off by default.
+    This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwords contained in it. After that highests score sentences (forming atleast 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, and hence not perfect. There are many advance methods which may give even more better results which users can find in [this paper](https://arxiv.org/pdf/1707.02268.pdf). This feature needs to be activated from **Settings** box. It is off by default.
 
 2. **Readability mode.**
 
@@ -140,7 +140,7 @@ launch redis-server from another terminal
 
 5. **About Databse**
 
-    By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here] (https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04). There might be some changes in the instructions depending on the OS and distributions you are using.
+    By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04). There might be some changes in the instructions depending on the OS and distributions you are using.
 
 
 
