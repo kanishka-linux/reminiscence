@@ -2,6 +2,8 @@
 
 Self-hosted Bookmark and Archieve manager
 
+![reminiscence](/Images/default.png)
+
 # Features
 
 * Bookmark links and edit its metadata (like title, tags, summary) via web-interface.
@@ -111,6 +113,8 @@ Self-hosted Bookmark and Archieve manager
             
 # Documentation
 
+![reminiscence](/Images/settings.png)
+
 1. **Automatic Tagging and Summarization**
 
     This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwords contained in it. After that highests score sentences (forming atleast 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, and hence not perfect. There are many advance methods which may give even more better results which users can find in [this paper](https://arxiv.org/pdf/1707.02268.pdf). This feature needs to be activated from **Settings** box. It is off by default.
@@ -118,6 +122,8 @@ Self-hosted Bookmark and Archieve manager
 2. **Readability mode.**
 
     Once user will open document using inbuilt reader, the application will try to present only text content whenever possible. In reader mode user will also find options ** Original, PDF and PNG**, at the top header. These options will be available only when user has archieved the link in those formats. Options for selecting archieve file format is available in every user's **Settings** box.  If **Original**, format is selected then users can see the text content along with original stylesheet and linked images. Javascript will be removed from original file format due to security reasons. If page can't be displayed due to lack of javascript then users have to depend on either PDF or full-page PNG formats.
+
+![reminiscence](/Images/reader.png)
 
 3. **Generating PDF and PNG**
 
