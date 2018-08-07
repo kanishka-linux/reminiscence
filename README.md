@@ -2,8 +2,6 @@
 
 Self-hosted Bookmark and Archieve manager
 
-![reminiscence](/Images/default.png)
-
 # Features
 
 * Bookmark links and edit its metadata (like title, tags, summary) via web-interface.
@@ -112,12 +110,15 @@ Self-hosted Bookmark and Archieve manager
         
             
 # Documentation
-
-![reminiscence](/Images/settings.png)
+---------------------------------------|-------------------------------------------
+![reminiscence](/Images/default.png)   | ![reminiscence](/Images/bookmark_urls.png)                             
+---------------------------------------|--------------------------------------------
 
 1. **Automatic Tagging and Summarization**
 
     This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwords contained in it. After that highests score sentences (forming atleast 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, and hence not perfect. There are many advance methods which may give even more better results which users can find in [this paper](https://arxiv.org/pdf/1707.02268.pdf). This feature needs to be activated from **Settings** box. It is off by default.
+
+![reminiscence](/Images/settings.png)
 
 2. **Readability mode.**
 
