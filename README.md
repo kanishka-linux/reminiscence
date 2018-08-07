@@ -36,11 +36,11 @@ Self-hosted Bookmark and Archieve manager
 
 1. First make sure that **python 3.5.2+** is installed on system and install following packages using native package manager.
 
-    1. virtualenv
+        1. virtualenv
     
-    2. wkhtmltopdf (for html to pdf/png conversion)
+        2. wkhtmltopdf (for html to pdf/png conversion)
     
-    3. redis-server (optional)
+        3. redis-server (optional)
     
 2. Installation of above dependencies in Arch or Arch based distros
 
@@ -92,21 +92,21 @@ Self-hosted Bookmark and Archieve manager
 
 1. Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
     
-    1. Edit reminiscence/settings.py file and set USE_CELERY = True
+        Edit reminiscence/settings.py file and set USE_CELERY = True
     
 2. Now open another terminal in the same topmost project directory and execute following commands:
     
-    $ cd venv
+        $ cd venv
     
-    $ source bin/activate
+        $ source bin/activate
     
-    $ cd venv/reminiscence
+        $ cd venv/reminiscence
     
-    $ celery -A reminiscence worker --loglevel=info
+        $ celery -A reminiscence worker --loglevel=info
     
 3. launch redis-server from another terminal
     
-    $ redis-server
+        $ redis-server
         
             
 # Documentation
