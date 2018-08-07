@@ -4,35 +4,43 @@ Self-hosted Bookmark and Archieve manager
 
 # Features
 
-* Bookmark links and edit its metadata via web-interface.
+* Bookmark links and edit its metadata (like title, tags, summary) via web-interface.
 
 * Archieve links content in HTML, PDF or full-page PNG format.
 
 * Automatic archival of links to non-html content like pdf, jpg, txt etc..
+
+    **i.e.** Bookmarking links to pdf, jpg etc.. via web-interface will automatically save those files on server.
  
 * Directory based categorization of bookmarks
 
-* Automatic tagging of HTML content links. (supports manual tagging also)
+* Automatic tagging of HTML links.
 
 * Automatic summarization of HTML content. 
 
 * Special readability mode.
 
-* Search bookmarks according to url, title or tags
+* Search bookmarks according to url, title, tags or summary.
 
 * Supports multiple user accounts.
 
-* Supports public and group directory of links which can be shared with public or group of users.
+* Supports public and group directory for every user, which can be shared with public or group of users.
+
+* Upload any file from web-interface for archieving.
+
+* Easy to use admin interface for managing multiple users.
+
+* Import bookmarks saved in Netscape Bookmark HTML file format.
 
 # Installation
 
-First make sure that **python 3.5+** is installed on system and install following packages using native package manager.
+First make sure that **python 3.5.2+** is installed on system and install following packages using native package manager.
 
-    2. virtualenv
+    1. virtualenv
     
-    3. wkhtmltopdf (for html to pdf/png conversion)
+    2. wkhtmltopdf (for html to pdf/png conversion)
     
-    4. redis-server (optional)
+    3. redis-server (optional)
     
 Installation of above dependencies in Arch or Arch based distros
 
@@ -73,7 +81,7 @@ Installation of above dependencies in Debian or Ubuntu based distros
 
     $ python manage.py runserver 127.0.0.1:8000 
     
-    open 127.0.0.1:8000 from any browser, login and start adding links
+    open 127.0.0.1:8000 using any browser, login and start adding links
     
     **Note:** replace localhost address with local ip address of your server
             
@@ -101,4 +109,42 @@ launch redis-server from another terminal
     $ redis-server
         
             
+# Documentation
+
+1. **Automatic Tagging and Summarization**
+
+    This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwaords contained in it. After that highests score sentences (forming atleast 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, and hence not perfect. There are many advance methods which may give even more better results which users can find in [this paper] (https://arxiv.org/pdf/1707.02268.pdf). This feature needs to be activated from **Settings** box. It is off by default.
+
+2. **Readability mode.**
+
+    Once user will open document using inbuilt reader, the application will try to present only text content whenever possible. In reader mode user will also find options ** Original, PDF and PNG**, at the top header. These options will be available only when user has archieved the link in those formats. Options for selecting archieve file format is available in every user's **Settings** box.  If **Original**, format is selected then users can see the text content along with original stylesheet and linked images. Javascript will be removed from original file format due to security reasons. If page can't be displayed due to lack of javascript then users have to depend on either PDF or full-page PNG formats.
+
+3. **Generating PDF and PNG**
+
+    PDF and full-page PNG of HTML content will be generated using wkhtmltopdf. It is headless tool but in some distro it might not be packaged with headless feature. In such cases, users have to run it using Xvfb. In order to use it headlessly using Xvfb, set **USE_XVFB = True** in reminiscence/settings.py file and then install xvfb using command line.
+
+    **Note:** Use Xvfb, only when wkhtmltopdf is not packaged with headless feature.
+
+3. **Public, Private and Group directories**
+
+    By default, all directories and all links are private and are not shared with anyone. However, users can select one public directory and one group directory from all available directories for sharing links. User can set public and group directory via settings. Links placed in public directory will be available for public viewing and links placed in group directory will be available for pre-determined list of users selected by account holder.
+
+    Public links of a user can be accesed at the url: **/username/profile/public**
+
+    Group links of a user can be accesed by pre-determined group of users at the url: **/username/profile/group**
+
+4. **Searching Bookmarks**
+
+    Bookmarks can be searched according to title, url, tag or summary by using search menu available at the top most navigation bar. By default bookmarks will be searched according to **title**. In order to search according to url, tag or summary, users have to prepend **url:**, **tag:**, or **sum:** to the search term, in the search box.
+
+
+5. **About Databse**
+
+    By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here] (https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04). There might be some changes in the instructions depending on the OS and distributions you are using.
+
+
+
+
+
+
 
