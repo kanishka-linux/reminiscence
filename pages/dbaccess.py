@@ -397,11 +397,14 @@ class DBAccess:
             if media_path and os.path.exists(media_path):
                 base_dir_url, file_name = os.path.split(media_path)
                 base_dir_id, dir_id = os.path.split(base_dir_url)
+                resource_dir = os.path.join(settings.ARCHIEVE_LOCATION, 'resources', str(url_id))
                 if dir_id.isnumeric():
                     ndir_id = int(dir_id)
                     if ndir_id == url_id:
                         shutil.rmtree(base_dir_url)
                         print('removing {}'.format(base_dir_url))
+                    if os.path.exists(resource_dir):
+                        shutil.rmtree(resource_dir)
             qlist.delete()
 
     @staticmethod
