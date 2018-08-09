@@ -181,7 +181,7 @@ LOGIN_REDIRECT_URL = 'home'
 
 LOGIN_URL = 'login'
 
-ARCHIEVE_LOCATION = os.path.join(BASE_DIR, 'archieve')
+ARCHIVE_LOCATION = os.path.join(BASE_DIR, 'archive')
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
 
