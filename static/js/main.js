@@ -41,7 +41,7 @@ function dropdown_menu_clicked(element){
                 msg = '';
                 move_bookmark = true;
             }else{
-                var msg = `</html>Are you sure, you want to delete,  <b>${title}</b>? This is irreversible and will also delete associated archieved file</html>`;
+                var msg = `</html>Are you sure, you want to delete,  <b>${title}</b>? This is irreversible and will also delete associated archived file</html>`;
                 var title_value = null;
                 var post_var = 'remove_url=';
                 post_data = 'remove_url=yes';
@@ -173,11 +173,11 @@ function dropdown_menu_clicked(element){
             }else{
                 save_png = '';
             }
-            var auto_archieve = json['auto_archieve'];
-            if (auto_archieve){
-                auto_archieve = 'checked';
+            var auto_archive = json['auto_archive'];
+            if (auto_archive){
+                auto_archive = 'checked';
             }else{
-                auto_archieve = '';
+                auto_archive = '';
             }
             var png_quality = json['png_quality'];
             var total_tags = json['total_tags'];
@@ -188,14 +188,14 @@ function dropdown_menu_clicked(element){
             var msg = getsettings_html(autotag, auto_summary, total_tags,
                                        buddy_list, public_dir, group_dir,
                                        save_pdf, save_png, png_quality,
-                                       auto_archieve);
+                                       auto_archive);
             console.log(autotag, auto_summary, total_tags, buddy_list);
             var resp = bootbox.confirm(msg, function(resp){
                 if (resp){
                     console.log(resp);
                     var autotag = $('#autotag').is(':checked');
                     var auto_summary = $('#auto_summary').is(':checked');
-                    var auto_archieve = $('#auto_archieve').is(':checked');
+                    var auto_archive = $('#auto_archive').is(':checked');
                     var save_pdf = $('#arch-pdf').is(':checked');
                     var save_png = $('#arch-png').is(':checked');
                     console.log(autotag, auto_summary);
@@ -216,7 +216,7 @@ function dropdown_menu_clicked(element){
                     var post_data = `set_settings=yes&autotag=${autotag}&auto_summary=${auto_summary}&total_tags=${total_tags}`;
                     post_data = post_data + `&buddy_list=${buddy_list}&public_dir=${public_dir}&group_dir=${group_dir}`;
                     post_data = post_data + `&save_pdf=${save_pdf}&save_png=${save_png}&png_quality=${png_quality}`;
-                    post_data = post_data + `&auto_archieve=${auto_archieve}`;
+                    post_data = post_data + `&auto_archive=${auto_archive}`;
                     console.log(total_tags, buddy_list, post_data);
                     var client = new postRequest();
                     client.post(nlink, post_data, csrftoken, function(response) {
@@ -260,7 +260,7 @@ function dropdown_menu_clicked(element){
                             }
                         })
                     })
-    }else if(link == 'url_archieve'){
+    }else if(link == 'url_archive'){
         var nlink = $(element).attr('data-link');
         console.log(nlink)
         var csrftoken = getCookie('csrftoken');
@@ -272,7 +272,7 @@ function dropdown_menu_clicked(element){
         var idlink = $(element).attr('find-id');
         var api_link = $(element).attr('data-url');
         var url_id = idlink.split('/').reverse()[1];
-        post_data = `archieve=force&dirname=${dirname}&url_id=${url_id}`;
+        post_data = `archive=force&dirname=${dirname}&url_id=${url_id}`;
         console.log(post_data);
         console.log(idlink);
         console.log(nlink, footer_al.attr('href'));
@@ -395,7 +395,7 @@ function generate_table_body(nlink, search, mode){
             var edit_b = value['edit-bookmark'];
             var ms = value['move-bookmark'];
             var remove_link = value['remove-url'];
-            var archieve_media = value['archieve-media'];
+            var archive_media = value['archive-media'];
             var directory = value['directory'];
             var read_url = value['read-url'];
             var fav_path = value['fav-path'];
@@ -409,7 +409,7 @@ function generate_table_body(nlink, search, mode){
             var table_content = create_table_rows(
                     usr, badges, index, title, netloc, loc,
                     timestamp, edit_b, ms, remove_link,
-                    archieve_media, directory, dir_badge,
+                    archive_media, directory, dir_badge,
                     read_url, idd, fav_path);
             $("#tbody").append(table_content);
         }
@@ -524,12 +524,12 @@ function display_upload_file_name(event){
 
 function create_table_rows(usr, badge_nodes, index, title, netloc,
                            loc, timestamp, edit_b, ms, remove_link,
-                           archieve_media, dirname, dir_badge,
+                           archive_media, dirname, dir_badge,
                            read_url, idd, fav_path){
     var string = `<tr>
         <td><img width="24" src="${fav_path}"></td>
       <td>
-        <a href="${archieve_media}"><span class="text-lg-left">${title} </span></a>
+        <a href="${archive_media}"><span class="text-lg-left">${title} </span></a>
             ${dir_badge}
             </br>
             <small>
@@ -564,9 +564,9 @@ function create_table_rows(usr, badge_nodes, index, title, netloc,
                 
                 <div class="dropdown-divider"></div>
                 
-                <span id="drop-archieve-${index}" onclick="onsearch_dropdown(event, id)"\
-                 class="dropdown-item" data-link="${archieve_media}" title="${title}" \
-                 data-val="url_archieve" data-url="/${usr}/api/request"\
+                <span id="drop-archive-${index}" onclick="onsearch_dropdown(event, id)"\
+                 class="dropdown-item" data-link="${archive_media}" title="${title}" \
+                 data-val="url_archive" data-url="/${usr}/api/request"\
                  dir-name="${dirname}" find-id="${ms}">Archieve</span>
                  
                 <div class="dropdown-divider"></div>
@@ -595,7 +595,7 @@ function onsearch_dropdown(event, id){
 
 function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
                           public_dir, group_dir, arch_pdf, arch_png,
-                          arch_png_quality, auto_archieve){
+                          arch_png_quality, auto_archive){
     var html = `<div class="form-check">
         <input class="form-check-input" type="checkbox" value="autotag" id="autotag" ${autotag}>
         <label class="form-check-label" for="autotag">
@@ -617,8 +617,8 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
     
     <div class="dropdown-divider"></div>
     <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="auto_archieve" id="auto_archieve" ${auto_archieve}>
-        <label class="form-check-label" for="auto_archieve">
+        <input class="form-check-input" type="checkbox" value="auto_archive" id="auto_archive" ${auto_archive}>
+        <label class="form-check-label" for="auto_archive">
         Automatic Archieve Generation
         </label>
     </div>
