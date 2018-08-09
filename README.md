@@ -1,12 +1,12 @@
 # Reminiscence
 
-Self-hosted Bookmark and Archieve manager
+Self-hosted Bookmark and Archive manager
 
 # Features
 
 * Bookmark links and edit its metadata (like title, tags, summary) via web-interface.
 
-* Archieve links content in HTML, PDF or full-page PNG format.
+* Archive links content in HTML, PDF or full-page PNG format.
 
 * Automatic archival of links to non-html content like pdf, jpg, txt etc..
 
@@ -69,7 +69,7 @@ Self-hosted Bookmark and Archieve manager
     
     $ pip install -r requirements.txt
     
-    $ mkdir logs archieve
+    $ mkdir logs archive
     
     $ python manage.py generatesecretkey
     
@@ -131,7 +131,7 @@ Self-hosted Bookmark and Archieve manager
 
 4. **Reader mode.**
 
-    Once user will open document using inbuilt reader, the application will try to present text content, properly formatted for mobile devices whenever possible. In reader mode user will also find options **Original, PDF and PNG**, at the top header. These options will be available only when user has archieved the link in those formats. Options for selecting archieve file format is available in every user's **Settings** box.  If **Original**, format is selected then users can see the text content along with original stylesheet and linked images. Javascript will be removed from original file format due to security reasons. If page can't be displayed due to lack of javascript then users have to depend on either PDF or full-page PNG formats.
+    Once user will open document using inbuilt reader, the application will try to present text content, properly formatted for mobile devices whenever possible. In reader mode user will also find options **Original, PDF and PNG**, at the top header. These options will be available only when user has archived the link in those formats. Options for selecting archive file format is available in every user's **Settings** box.  If **Original**, format is selected then users can see the text content along with original stylesheet and linked images. Javascript will be removed from original file format due to security reasons. If page can't be displayed due to lack of javascript then users have to depend on either PDF or full-page PNG formats.
 
     ![reminiscence](/Images/reader.png)
 
