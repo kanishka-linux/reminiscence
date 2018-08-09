@@ -108,7 +108,7 @@ def get_resources(request, username, directory, url_id):
         return HttpResponse('Not Allowed')
     elif directory and url_id:
         if request.method == 'GET':
-            resource_dir = os.path.join(settings.ARCHIEVE_LOCATION, 'resources', str(url_id))
+            resource_dir = os.path.join(settings.ARCHIVE_LOCATION, 'resources', str(url_id))
             loc = request.path_info.rsplit('/', 1)[1]
             if loc.endswith('.css'):
                 content_type = 'text/css'
@@ -154,16 +154,16 @@ def perform_link_operation(request, username, directory, url_id):
             else:
                 return HttpResponse('Wrong command')
         elif request.method == 'GET':
-            if request.path_info.endswith('archieve'):
-                return cread.get_archieved_file(url_id)
+            if request.path_info.endswith('archive'):
+                return cread.get_archived_file(url_id)
             elif request.path_info.endswith('read'):
                 return cread.read_customized(url_id)
             elif request.path_info.endswith('read-pdf'):
-                return cread.get_archieved_file(url_id, mode='pdf')
+                return cread.get_archived_file(url_id, mode='pdf')
             elif request.path_info.endswith('read-png'):
-                return cread.get_archieved_file(url_id, mode='png')
+                return cread.get_archived_file(url_id, mode='png')
             elif request.path_info.endswith('read-html'):
-                return cread.get_archieved_file(url_id)
+                return cread.get_archived_file(url_id)
         else:
             return HttpResponse('Method not Permitted')
     else:
@@ -270,7 +270,7 @@ def api_points(request, username):
     if request.method == 'POST':
         req_list = request.POST.get('listdir', '')
         req_search = request.POST.get('search', '')
-        req_archieve = request.POST.get('archieve', '')
+        req_archive = request.POST.get('archive', '')
         req_get_settings = request.POST.get('get_settings', '')
         req_set_settings = request.POST.get('set_settings', '')
         req_summary = request.POST.get('req_summary', '')
@@ -381,7 +381,7 @@ def api_points(request, username):
                     'save_pdf': row.save_pdf,
                     'save_png': row.save_png,
                     'png_quality': row.png_quality,
-                    'auto_archieve': row.auto_archieve
+                    'auto_archive': row.auto_archive
                 }
                 if row.buddy_list:
                     ndict.update({'buddy':row.buddy_list})
@@ -398,7 +398,7 @@ def api_points(request, username):
                     'save_pdf': False,
                     'save_png': False,
                     'png_quality': 85,
-                    'auto_archieve': False
+                    'auto_archive': False
                 }
             return HttpResponse(json.dumps(ndict))
         elif req_set_settings and req_set_settings == 'yes':
@@ -411,7 +411,7 @@ def api_points(request, username):
             save_pdf = request.POST.get('save_pdf', '')
             save_png = request.POST.get('save_png', '')
             png_quality = request.POST.get('png_quality', '')
-            auto_archieve = request.POST.get('auto_archieve', '')
+            auto_archive = request.POST.get('auto_archive', '')
             if autotag == 'true':
                 autotag = True
             else:
@@ -432,10 +432,10 @@ def api_points(request, username):
                 save_png = True
             else:
                 save_png = False
-            if auto_archieve == 'true':
-                auto_archieve = True
+            if auto_archive == 'true':
+                auto_archive = True
             else:
-                auto_archieve = False
+                auto_archive = False
             if png_quality and png_quality.isnumeric():
                 png_quality = int(png_quality) if int(png_quality) in range(0, 101) else 85
             else:
@@ -454,7 +454,7 @@ def api_points(request, username):
                 qlist[0].save_pdf = save_pdf
                 qlist[0].save_png = save_png
                 qlist[0].png_quality = png_quality
-                qlist[0].auto_archieve = auto_archieve
+                qlist[0].auto_archive = auto_archive
                 qlist[0].save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
@@ -466,13 +466,13 @@ def api_points(request, username):
                                                   save_pdf=save_pdf,
                                                   save_png=save_png,
                                                   png_quality=png_quality,
-                                                  auto_archieve=auto_archieve)
+                                                  auto_archive=auto_archive)
                 row.save()
             if (autotag or auto_summary) and not os.path.exists(settings.NLTK_DATA_PATH):
                 dbxs.vnt_task.function(Summarizer.check_data_path)
             ndict = {'status':'ok'}
             return HttpResponse(json.dumps(ndict))
-        elif req_archieve and req_archieve in ['yes', 'force']:
+        elif req_archive and req_archive in ['yes', 'force']:
             url_id = request.POST.get('url_id', '')
             dirname = request.POST.get('dirname', '')
             logger.debug('{}, {}'.format(url_id, dirname))
@@ -481,10 +481,10 @@ def api_points(request, username):
                 if qset:
                     row = qset[0]
                     media_path = row.media_path
-                    url_ar = '/{}/{}/{}/archieve'.format(usr.username, dirname, url_id)
+                    url_ar = '/{}/{}/{}/archive'.format(usr.username, dirname, url_id)
                     dict_val = {'url': url_ar}
-                    if media_path and os.path.exists(media_path) and req_archieve == 'yes':
-                        dict_val.update({'status':'already archieved'})
+                    if media_path and os.path.exists(media_path) and req_archive == 'yes':
+                        dict_val.update({'status':'already archived'})
                     else:
                         qlist = UserSettings.objects.filter(usrid=usr)
                         if qlist:
@@ -492,7 +492,7 @@ def api_points(request, username):
                         else:
                             set_row = None
                         dbxs.process_add_url(usr, row.url, dirname,
-                                             archieve_html=True, row=row,
+                                             archive_html=True, row=row,
                                              settings_row=set_row)
                         dict_val.update({'status':'ok'})
                     return HttpResponse(json.dumps(dict_val))

@@ -64,12 +64,12 @@ class ImportBookmarks:
             if iurl and iurl.startswith('http'):
                 cls.vnt.get(iurl, out=dest)
         
-        if (settings_row and (settings_row.auto_archieve
+        if (settings_row and (settings_row.auto_archive
                 or settings_row.auto_summary or settings_row.autotag)):
             for row in qlist:
                 if row.url:
                     dbxs.process_add_url(usr, row.url, row.directory,
-                                         archieve_html=False, row=row,
+                                         archive_html=False, row=row,
                                          settings_row=settings_row,
                                          media_path=row.media_path)
             
@@ -85,7 +85,7 @@ class ImportBookmarks:
             ext = '.htm'
         out_dir = ext[1:].upper()
         out_title = str(row_id) + str(ext)
-        media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
+        media_dir = os.path.join(settings.ARCHIVE_LOCATION, out_dir)
         if not os.path.exists(media_dir):
             os.makedirs(media_dir)
         

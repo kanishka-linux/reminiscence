@@ -32,9 +32,9 @@ class DBAccess:
         if url_name:
             if url_name.startswith('ar:'):
                 url_name = url_name[3:].strip()
-                archieve_html = True
+                archive_html = True
             else:
-                archieve_html = False
+                archive_html = False
             if row:
                 settings_row = row[0]
             else:
@@ -44,21 +44,21 @@ class DBAccess:
                                               url=url_name)
             if not url_list and url_name:
                 cls.process_add_url(usr, url_name,
-                                    directory, archieve_html, 
+                                    directory, archive_html, 
                                     settings_row=settings_row)
                                 
     @classmethod
     def process_add_url(cls, usr, url_name, directory,
-                        archieve_html, row=None,
+                        archive_html, row=None,
                         settings_row=None, media_path=None):
         part = partial(cls.url_fetch_completed, usr, url_name,
-                       directory, archieve_html, row, settings_row,
+                       directory, archive_html, row, settings_row,
                        media_path)
         cls.vnt.get(url_name, onfinished=part)
     
     @classmethod
     def url_fetch_completed(cls, usr, url_name, directory,
-                            archieve_html, row, settings_row,
+                            archive_html, row, settings_row,
                             media_path, *args):
         ext = None
         save = False
@@ -100,7 +100,7 @@ class DBAccess:
                         urlp = urlparse(url_name)
                         favicon_link = urlp.scheme + '://' + urlp.netloc + '/favicon.ico'
                         
-                if archieve_html or (settings_row and settings_row.auto_archieve):
+                if archive_html or (settings_row and settings_row.auto_archive):
                     save_text = True
                 if settings_row and (settings_row.autotag or settings_row.auto_summary):
                     summary, tags_list = Summarizer.get_summary_and_tags(req.html,
@@ -130,7 +130,7 @@ class DBAccess:
             if not ext:
                 print(req.content_type)
             out_title = str(row.id) + str(ext)
-            media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
+            media_dir = os.path.join(settings.ARCHIVE_LOCATION, out_dir)
             if not os.path.exists(media_dir):
                 os.makedirs(media_dir)
             if not os.path.exists(settings.FAVICONS_STATIC):
@@ -193,7 +193,7 @@ class DBAccess:
                                          title=title, timestamp=timezone.now())
             
             out_title = str(row.id) + str(ext)
-            media_dir = os.path.join(settings.ARCHIEVE_LOCATION, out_dir)
+            media_dir = os.path.join(settings.ARCHIVE_LOCATION, out_dir)
             if not os.path.exists(media_dir):
                 os.makedirs(media_dir)
             
@@ -203,7 +203,7 @@ class DBAccess:
                     
             media_path = os.path.join(media_path_parent, out_title)
             row.media_path = media_path
-            url = '/{}/{}/{}/archieve'.format(usr.username, directory, row.id)
+            url = '/{}/{}/{}/archive'.format(usr.username, directory, row.id)
             row.url = url
             row.save()
             with open(media_path, 'wb') as fd:
@@ -334,9 +334,9 @@ class DBAccess:
             base_eu = base_dir + '/edit-url'
             read_url = base_dir + '/read'
             if media_path and os.path.exists(media_path):
-                archieve_media = base_dir + '/archieve'
+                archive_media = base_dir + '/archive'
             else:
-                archieve_media = url
+                archive_media = url
             netloc = urlparse(url).netloc
             if len(netloc) > 20:
                 netloc = netloc[:20]+ '..'
@@ -355,7 +355,7 @@ class DBAccess:
                                 'timestamp': timestamp, 'tag':tag,
                                 'move-bookmark':move_single, 
                                 'move-multi': move_multiple, 'usr':username,
-                                'archieve-media':archieve_media, 'directory':directory,
+                                'archive-media':archive_media, 'directory':directory,
                                 'read-url':read_url, 'id': idd, 'fav-path': fav_path
                             }
                         }
@@ -365,7 +365,7 @@ class DBAccess:
                     [
                         index, title, netloc, url, base_et, base_remove,
                         timestamp, tag, move_single, move_multiple,
-                        archieve_media, directory, read_url, idd, fav_path
+                        archive_media, directory, read_url, idd, fav_path
                     ]
                 )
             index += 1
@@ -397,7 +397,7 @@ class DBAccess:
             if media_path and os.path.exists(media_path):
                 base_dir_url, file_name = os.path.split(media_path)
                 base_dir_id, dir_id = os.path.split(base_dir_url)
-                resource_dir = os.path.join(settings.ARCHIEVE_LOCATION, 'resources', str(url_id))
+                resource_dir = os.path.join(settings.ARCHIVE_LOCATION, 'resources', str(url_id))
                 if dir_id.isnumeric():
                     ndir_id = int(dir_id)
                     if ndir_id == url_id:

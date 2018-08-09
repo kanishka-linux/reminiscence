@@ -32,7 +32,7 @@ class CustomRead:
     fav_path = settings.FAVICONS_STATIC
     
     @classmethod
-    def get_archieved_file(cls, url_id, mode='html'):
+    def get_archived_file(cls, url_id, mode='html'):
         qset = Library.objects.filter(id=url_id)
         if qset:
             row = qset[0]
@@ -71,7 +71,7 @@ class CustomRead:
                 response.write(data)
                 return response
             else:
-                return HttpResponse('<html>File has not been archieved in this format</html>')
+                return HttpResponse('<html>File has not been archived in this format</html>')
         else:
             return HttpResponse('<html>No url exists for this query</html>')
     
@@ -121,7 +121,7 @@ class CustomRead:
     @classmethod
     def format_html(cls, row, media_path, content=None, custom_html=False):
         media_dir, file_path = os.path.split(media_path)
-        resource_dir = os.path.join(settings.ARCHIEVE_LOCATION, 'resources', str(row.id))
+        resource_dir = os.path.join(settings.ARCHIVE_LOCATION, 'resources', str(row.id))
         resource_link = '/{}/{}/{}/{}'.format(row.usr.username, row.directory, str(row.id), 'resources')
         if not os.path.exists(resource_dir):
             os.makedirs(resource_dir)
