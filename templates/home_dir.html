@@ -46,11 +46,11 @@
   </tr>
 </thead>
 <tbody id="tbody">
-  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archieve, dir, rurl, idd, fav_path in usr_list %}
+  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path in usr_list %}
     <tr>
         <td>{% if fav_path %}<img width="24" src="{{fav_path}}">{% endif %}</td>
       <td>
-        <a href="{{ archieve }}"><span class="text-lg-left">{{title}}</span></a></br>
+        <a href="{{ archive }}"><span class="text-lg-left">{{title}}</span></a></br>
             <small>
                 <a href="{{loc}}" class="text-muted" id="netloc-muted">{{netloc}}</a>
             </small>
@@ -76,7 +76,7 @@
                 <span class="dropdown-item" data-link="{{ ms }}" title="{{title}}" data-val="url" data-url="/{{user.username}}/api/request">Move To</span>
                 
                 <div class="dropdown-divider"></div>
-                <span class="dropdown-item" data-link="{{ archieve }}" title="{{title}}" data-val="url_archieve" data-url="/{{user.username}}/api/request" dir-name="{{dir}}" find-id="{{ms}}">Archieve</span>
+                <span class="dropdown-item" data-link="{{ archive }}" title="{{title}}" data-val="url_archive" data-url="/{{user.username}}/api/request" dir-name="{{dir}}" find-id="{{ms}}">Archieve</span>
                 
                 <div class="dropdown-divider"></div>
                 <span class="dropdown-item" data-link="{{ remove_link }}" title="{{title}}" data-val="url">Remove</span>
