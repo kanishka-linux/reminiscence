@@ -2,5 +2,5 @@
 *.sqlite3
 *.pyc
 __pycache__/
-archieve/*/
+archive/*/
 static/favicons/
