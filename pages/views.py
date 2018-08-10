@@ -40,9 +40,8 @@ def dashboard(request, username=None, directory=None):
         if form.is_valid():
             form.clean_and_save_data(usr)
     form = AddDir()
-    usr_list = Library.objects.filter(usr=usr)
+    usr_list = Library.objects.filter(usr=usr).only('directory').order_by('directory')
     usr_list = [i.directory for i in usr_list if i.directory]
-    usr_list.sort()
     usr_list = Counter(usr_list)
     nlist = []
     index = 1
@@ -87,7 +86,9 @@ def remove_operation(request, username, directory):
         if request.method == 'POST':
             rem_dir = request.POST.get('remove_directory', '')
             if rem_dir == 'yes':
-                Library.objects.filter(usr=usr, directory=directory).delete()
+                qlist = Library.objects.filter(usr=usr, directory=directory)
+                for row in qlist:
+                    dbxs.remove_url_link(row=row)
             return redirect('home')
         else:
             form = RemoveDir()
@@ -140,7 +141,7 @@ def perform_link_operation(request, username, directory, url_id):
                 rem_lnk = request.POST.get('remove_url', '')
                 print(url_id, request.POST)
                 if rem_lnk == 'yes':
-                    dbxs.remove_url_link(url_id)
+                    dbxs.remove_url_link(url_id=url_id)
                 return HttpResponse('Deleted')
             elif request.path_info.endswith('move-bookmark'):
                 msg = dbxs.move_bookmarks(usr, request, url_id)
