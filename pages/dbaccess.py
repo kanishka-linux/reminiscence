@@ -21,10 +21,13 @@ logger = logging.getLogger(__name__)
 
 class DBAccess:
     
-    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT}, max_requests=20)
+    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
+                  max_requests=settings.VINANTI_MAX_REQUESTS,
+                  backend=settings.VINANTI_BACKEND)
     vnt_task = Vinanti(block=False, group_task=False,
-                       backend='function', multiprocess=True,
-                       max_requests=4)
+                       backend='function',
+                       multiprocess=settings.MULTIPROCESS_VINANTI,
+                       max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS)
     
     @classmethod
     def add_new_url(cls, usr, request, directory, row):
@@ -107,7 +110,7 @@ class DBAccess:
                                                                          settings_row.total_tags)
             else:
                 title = url_name.rsplit('/')[-1]
-                save_text = True
+                save = True
         elif req and req.binary:
             title = url_name.rsplit('/')[-1]
             save = True
@@ -158,7 +161,8 @@ class DBAccess:
             if not os.path.exists(media_path_parent):
                 os.makedirs(media_path_parent)
             if save:
-                req.save(req.request_object, media_path)
+                #req.save(req.request_object, media_path)
+                cls.vnt.get(url_name, out=media_path)
             else:
                 with open(media_path, 'w') as fd:
                     fd.write(req.html)
@@ -229,7 +233,10 @@ class DBAccess:
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
+                cls.vnt_task.function(
+                    cls.convert_to_pdf_png_task, cmd,
+                    onfinished=partial(cls.finished_processing, 'pdf')
+                )
         if settings_row.save_png:
             png = os.path.join(media_path_parent, str(row.id)+'.png')
             cmd = [
@@ -243,13 +250,21 @@ class DBAccess:
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
-                cls.vnt_task.function(cls.convert_to_pdf_png_task, cmd)
+                cls.vnt_task.function(
+                    cls.convert_to_pdf_png_task, cmd,
+                    onfinished=partial(cls.finished_processing, 'image')
+                )
     
+    @classmethod
+    def finished_processing(cls, val, *args):
+        logger.info('{}-->>>>finished--->>>{}'.format(val, args))
+        
     def convert_to_pdf_png_task(cmd):
         if os.name == 'posix':
             subprocess.call(cmd)
         else:
             subprocess.call(cmd, shell=True)
+        return True
     
     @task(name="convert-to-pdf-png")
     def convert_to_pdf_png(cmd):
@@ -389,10 +404,14 @@ class DBAccess:
         return lnk
     
     @staticmethod
-    def remove_url_link(url_id):
-        qlist = Library.objects.filter(id=url_id)
-        if qlist:
-            row = qlist[0]
+    def remove_url_link(url_id=None, row=None):
+        if row:
+            url_id = row.id
+        elif url_id:
+            qlist = Library.objects.filter(id=url_id)
+            if qlist:
+                row = qlist[0]
+        if row:
             media_path = row.media_path
             if media_path and os.path.exists(media_path):
                 base_dir_url, file_name = os.path.split(media_path)
@@ -402,10 +421,11 @@ class DBAccess:
                     ndir_id = int(dir_id)
                     if ndir_id == url_id:
                         shutil.rmtree(base_dir_url)
-                        print('removing {}'.format(base_dir_url))
+                        logger.info('removing {}'.format(base_dir_url))
                     if os.path.exists(resource_dir):
                         shutil.rmtree(resource_dir)
-            qlist.delete()
+                        logger.info('removing {}'.format(resource_dir))
+            row.delete()
 
     @staticmethod
     def move_bookmarks(usr, request, url_id=None, single=True):
