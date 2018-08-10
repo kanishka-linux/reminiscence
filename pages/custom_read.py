@@ -27,7 +27,9 @@ class CustomRead:
     mtype_list = [
         'text/htm', 'text/html', 'text/plain'
     ]
-    vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
+    vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT},
+                  backend=settings.VINANTI_BACKEND,
+                  max_requests=settings.VINANTI_MAX_REQUESTS)
     vnt_noblock = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT})
     fav_path = settings.FAVICONS_STATIC
     
@@ -102,7 +104,7 @@ class CustomRead:
     @classmethod
     def get_content(cls, row, url_id, media_path):
         data = ""
-        req = cls.vnt.get(row.url)
+        req = cls.vnt_noblock.get(row.url)
         if req and req.content_type and req.html:
             mtype = req.content_type.split(';')[0].strip()
             if mtype in cls.mtype_list:
