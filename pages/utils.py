@@ -16,7 +16,8 @@ class ImportBookmarks:
     
     vnt = Vinanti(block=False,
                   hdrs={'User-Agent':settings.USER_AGENT},
-                  max_requests=20)
+                  max_requests=settings.VINANTI_MAX_REQUESTS,
+                  backend=settings.VINANTI_BACKEND)
     
     @classmethod
     def import_bookmarks(cls, usr, settings_row, import_file, mode='file'):
