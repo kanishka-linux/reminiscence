@@ -197,3 +197,13 @@ CELERY_TIMEZONE = 'UTC'
 
 USE_XVFB = False
 ALLOW_ANY_ONE_SIGNUP = False
+
+# Vinanti Multiprocess Settings for background tasks
+
+MULTIPROCESS_VINANTI = False
+MULTIPROCESS_VINANTI_MAX_REQUESTS = 4
+
+# Vinanti async HTTP client settings
+
+VINANTI_BACKEND = 'urllib'
+VINANTI_MAX_REQUESTS = 20
