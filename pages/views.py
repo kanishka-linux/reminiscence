@@ -455,17 +455,18 @@ def api_points(request, username):
                 buddy_list = ','.join(buddy_list)
             qlist = UserSettings.objects.filter(usrid=usr)
             if qlist:
-                qlist[0].autotag = autotag
-                qlist[0].auto_summary = auto_summary
-                qlist[0].total_tags = total_tags
-                qlist[0].buddy_list = buddy_list
-                qlist[0].public_dir = public_dir
-                qlist[0].group_dir = group_dir
-                qlist[0].save_pdf = save_pdf
-                qlist[0].save_png = save_png
-                qlist[0].png_quality = png_quality
-                qlist[0].auto_archive = auto_archive
-                qlist[0].save()
+                row = qlist[0]
+                row.autotag = autotag
+                row.auto_summary = auto_summary
+                row.total_tags = total_tags
+                row.buddy_list = buddy_list
+                row.public_dir = public_dir
+                row.group_dir = group_dir
+                row.save_pdf = save_pdf
+                row.save_png = save_png
+                row.png_quality = png_quality
+                row.auto_archive = auto_archive
+                row.save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
                                                   auto_summary=auto_summary,
