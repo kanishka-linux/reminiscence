@@ -345,6 +345,14 @@ def api_points(request, username):
                 if qlist:
                     summary = qlist[0].summary
                     if not summary:
+                        media_path = qlist[0].media_path:
+                        if media_path and os.path.exists(media_path):
+                            content = ''
+                            with open(media_path, mode='r', encoding='utf-8') as fd:
+                                content = fd.read()
+                            if content:
+                                summary, tags_list = Summarizer.get_summary_and_tags(content, 5)
+                    if not summary:
                         summary = ('Automatic Summary not generated!\
                                     First enable automatic summary generation\
                                     from settings. Remove this link and add it again.')
