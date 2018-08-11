@@ -156,6 +156,8 @@ class CustomRead:
                     lnk_hash = h.hexdigest()
                     if link.name == 'img':
                         link['src'] = resource_link + '/' + lnk_hash
+                        if custom_html:
+                            link['class'] = 'card-img-top'
                     else:
                         lnk_hash = lnk_hash + '.css'
                         link['href'] = resource_link + '/' + lnk_hash
@@ -169,6 +171,8 @@ class CustomRead:
                     nlnk = dbxs.format_link(lnk, url_path)
                     if link.name == 'img':
                         link['src'] = nlnk
+                        if custom_html:
+                            link['class'] = 'card-img-top'
                     else:
                         link['href'] = nlnk
         if custom_html:
