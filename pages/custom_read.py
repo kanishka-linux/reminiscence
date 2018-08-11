@@ -27,10 +27,10 @@ class CustomRead:
     mtype_list = [
         'text/htm', 'text/html', 'text/plain'
     ]
-    vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT},
+    vnt_noblock = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
                   backend=settings.VINANTI_BACKEND,
                   max_requests=settings.VINANTI_MAX_REQUESTS)
-    vnt_noblock = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT})
+    vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
     fav_path = settings.FAVICONS_STATIC
     
     @classmethod
@@ -104,11 +104,16 @@ class CustomRead:
     @classmethod
     def get_content(cls, row, url_id, media_path):
         data = ""
-        req = cls.vnt_noblock.get(row.url)
+        req = cls.vnt.get(row.url)
+        media_path_parent, _ = os.path.split(media_path)
+        if not os.path.exists(media_path_parent):
+            os.makedirs(media_path_parent)
         if req and req.content_type and req.html:
             mtype = req.content_type.split(';')[0].strip()
             if mtype in cls.mtype_list:
                 content = req.html
+                with open(media_path, 'w') as fd:
+                    fd.write(content)
                 data = cls.format_html(
                     row, media_path, content=content,
                     custom_html=True
@@ -290,8 +295,11 @@ class CustomRead:
                     rel = i.get('href')
                     if (rel and (rel.endswith('.ico') or '.ico' in rel)):
                         favicon_link = dbxs.format_link(rel, url_name)
+                if not favicon_link:
+                    urlp = urlparse(url_name)
+                    favicon_link = urlp.scheme + '://' + urlp.netloc + '/favicon.ico'
             if favicon_link:
-                cls.vnt.get(favicon_link, out=final_favicon_path)
+                cls.vnt_noblock.get(favicon_link, out=final_favicon_path)
     
     @classmethod
     def is_human_readable(cls, mtype):
