@@ -23,7 +23,7 @@ class DBAccess:
     
     vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
                   max_requests=settings.VINANTI_MAX_REQUESTS,
-                  backend=settings.VINANTI_BACKEND)
+                  backend=settings.VINANTI_BACKEND, timeout=300)
     vnt_task = Vinanti(block=False, group_task=False,
                        backend='function',
                        multiprocess=settings.MULTIPROCESS_VINANTI,
