@@ -125,7 +125,11 @@ Self-hosted Bookmark and Archive manager
 
 3. **Automatic Tagging and Summarization**
 
-    This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwords contained in it. After that highests score sentences (forming 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, and hence not perfect. There are many advance methods which may give even more better results which users can find in [this paper](https://arxiv.org/pdf/1707.02268.pdf). This feature needs to be activated from **Settings** box. It is off by default.
+    This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwords contained in it. After that highests score sentences (forming 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, hence not perfect. It can't tag group of meaningful words. e.g. It will not consider 'data structure' as a single tag. Supporting multi-word tags is in TODO list of the project.
+
+    About summarization, there are many advance methods which may give even more better results, which users can find in [this paper](https://arxiv.org/pdf/1707.02268.pdf). 
+
+    Both these feature needs to be activated from **Settings** box. It is off by default.
 
     ![reminiscence](/Images/settings.png)
 
@@ -140,6 +144,8 @@ Self-hosted Bookmark and Archive manager
     PDF and full-page PNG of HTML content will be generated using wkhtmltopdf. It is headless tool but in some distro it might not be packaged with headless feature. In such cases, users have to run it using Xvfb. In order to use it headlessly using Xvfb, set **USE_XVFB = True** in reminiscence/settings.py file and then install xvfb using command line.
 
     **Note:** Use Xvfb, only when wkhtmltopdf is not packaged with headless feature.
+
+    **Why not use Headless Chromium:** Currently headless chromium doesn't support full page screenshot, otherwise I might have used it blindly. There is another headless browser [hlspy](https://github.com/kanishka-linux/hlspy), based on QtWebEngine, which I built for my personal use. **hlspy** can generate entire html content, pdf document and full page screenshot in one single request and that too using just one single process. In both chromium and wkhtmltopdf, one has to execute atleast two separate processes for doing the same thing. The main problem with hlspy is that it is not completely headless, it can't run without X. It requires xvfb for running in headless environment. However, In future, I'll try to provide a way to choose between different backends (i.e. chromium, wkhtmltopdf or hlspy) for performing these tasks.
 
 6. **Public, Private and Group directories**
 
@@ -160,7 +166,12 @@ Self-hosted Bookmark and Archive manager
 
 
 
+## How does Reminiscence handle background tasks without using celery or other external task queue manager.
 
+This application has to perform number of background tasks, like Fetching web-page, favicons and converting pages to pdf/png.  In order to do these tasks application uses [Vinanti](https://github.com/kanishka-linux/vinanti) library. I wrote this library as a simple easy to use async HTTP client which one can integrate with synchronous codebase of python. However, it can be used easily for executing some arbitrary function in the background (using either threads or processes) without having to worry about managing threads/processes manually. It was just an experiment, but it worked very well in this self-hosted application. 
 
+When importing list of bookmarks numbering 1500+, it has to make 1500 requests to bookmarked links in order to get web-page contents (for generating automatic tags/summary) and 1500+ more requests for fetching favicons. With aiohttp as backend for Vinanti, the application used only two threads for managing these 3000+ http requests aynchronously and at the same time allowed server to remain responsive for any incoming request. For executing pdf/png conversion tasks in the background, the task queue of Vinanti seems sufficient for handling requests from few users at a time. 
+
+Even though, this appraoch is working well for self-hosted application with limited number of users with limited tasks. For large number of cpu intensive tasks, it it better to use dedicated external task queue manager. That's why option has been provided to set up celery, if a user and his group has large number of bookmarked links which they want to convert to pdf/png format.
 
 
