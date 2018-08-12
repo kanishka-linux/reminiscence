@@ -127,9 +127,7 @@ Self-hosted Bookmark and Archive manager
 
     This feature has been implemented using NLTK library. The library has been used for proper tokenization and removing stopwords from sentence. Once stopwords are removed, top K high frequency words (where value of K is decided by user) are used as tags. In order to generate summary of HTML content, score is alloted to a sentence based on frequency of non-stopwords contained in it. After that highests score sentences (forming 1/3'rd of total content) are used to generate summary. It is one of the simplest methods for automatic tagging and summarization, hence not perfect. It can't tag group of meaningful words. e.g. It will not consider 'data structure' as a single tag. Supporting multi-word tags is in TODO list of the project.
 
-    About summarization, there are many advance methods which may give even more better results, which users can find in [this paper](https://arxiv.org/pdf/1707.02268.pdf). 
-
-    Both these feature needs to be activated from **Settings** box. It is off by default.
+    About summarization, there are many advance methods which may give even more better results, which users can find in [this paper](https://arxiv.org/pdf/1707.02268.pdf). Both these feature needs to be activated from **Settings** box. It is off by default.
 
     ![reminiscence](/Images/settings.png)
 
@@ -145,7 +143,11 @@ Self-hosted Bookmark and Archive manager
 
     **Note:** Use Xvfb, only when wkhtmltopdf is not packaged with headless feature.
 
-    **Why not use Headless Chromium:** Currently headless chromium doesn't support full page screenshot, otherwise I might have used it blindly. There is another headless browser [hlspy](https://github.com/kanishka-linux/hlspy), based on QtWebEngine, which I built for my personal use. **hlspy** can generate entire html content, pdf document and full page screenshot in one single request and that too using just one single process. In both chromium and wkhtmltopdf, one has to execute atleast two separate processes for doing the same thing. The main problem with hlspy is that it is not completely headless, it can't run without X. It requires xvfb for running in headless environment. However, In future, I'll try to provide a way to choose between different backends (i.e. chromium, wkhtmltopdf or hlspy) for performing these tasks.
+    **Why not use Headless Chromium?** 
+
+    Currently headless chromium doesn't support full page screenshot, otherwise I might have used it blindly. There is another headless browser [hlspy](https://github.com/kanishka-linux/hlspy), based on QtWebEngine, which I built for my personal use. **hlspy** can generate entire html content, pdf document and full page screenshot in one single request and that too using just one single process. In both chromium and wkhtmltopdf, one has to execute atleast two separate processes for doing the same thing. The main problem with hlspy is that it is not completely headless, it can't run without X. It requires xvfb for running in headless environment. 
+
+    In future, I'll try to provide a way to choose between different backends (i.e. chromium, wkhtmltopdf or hlspy) for performing these tasks.
 
 6. **Public, Private and Group directories**
 
