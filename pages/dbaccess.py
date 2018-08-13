@@ -24,6 +24,9 @@ class DBAccess:
     vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
                   max_requests=settings.VINANTI_MAX_REQUESTS,
                   backend=settings.VINANTI_BACKEND, timeout=300)
+    vntbook = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
+                      max_requests=settings.VINANTI_MAX_REQUESTS,
+                      backend=settings.VINANTI_BACKEND, timeout=300)
     vnt_task = Vinanti(block=False, group_task=False,
                        backend='function',
                        multiprocess=settings.MULTIPROCESS_VINANTI,
@@ -57,7 +60,10 @@ class DBAccess:
         part = partial(cls.url_fetch_completed, usr, url_name,
                        directory, archive_html, row, settings_row,
                        media_path)
-        cls.vnt.get(url_name, onfinished=part)
+        if row:
+            cls.vntbook.get(url_name, onfinished=part)
+        else:
+            cls.vnt.get(url_name, onfinished=part)
     
     @classmethod
     def url_fetch_completed(cls, usr, url_name, directory,
