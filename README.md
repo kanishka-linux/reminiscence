@@ -1,4 +1,4 @@
-# Reminiscence
+&deg;# Reminiscence
 
 Self-hosted Bookmark and Archive manager
 
@@ -164,7 +164,7 @@ Self-hosted Bookmark and Archive manager
 
 8. **About Databse**
 
-    By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04) and [here](https://wiki.archlinux.org/index.php/PostgreSQL). There might be some changes in the instructions depending on the OS and distributions you are using.
+    By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) and [here](https://wiki.archlinux.org/index.php/PostgreSQL). There might be some changes in the instructions depending on the OS and distributions you are using.
 
 
 
