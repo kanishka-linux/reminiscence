@@ -1,4 +1,4 @@
-&deg;# Reminiscence
+# Reminiscence
 
 Self-hosted Bookmark and Archive manager
 
@@ -90,7 +90,7 @@ Self-hosted Bookmark and Archive manager
 
 #### Setting up Celery (optional):
 
-1. Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
+1. Generating PDFs and PNGs are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
     
         Edit reminiscence/settings.py file and set USE_CELERY = True
     
