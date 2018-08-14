@@ -10,7 +10,7 @@ from mimetypes import guess_extension, guess_type
 from collections import Counter
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.views import View
 from django.contrib.auth.models import User
 
@@ -118,12 +118,9 @@ def get_resources(request, username, directory, url_id):
             resource_loc = os.path.join(resource_dir, loc)
             logger.debug('resource-loc: {}'.format(resource_loc))
             if os.path.exists(resource_loc):
-                data = b"0"
-                with open(resource_loc, 'rb') as fd:
-                    data = fd.read()
-                response = HttpResponse()
+                response = FileResponse(open(resource_loc, 'rb'))
                 response['content-type'] = content_type
-                response.write(data)
+                response['content-length'] = os.stat(resource_loc).st_size
                 return response
             else:
                 logger.debug('resource: {} not available'.format(resource_loc))
