@@ -172,9 +172,9 @@ Self-hosted Bookmark and Archive manager
 
     * Instead of using **python manage.py runserver** command as mentioned in above instructions use following command. Users can change parameters according to need. Only make sure to keep value of **timeout** argument somewhat bigger. Larger timeout value is useful, if upload speed is slow and user want to upload relatively large body from web-interface.
 
-             gunicorn --max-requests 1000 --workers 2 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
+             $ gunicorn --max-requests 1000 --workers 2 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
 
-    * Install **ngnix** using native package manager of distro and then make adjustments in nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
+    * Install **ngnix** using native package manager of distro and then make adjustments to nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
 
             worker_processes  1;
         
@@ -198,14 +198,14 @@ Self-hosted Bookmark and Archive manager
                 client_max_body_size 1024m;
                   
                 location /static/ {
-                        root /home/virtual/reminiscence/venv/reminiscence;
+                        root /home/reminiscence/venv/reminiscence; # root of project directory
                     }
                 location = /favicon.ico { access_log off; log_not_found off; }
                 location / {
                     proxy_pass http://127.0.0.1:8000;
                     proxy_set_header Host $host;
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    root /home/virtual/reminiscence/venv/reminiscence;
+                    root /home/reminiscence/venv/reminiscence; #root of project directory
                 }
         
                 
