@@ -40,17 +40,23 @@ class ImportBookmarks:
                     insert_dir_list.append(dirlist)
         if insert_dir_list:
             Library.objects.bulk_create(insert_dir_list)
-            
+        uqlist = Library.objects.filter(usr=usr).only('directory', 'url')
+        if uqlist:
+            urlset = set([(i.directory, i.url) for i in uqlist if i.url])
+        else:
+            urlset = None
         for dirname, links in book_dict.items():
             for val in links:
                 url, icon_u, add_date, title, descr = val
-                logger.info(val)
-                add_date = datetime.fromtimestamp(int(add_date))
-                lib = Library(usr=usr, directory=dirname, url=url,
-                              icon_url=icon_u, timestamp=add_date,
-                              title=title, summary=descr)
-                insert_links_list.append(lib)
-                url_list.append(url)
+                url_tuple = (dirname, url)
+                if urlset and url_tuple not in urlset:
+                    logger.info(val)
+                    add_date = datetime.fromtimestamp(int(add_date))
+                    lib = Library(usr=usr, directory=dirname, url=url,
+                                  icon_url=icon_u, timestamp=add_date,
+                                  title=title, summary=descr)
+                    insert_links_list.append(lib)
+                    url_list.append(url)
         cls.insert_in_bulk(usr, settings_row, insert_links_list, url_list)
     
     @classmethod
