@@ -170,11 +170,11 @@ Self-hosted Bookmark and Archive manager
 
     * install gunicorn: pip install gunicorn
 
-    * Instead of using **python manage.py runserver** command as mentioned in above instructions use following command:
+    * Instead of using **python manage.py runserver** command as mentioned in above instructions use following command. Users can change parameters according to need. Only make sure to keep value of **timeout** argument somewhat bigger. Larger timeout value is useful, if upload speed is slow and user want to upload relatively large body from web-interface.
 
-         gunicorn --max-requests 1000 --workers 2 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
+             gunicorn --max-requests 1000 --workers 2 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
 
-    * Install **ngnix** using native package manager of distro and then make adjustments in nginx config files as given below. Following is sample configuration. Adjust it according to need
+    * Install **ngnix** using native package manager of distro and then make adjustments in nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
 
             worker_processes  1;
         
@@ -216,7 +216,8 @@ Self-hosted Bookmark and Archive manager
                 }
             }
 
-    Once nginx config file is written, start/enable nginx.service. For detail instruction take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) or [here](http://gunicorn.org/index.html#deployment) or check this [wiki](https://wiki.archlinux.org/index.php/Nginx)
+
+    * Once nginx config file is properly configured, start/enable nginx.service. For detail instruction take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) and [here](http://gunicorn.org/index.html#deployment) or check this [wiki](https://wiki.archlinux.org/index.php/Nginx)
 
 ## How does Reminiscence handle background tasks without using celery or other external task queue manager.
 
