@@ -172,11 +172,11 @@ Self-hosted Bookmark and Archive manager
 
     * Instead of using **python manage.py runserver** command as mentioned in above instructions use following command. Users can change parameters according to need. Only make sure to keep value of **timeout** argument somewhat bigger. Larger timeout value is useful, if upload speed is slow and user want to upload relatively large body from web-interface.
 
-             $ gunicorn --max-requests 1000 --workers 2 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
+             $ gunicorn --max-requests 1000 --workers 2 --thread 5 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
 
     * Install **nginx** using native package manager of distro and then make adjustments to nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
 
-            worker_processes  1;
+            worker_processes  2;
         
             events {
                 worker_connections  1024;
@@ -188,7 +188,7 @@ Self-hosted Bookmark and Archive manager
                 default_type  application/octet-stream;
             
                 sendfile        on;
-            
+                sendfile_max_chunk 512k;
                 keepalive_timeout  65;
                 proxy_read_timeout 300s;
             
@@ -199,6 +199,7 @@ Self-hosted Bookmark and Archive manager
                   
                 location /static/ {
                         root /home/reminiscence/venv/reminiscence; # root of project directory
+                        aio threads;
                     }
                 location = /favicon.ico { access_log off; log_not_found off; }
                 location / {
