@@ -18,6 +18,11 @@ class ImportBookmarks:
                   hdrs={'User-Agent':settings.USER_AGENT},
                   max_requests=settings.VINANTI_MAX_REQUESTS,
                   backend=settings.VINANTI_BACKEND)
+                  
+    vnt_task = Vinanti(block=False, group_task=False,
+                       backend='function',
+                       multiprocess=settings.MULTIPROCESS_VINANTI,
+                       max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS)
     
     @classmethod
     def import_bookmarks(cls, usr, settings_row, import_file, mode='file'):
@@ -46,7 +51,10 @@ class ImportBookmarks:
                               title=title, summary=descr)
                 insert_links_list.append(lib)
                 url_list.append(url)
-                
+        cls.insert_in_bulk(usr, settings_row, insert_links_list, url_list)
+    
+    @classmethod
+    def insert_in_bulk(cls, usr, settings_row, insert_links_list, url_list):
         if insert_links_list:
             Library.objects.bulk_create(insert_links_list)
             
