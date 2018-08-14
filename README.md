@@ -87,7 +87,7 @@ Self-hosted Bookmark and Archive manager
             
               to access web-interface from anywhere on the local network
               
-        
+
 #### Setting up Celery (optional):
 
 1. Generating PDF's and PNG's are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
@@ -166,7 +166,57 @@ Self-hosted Bookmark and Archive manager
 
     By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) and [here](https://wiki.archlinux.org/index.php/PostgreSQL). There might be some changes in the instructions depending on the OS and distributions you are using.
 
+9. **gunicorn plus ngnix setup** (optional)
 
+    * install gunicorn: pip install gunicorn
+
+    * Instead of using **python manage.py runserver** command as mentioned in above instructions use following command:
+
+         gunicorn --max-requests 1000 --workers 2 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
+
+    * Install **ngnix** using native package manager of distro and then make adjustments in nginx config files as given below. Following is sample configuration. Adjust it according to need
+
+        worker_processes  1;
+        
+        events {
+            worker_connections  1024;
+        }
+        
+        
+        http {
+            include       mime.types;
+            default_type  application/octet-stream;
+        
+            sendfile        on;
+        
+            keepalive_timeout  65;
+            proxy_read_timeout 300s;
+        
+            server {
+                listen       80;
+                server_name  localhost;
+                client_max_body_size 1024m;
+              
+            location /static/ {
+                    root /home/virtual/reminiscence/venv/reminiscence;
+                }
+            location = /favicon.ico { access_log off; log_not_found off; }
+            location / {
+                proxy_pass http://127.0.0.1:8000;
+                proxy_set_header Host $host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                root /home/virtual/reminiscence/venv/reminiscence;
+            }
+        
+                
+                error_page   500 502 503 504  /50x.html;
+                location = /50x.html {
+                    root   /usr/share/nginx/html;
+                }
+            }
+        }
+
+    Once nginx config file is written, start/enable nginx.service. For detail instruction take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) or [here](http://gunicorn.org/index.html#deployment) or check this [wiki](https://wiki.archlinux.org/index.php/Nginx)
 
 ## How does Reminiscence handle background tasks without using celery or other external task queue manager.
 
