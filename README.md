@@ -166,7 +166,7 @@ Self-hosted Bookmark and Archive manager
 
     By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) and [here](https://wiki.archlinux.org/index.php/PostgreSQL). There might be some changes in the instructions depending on the OS and distributions you are using.
 
-9. **gunicorn plus ngnix setup** (optional)
+9. **gunicorn plus nginx setup** (optional)
 
     * install gunicorn: pip install gunicorn
 
@@ -174,7 +174,7 @@ Self-hosted Bookmark and Archive manager
 
              $ gunicorn --max-requests 1000 --workers 2 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
 
-    * Install **ngnix** using native package manager of distro and then make adjustments to nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
+    * Install **nginx** using native package manager of distro and then make adjustments to nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
 
             worker_processes  1;
         
