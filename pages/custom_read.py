@@ -5,7 +5,7 @@ import hashlib
 from urllib.parse import urlparse
 from mimetypes import guess_type
 
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.conf import settings
 from django.urls import reverse
 from vinanti import Vinanti
@@ -60,18 +60,17 @@ class CustomRead:
                     filename = row.title + '.bin'
                 if mtype in ['text/html', 'text/htm']:
                     data = cls.format_html(row, media_path)
+                    return HttpResponse(data)
                 else:
-                    with open(media_path, 'rb') as fd:
-                        data = fd.read()
-                response = HttpResponse()
-                response['mimetype'] = mtype
-                response['content-type'] = mtype
-                filename = filename.replace(' ', '.')
-                print(filename, mtype)
-                if not cls.is_human_readable(mtype):
-                    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
-                response.write(data)
-                return response
+                    response = FileResponse(open(media_path, 'rb'))
+                    response['mimetype'] = mtype
+                    response['content-type'] = mtype
+                    response['content-length'] = os.stat(media_path).st_size
+                    filename = filename.replace(' ', '.')
+                    print(filename, mtype)
+                    if not cls.is_human_readable(mtype):
+                        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+                    return response
             else:
                 return HttpResponse('<html>File has not been archived in this format</html>')
         else:
