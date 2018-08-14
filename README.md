@@ -176,45 +176,45 @@ Self-hosted Bookmark and Archive manager
 
     * Install **ngnix** using native package manager of distro and then make adjustments in nginx config files as given below. Following is sample configuration. Adjust it according to need
 
-        worker_processes  1;
+            worker_processes  1;
         
-        events {
-            worker_connections  1024;
-        }
+            events {
+                worker_connections  1024;
+            }
         
         
-        http {
-            include       mime.types;
-            default_type  application/octet-stream;
-        
-            sendfile        on;
-        
-            keepalive_timeout  65;
-            proxy_read_timeout 300s;
-        
-            server {
+            http {
+                include       mime.types;
+                default_type  application/octet-stream;
+            
+                sendfile        on;
+            
+                keepalive_timeout  65;
+                proxy_read_timeout 300s;
+            
+                server {
                 listen       80;
                 server_name  localhost;
                 client_max_body_size 1024m;
-              
-            location /static/ {
+                  
+                location /static/ {
+                        root /home/virtual/reminiscence/venv/reminiscence;
+                    }
+                location = /favicon.ico { access_log off; log_not_found off; }
+                location / {
+                    proxy_pass http://127.0.0.1:8000;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     root /home/virtual/reminiscence/venv/reminiscence;
                 }
-            location = /favicon.ico { access_log off; log_not_found off; }
-            location / {
-                proxy_pass http://127.0.0.1:8000;
-                proxy_set_header Host $host;
-                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                root /home/virtual/reminiscence/venv/reminiscence;
-            }
         
                 
                 error_page   500 502 503 504  /50x.html;
                 location = /50x.html {
                     root   /usr/share/nginx/html;
                 }
+                }
             }
-        }
 
     Once nginx config file is written, start/enable nginx.service. For detail instruction take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) or [here](http://gunicorn.org/index.html#deployment) or check this [wiki](https://wiki.archlinux.org/index.php/Nginx)
 
