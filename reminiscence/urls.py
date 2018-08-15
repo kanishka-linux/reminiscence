@@ -17,9 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.urls import re_path as url
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'', include('pages.urls')),
 ]
+
+urlpatterns += staticfiles_urlpatterns()
