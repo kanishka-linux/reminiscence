@@ -1,4 +1,7 @@
+aiohttp==3.3.2
 amqp==2.3.2
+async-timeout==3.0.0
+attrs==18.1.0
 beautifulsoup4==4.6.0
 billiard==3.5.0.4
 bs4==0.0.1
@@ -7,11 +10,16 @@ chardet==3.0.4
 cssselect==1.0.3
 Django==2.0.7
 django-widget-tweaks==1.4.2
+gunicorn==19.9.0
+idna==2.7
 kombu==4.2.1
 lxml==4.2.3
+multidict==4.3.1
 nltk==3.3
+psycopg2==2.7.5
 pytz==2018.5
 readability-lxml==0.7
 redis==2.10.6
 six==1.11.0
 vine==1.1.4
+yarl==1.2.6
