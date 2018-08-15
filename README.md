@@ -34,7 +34,7 @@ Self-hosted Bookmark and Archive manager
 
 # Installation
 
-1. First make sure that **python 3.5.2+** is installed on system and install following packages using native package manager.
+1. First make sure that **python 3.5.2+** (recommended version is 3.6.5+) is installed on system and install following packages using native package manager.
 
         1. virtualenv
     
