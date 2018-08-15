@@ -485,7 +485,7 @@ class DBAccess:
         tags_list_old = [i.lower().strip() for i in tags_old.split(',')]
         tags_list = [i for i in tags_list if i]
         tags_list_old = [i for i in tags_list_old if i]
-        all_tags = Tags.objects.all()
+        all_tags = Tags.objects.filter(tag__in=tags_list)
         
         tags_new_add = set(tags_list) - set(tags_list_old)
         tags_old_delete = set(tags_list_old) - set(tags_list)
@@ -532,4 +532,5 @@ class DBAccess:
                                        tag_id=tag_obj[0]).delete()
         msg = ('Edited Tags: new-tags-addition={}::old-tags-delete={}'
                .format(tags_new_add, tags_old_delete))
+        logger.info(msg)
         return msg
