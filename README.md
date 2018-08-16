@@ -2,6 +2,17 @@
 
 Self-hosted Bookmark and Archive manager
 
+Table of Contents
+=================
+
+* [Features](#features)
+
+* [Installation](#Installation)
+
+* [Documentation](#documentation)
+
+* [Motivation](#motivation)
+
 # Features
 
 * Bookmark links and edit its metadata (like title, tags, summary) via web-interface.
@@ -116,6 +127,7 @@ Self-hosted Bookmark and Archive manager
     Users first have to create directory from web interface
 
     ![reminiscence](/Images/default.png)
+    
 2. **Adding URLs**
 
     Users have to navigate to required directory and then need to add links to it. URLs are fetched asynchronously from the source for gathering metadata initially. Users have to wait for few seconds, after that page will refresh automatically showing new content. It may happen, nothing would show up after automatic page refresh, if URL fetching is slow due to various reasons, then try refreshing page manually by clicking on directory entry again. Maybe in future, I will have to look into django channels and websockets to enable real-time duplex communication between client and server.
@@ -220,14 +232,18 @@ Self-hosted Bookmark and Archive manager
 
     * Once nginx config file is properly configured, start/enable nginx.service. For detailed instructions take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) or refer this [wiki](https://wiki.archlinux.org/index.php/Nginx). There are some barebone instructions available [here](http://gunicorn.org/index.html#deployment), which users might find useful.
 
-## How does Reminiscence handle background tasks without using celery or other external task queue manager.
+10. **How does Reminiscence handle background tasks without using celery or other external task queue manager?**
 
-* This application has to perform number of background tasks, like Fetching web-page, favicons and converting pages to pdf/png.  In order to do these tasks application uses [Vinanti](https://github.com/kanishka-linux/vinanti) library. I wrote this library as a simple easy to use async HTTP client which one can integrate with synchronous codebase of python. However, it can be used easily for executing some arbitrary function in the background (using either threads or processes) without having to worry about managing threads/processes manually. It was just an experiment, but it worked very well in this self-hosted application. 
+    * This application has to perform number of background tasks, like Fetching web-page, favicons and converting pages to pdf/png.  In order to do these tasks application uses [Vinanti](https://github.com/kanishka-linux/vinanti) library. I wrote this library as a simple easy to use async HTTP client which one can integrate with synchronous codebase of python. However, it can be used easily for executing some arbitrary function in the background (using either threads or processes) without having to worry about managing threads/processes manually. It was just an experiment, but it worked very well in this self-hosted application. 
 
-* When importing list of bookmarks numbering 1500+, it has to make 1500 requests to bookmarked links in order to get web-page contents (for generating automatic tags/summary) and 1500+ more requests for fetching favicons. With aiohttp as backend for Vinanti, the application used only two threads for managing these 3000+ http requests aynchronously and at the same time allowed server to remain responsive for any incoming request. For executing pdf/png conversion tasks in the background, the task queue of Vinanti seemed sufficient for handling requests from few users at a time. 
+    * When importing list of bookmarks numbering 1500+, it has to make 1500 requests to bookmarked links in order to get web-page contents (for generating automatic tags/summary) and 1500+ more requests for fetching favicons. With aiohttp as backend for Vinanti, the application used only two threads for managing these 3000+ http requests aynchronously and at the same time allowed development server to remain responsive (without using gunicorn) for any incoming request. For executing pdf/png conversion tasks in the background, the task queue of Vinanti seemed sufficient for handling requests from few users at a time. 
 
-* Making 3000 http requests in the background, archiving their output as per content-type, along with generating tags/summary using NLTK and database (postgresql) write (without converting pages to png/pdf), took somewhere along 12-13 minutes with aiohttp as backend and 50 async http requests at a time. By default, Vinanti does not use aiohttp in this project. In order to use aiohttp, user should set **VINANTI_BACKEND='aiohttp'** in settings.py file. Converting pages to png/pdf will be time consuming and might take hours depending on server and number of bookmarked links.
+    * Making 3000 http requests in the background, archiving their output as per content-type, along with generating tags/summary using NLTK and database (postgresql) write (without converting pages to png/pdf), took somewhere along 12-13 minutes with aiohttp as backend and 50 async http requests at a time. By default, Vinanti does not use aiohttp in this project. In order to use aiohttp, user should set **VINANTI_BACKEND='aiohttp'** in settings.py file. Converting pages to png/pdf will be time consuming and might take hours depending on server and number of bookmarked links.
 
-* Even though, this appraoch is working well for self-hosted application with limited number of users with limited tasks. For large number of tasks, it it better to use dedicated external task queue manager. That's why option has been provided to set up celery, if a user and his group has large number of bookmarked links which they want to convert to pdf/png format. Maybe in future, option may be provided for making http requests and postprocessing content to celery, if current setup with Vinanti won't deliver upto expectations.
+    * Even though, this appraoch is working well for self-hosted application with limited number of users with limited tasks. For large number of tasks, it it better to use dedicated external task queue manager. That's why option has been provided to set up celery, if a user and his group has large number of bookmarked links which they want to convert to pdf/png format. Maybe in future, option may be provided for making http requests and postprocessing content to celery, if current setup with Vinanti won't deliver upto expectations.
 
+# Motivation
 
+Till few years back, I used to think that once something has been published on the web, it is going to remain there forever in some form or other. But web of today is different. Now we never know, when some valuable web resource (like web-pages, images, text, pdf etc...) might disappear from the web completely. There might be variety of reasons for disappearance (e.g. author of resource lost interest in maintaining it, low traffic or some other political-economic reasons). I don't want to go into details, but there are plenty of reasons due to which web-resource that we savoured in the past, might become un-available in the future. If we are lucky, then we might find mirrors of popular sites of past, archived by volunteers. But, the same can't be said true of obscure and rare web content of the past.
+
+So for quite some time, I was looking for saving personal memories of web effectively and in a well organized manner, which will remain with user and not with some third party. As I could not find suitable already existing solution meeting may taste (directory based organization, automatic tagging/summarization, archiving in various formats etc..), I decided develop one.
