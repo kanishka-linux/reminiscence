@@ -2,6 +2,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.urls import resolve, reverse
 from django.test import TestCase
 from accounts.views import signup
+from django.conf import settings
 
 class SignUpTests(TestCase):
     def setUp(self):
@@ -16,8 +17,10 @@ class SignUpTests(TestCase):
         self.assertEquals(view.func, signup)
 
     def test_csrf(self):
-        self.assertContains(self.response, 'csrfmiddlewaretoken')
+        if settings.ALLOW_ANY_ONE_SIGNUP:
+            self.assertContains(self.response, 'csrfmiddlewaretoken')
 
     def test_contains_form(self):
-        form = self.response.context.get('form')
-        self.assertIsInstance(form, UserCreationForm)
+        if settings.ALLOW_ANY_ONE_SIGNUP:
+            form = self.response.context.get('form')
+            self.assertIsInstance(form, UserCreationForm)
