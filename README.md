@@ -13,7 +13,7 @@ Table of Contents
 
     * [Creating Directory](#creating-directing)
     
-    * [Adding URLs](#adding urls)
+    * [Adding URLs](#adding-urls)
     
     * [Automatic Tagging and Summarization](#automatic-tagging-and-summarization)
     
@@ -29,7 +29,7 @@ Table of Contents
     
     * [Gunicorn plus Nginx setup](#gunicorn-plus-nginx-setup)
     
-    * [Handling Background Tasks without external task queue manager](#handling-background-tasks-without-using-celery-or-other-external-task-queue-manager)
+    * [Handling Background Tasks](#handling-background-tasks-without-using-celery-or-other-external-task-queue-manager)
 
 * [Motivation](#motivation)
 
@@ -198,7 +198,9 @@ Bookmarks can be searched according to title, url, tag or summary by using searc
 
 By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) . Users can also take a look at this [wiki](https://wiki.archlinux.org/index.php/PostgreSQL), for proper postgresql database setup. There might be some changes in the instructions depending on the OS and distributions you are using.
 
-### Gunicorn plus Nginx setup (optional)
+### Gunicorn plus Nginx setup
+
+**(optional)**
 
 * Install gunicorn, if not installed. (pip install gunicorn)
 
