@@ -4,7 +4,9 @@ from django.test import TestCase
 from accounts.views import signup
 from django.conf import settings
 
+
 class SignUpTests(TestCase):
+    
     def setUp(self):
         url = reverse('signup')
         self.response = self.client.get(url)
@@ -19,8 +21,12 @@ class SignUpTests(TestCase):
     def test_csrf(self):
         if settings.ALLOW_ANY_ONE_SIGNUP:
             self.assertContains(self.response, 'csrfmiddlewaretoken')
+        else:
+            self.assertContains(self.response, 'New Sign UP Not allowed')
 
     def test_contains_form(self):
         if settings.ALLOW_ANY_ONE_SIGNUP:
             form = self.response.context.get('form')
             self.assertIsInstance(form, UserCreationForm)
+        else:
+            self.assertContains(self.response, 'New Sign UP Not allowed')
