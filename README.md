@@ -168,6 +168,8 @@ Self-hosted Bookmark and Archive manager
 
 9. **gunicorn plus nginx setup** (optional)
 
+    * Install gunicorn, if not installed. (pip install gunicorn)
+
     * Instead of using **python manage.py runserver** command as mentioned in above installation instructions use following command. Users can change parameters according to need. Only make sure to keep value of **timeout** argument somewhat bigger. Larger timeout value is useful, if upload speed is slow and user want to upload relatively large body from web-interface.
 
              $ gunicorn --max-requests 1000 --worker-class gthread --workers 2 --thread 5 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
