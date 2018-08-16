@@ -164,7 +164,7 @@ Self-hosted Bookmark and Archive manager
 
 8. **About Databse**
 
-    By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) and [here](https://wiki.archlinux.org/index.php/PostgreSQL). There might be some changes in the instructions depending on the OS and distributions you are using.
+    By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) . Users can also take a look at this [wiki](https://wiki.archlinux.org/index.php/PostgreSQL), for proper postgresql database setup. There might be some changes in the instructions depending on the OS and distributions you are using.
 
 9. **gunicorn plus nginx setup** (optional)
 
@@ -218,7 +218,7 @@ Self-hosted Bookmark and Archive manager
             }
 
 
-    * Once nginx config file is properly configured, start/enable nginx.service. For detail instruction take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) and [here](http://gunicorn.org/index.html#deployment) or check this [wiki](https://wiki.archlinux.org/index.php/Nginx)
+    * Once nginx config file is properly configured, start/enable nginx.service. For detailed instructions take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) or refer this [wiki](https://wiki.archlinux.org/index.php/Nginx). There are some barebone instructions available [here](http://gunicorn.org/index.html#deployment), which users might find useful.
 
 ## How does Reminiscence handle background tasks without using celery or other external task queue manager.
 
