@@ -7,7 +7,7 @@ Table of Contents
 
 * [Features](#features)
 
-* [Installation](#Installation)
+* [Installation](#installation)
 
 * [Documentation](#documentation)
 
