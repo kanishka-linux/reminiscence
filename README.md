@@ -19,7 +19,7 @@ Table of Contents
     
     * [Reader Mode](#reader-mode)
     
-    * [Generating PDF and PNG](#generating-pdf-and-png)
+    * [Generating PDF and Full-Page Screenshot](#generating-pdf-and-png)
     
     * [Public, Private and Group Directories](#public-private-group-directories)
     
@@ -171,7 +171,7 @@ Once user will open document using inbuilt reader, the application will try to p
 
 ## Generating PDF and PNG
 
-PDF and full-page PNG of HTML content will be generated using wkhtmltopdf. It is headless tool but in some distro it might not be packaged with headless feature. In such cases, users have to run it using Xvfb. In order to use it headlessly using Xvfb, set **USE_XVFB = True** in reminiscence/settings.py file and then install xvfb using command line.
+PDF and full-page screenshot in PNG format of HTML page will be generated using wkhtmltopdf. It is headless tool but in some distro it might not be packaged with headless feature. In such cases, users have to run it using Xvfb. In order to use it headlessly using Xvfb, set **USE_XVFB = True** in reminiscence/settings.py file and then install xvfb using command line.
 
 **Note:** Use Xvfb, only when wkhtmltopdf is not packaged with headless feature.
 
