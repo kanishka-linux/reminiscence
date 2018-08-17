@@ -13,6 +13,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, FileResponse
 from django.views import View
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -26,6 +27,7 @@ from .custom_read import CustomRead as cread
 from .dbaccess import DBAccess as dbxs
 from .summarize import Summarizer
 from .utils import ImportBookmarks
+
 
 logger = logging.getLogger(__name__)
 
@@ -246,11 +248,25 @@ def navigate_directory(request, username, directory=None, tagname=None):
             if usr_list is None:
                 return redirect('home')
         nlist = dbxs.populate_usr_list(usr, usr_list)
+        
+        page = request.GET.get('page', 1)
+        row = UserSettings.objects.filter(usrid=usr)
+        if row and row[0].pagination_value:
+            paginator = Paginator(nlist, row[0].pagination_value)
+        else:
+            paginator = Paginator(nlist, 100)
+        try:
+            dirlist = paginator.page(page)
+        except PageNotAnInteger:
+            dirlist = paginator.page(1)
+        except EmptyPage:
+            dirlist = paginator.page(paginator.num_pages)
+        
         base_dir = '/{}/{}'.format(usr, directory)
         return render(
                     request, 'home_dir.html',
                     {
-                        'usr_list': nlist, 'form':form,
+                        'usr_list': dirlist, 'form':form,
                         'base_dir':base_dir, 'dirname':directory,
                         'refresh':add_url
                     }
@@ -388,7 +404,8 @@ def api_points(request, username):
                     'save_pdf': row.save_pdf,
                     'save_png': row.save_png,
                     'png_quality': row.png_quality,
-                    'auto_archive': row.auto_archive
+                    'auto_archive': row.auto_archive,
+                    'pagination_value': row.pagination_value
                 }
                 if row.buddy_list:
                     ndict.update({'buddy':row.buddy_list})
@@ -405,7 +422,8 @@ def api_points(request, username):
                     'save_pdf': False,
                     'save_png': False,
                     'png_quality': 85,
-                    'auto_archive': False
+                    'auto_archive': False,
+                    'pagination_value': 100
                 }
             return HttpResponse(json.dumps(ndict))
         elif req_set_settings and req_set_settings == 'yes':
@@ -419,6 +437,7 @@ def api_points(request, username):
             save_png = request.POST.get('save_png', '')
             png_quality = request.POST.get('png_quality', '')
             auto_archive = request.POST.get('auto_archive', '')
+            pagination_value = request.POST.get('pagination_value', '100')
             if autotag == 'true':
                 autotag = True
             else:
@@ -431,6 +450,10 @@ def api_points(request, username):
                 total_tags = int(total_tags)
             else:
                 total_tags = 5
+            if pagination_value.isnumeric():
+                pagination_value = int(pagination_value)
+            else:
+                pagination_value = 100
             if save_pdf == 'true':
                 save_pdf = True
             else:
@@ -463,6 +486,7 @@ def api_points(request, username):
                 row.save_png = save_png
                 row.png_quality = png_quality
                 row.auto_archive = auto_archive
+                row.pagination_value = pagination_value
                 row.save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
@@ -474,7 +498,8 @@ def api_points(request, username):
                                                   save_pdf=save_pdf,
                                                   save_png=save_png,
                                                   png_quality=png_quality,
-                                                  auto_archive=auto_archive)
+                                                  auto_archive=auto_archive,
+                                                  pagination_value=pagination_value)
                 row.save()
             if (autotag or auto_summary) and not os.path.exists(settings.NLTK_DATA_PATH):
                 dbxs.vnt_task.function(Summarizer.check_data_path)
