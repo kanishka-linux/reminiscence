@@ -62,6 +62,7 @@ class UserSettings(models.Model):
     save_pdf = models.BooleanField(default=False)
     save_png = models.BooleanField(default=False)
     png_quality = models.PositiveSmallIntegerField(default=85)
+    pagination_value = models.PositiveSmallIntegerField(default=100)
     buddy_list = models.CharField(max_length=8192, null=True)
 
 class GroupTable(models.Model):
