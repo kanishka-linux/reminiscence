@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import shutil
 import logging
@@ -347,6 +348,8 @@ class DBAccess:
         index = 1
         username = usr.username
         for title, url, idd, timestamp, tag, directory, media_path in usr_list:
+            title = re.sub('_|-', ' ', title)
+            title = re.sub('/', ' / ', title)
             base_dir = '/{}/{}/{}'.format(usr, directory, idd)
             base_remove = base_dir + '/remove'
             base_et = base_dir + '/edit-bookmark'
