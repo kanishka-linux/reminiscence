@@ -206,7 +206,7 @@ By default, reminiscence uses sqlite database, but users can replace it with any
 
 * Instead of using **python manage.py runserver** command as mentioned in above installation instructions use following command. Users can change parameters according to need. Only make sure to keep value of **timeout** argument somewhat bigger. Larger timeout value is useful, if upload speed is slow and user want to upload relatively large body from web-interface.
 
-             $ gunicorn --max-requests 1000 --worker-class gthread --workers 2 --thread 5 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
+        $ gunicorn --max-requests 1000 --worker-class gthread --workers 2 --thread 5 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
 
 * Install **nginx** using native package manager of distro and then make adjustments to nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
 
@@ -266,6 +266,6 @@ By default, reminiscence uses sqlite database, but users can replace it with any
 
 # Motivation
 
-Till few years back, I used to think that once something has been published on the web, it is going to remain there forever in some form or other. But web of today is different. Now we never know, when some valuable web resource (like web-pages, images, text, pdf etc...) will disappear from the web completely. There could be variety of reasons for disappearance (e.g. author of resource lost interest in maintaining it, low traffic or some other political-economic reasons). I don't want to go into details, but there are plenty of reasons due to which web-resource that we savoured in the past, might become un-available in the future. If we are lucky, then we may find mirrors of popular sites of the past, archived by volunteers. But, the same can't be said true of obscure and rare web content.
+Till few years back, I used to think that once something has been published on the web, it is going to remain there forever in some form or other. But web of today is different. Now we never know, when some valuable web resource (like web-pages, images, text, pdf etc...) will disappear from the web completely. There might be variety of reasons for disappearance (e.g. author of resource lost interest in maintaining it, low traffic or some other political-economic reasons). I don't want to go into details, but there are plenty of reasons due to which web-resource that we savoured in the past, might become un-available in the future. If we are lucky, then we may find mirrors of popular sites of the past, archived by volunteers. But, the same can't be said true of obscure and rare web content.
 
 So for quite some time, I was looking for saving personal memories of web effectively and in a well organized manner, which will remain with user and not with some third party. As I could not find suitable already existing solution meeting may taste (directory based organization, automatic tagging/summarization, archiving in various formats etc..), I decided develop one.
