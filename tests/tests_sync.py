@@ -15,7 +15,7 @@ class LibraryTests(TestCase):
     def setUpTestData(cls):
         usr = User.objects.create_user(username='johndoe', password='clrsalgo')
         Library.objects.create(usr=usr, directory='TMP')
-        Library.objects.create(usr=usr, directory='TMP',
+        Library.objects.create(usr=usr, directory='TMP', title='Wiki',
                                url=cls.url, timestamp=timezone.now())
     
     def setUp(self):
