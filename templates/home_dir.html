@@ -92,4 +92,32 @@
 </tbody>
 </table>
 </div>
+<nav aria-label="Page navigation">
+{% if usr_list.has_other_pages %}
+  <ul class="pagination pagination-sm justify-content-center flex-wrap py-2">
+    {% if usr_list.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ usr_list.previous_page_number }}">&laquo;</a></li>
+    {% else %}
+      <li class="page-item disabled"><a class="page-link" href="#"><span>&laquo;</span></a></li>
+    {% endif %}
+    {% for i in usr_list.paginator.page_range %}
+      {% if usr_list.number == i %}
+        <li class="page-item active">
+            <a class="page-link" href="#"><span>{{ i }} <span class="sr-only">(current)</span></span></a>
+        </li>
+      {% else %}
+        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+      {% endif %}
+    {% endfor %}
+    {% if usr_list.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ usr_list.next_page_number }}">&raquo;</a></li>
+    {% else %}
+      <li class="page-item disabled"><a class="page-link" href="#"><span>&raquo;</span></a></li>
+    {% endif %}
+  </ul>
+{% endif %}
+</nav>
 {% endblock %}
+
+
+
