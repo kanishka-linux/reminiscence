@@ -74,6 +74,7 @@ class DBAccess:
         save = False
         save_text = False
         favicon_link = None
+        final_og_link = None
         summary = 'none'
         req = args[-1]
         tags_list = []
@@ -97,6 +98,9 @@ class DBAccess:
                     title = url_name.rsplit('/')[-1]
                 ilink = soup.find('link', {'rel':'icon'})
                 slink = soup.find('link', {'rel':'shortcut icon'})
+                mlink = soup.find('meta', {'property':'og:image'})
+                if mlink:
+                    final_og_link = mlink.get('content', '')
                 if ilink:
                     favicon_link = cls.format_link(ilink.get('href'), url_name)
                 elif slink:
@@ -147,13 +151,17 @@ class DBAccess:
                 os.makedirs(settings.FAVICONS_STATIC)
             media_path_parent = os.path.join(media_dir, str(row.id))
             final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
+            final_og_image_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.png')
             media_path = os.path.join(media_path_parent, out_title)
             row.media_path = media_path
             row.save()
             if not os.path.exists(final_favicon_path) and favicon_link:
                 cls.vnt.get(favicon_link, out=final_favicon_path)
+            if not os.path.exists(final_og_image_path) and final_og_link:
+                cls.vnt.get(final_og_link, out=final_og_image_path)
         elif media_path and row:
             final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
+            final_og_image_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.png')
             media_path_parent, out_title = os.path.split(media_path)
             if settings_row and settings_row.auto_summary and summary:
                 row.summary = summary
@@ -163,6 +171,8 @@ class DBAccess:
                 save_summary = True
             if not os.path.exists(final_favicon_path) and favicon_link:
                 cls.vnt.get(favicon_link, out=final_favicon_path)
+            if not os.path.exists(final_og_image_path) and final_og_link:
+                cls.vnt.get(final_og_link, out=final_og_image_path)
         #print(favicon_link, final_favicon_path)
         if save or save_text:
             if not os.path.exists(media_path_parent):
