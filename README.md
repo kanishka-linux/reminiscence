@@ -191,7 +191,9 @@ Group links of a user can be accesed by pre-determined group of users at the url
 
 ## Searching Bookmarks
 
-Bookmarks can be searched according to title, url, tag or summary by using search menu available at the top most navigation bar. By default bookmarks will be searched according to **title**. In order to search according to url, tag or summary, users have to prepend **url:**, **tag:**, or **sum:** to the search term, in the search box.
+Bookmarks can be searched according to title, url, tag or summary by using search menu available at the top most navigation bar. By default bookmarks will be searched according to **title**. In order to search according to url, tag or summary, users have to prefix **url:**, **tag:**, or **sum:** to the search term, in the search box.
+
+Note: Special search prefix **tag-wall:** will display all available tags.
 
 
 ## About Database
