@@ -3,7 +3,8 @@ import re
 import json
 import shutil
 import logging
-
+from functools import reduce
+from itertools import chain
 from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from mimetypes import guess_extension, guess_type
@@ -330,6 +331,7 @@ def api_points(request, username):
             dbxs.save_in_binary_format(usr, request, dirname)
             return HttpResponse('OK')
         elif req_search and len(req_search) > 2:
+            tag_list = []
             if req_search.startswith('tag:'):
                 search_term = req_search.split(':', 1)[1]
                 mode = 'tag'
@@ -342,11 +344,23 @@ def api_points(request, username):
             elif req_search.startswith('sum:'):
                 search_term = req_search.split(':', 1)[1]
                 mode = 'summary'
+            elif req_search.startswith('tag-wall:'):
+                qlist = Library.objects.filter(usr=usr)
+                tagset = set()
+                mode = 'tag-wall'
+                if qlist:
+                    tags = [row.tags.split(',') for row in qlist if row.tags]
+                    fun = lambda *x : set(chain(*x))
+                    tag_list = list(reduce(fun, tags))
+                    tag_list.sort()
             else:
                 search_term = req_search
                 mode = 'title'
-            print(mode, search_term)
-            usr_list = dbxs.get_rows_by_directory(usr, search_mode=mode, search=search_term)
+            if mode == 'tag-wall':
+                usr_list = [('Total Tags', '', '', timezone.now(), tag_list, 'Tag-Wall', '')]
+            else:
+                logger.info('{}->{}'.format(mode, search_term))
+                usr_list = dbxs.get_rows_by_directory(usr, search_mode=mode, search=search_term)
             ndict = dbxs.populate_usr_list(usr, usr_list, create_dict=True)
             return HttpResponse(json.dumps(ndict))
         elif req_summary and req_summary == 'yes':
