@@ -294,7 +294,7 @@ function dropdown_menu_clicked(element){
                         al.append(html)
                     })
         }else{
-            msg = "</htm>URL Already Archieved. Do you want to overwrite existing file?<html>";
+            msg = "</htm>URL Already Archived. Do you want to overwrite existing file?<html>";
             var resp = bootbox.confirm(msg, function(resp){
                 console.log(resp);
                 if (resp){
@@ -568,7 +568,7 @@ function create_table_rows(usr, badge_nodes, index, title, netloc,
                 <span id="drop-archive-${index}" onclick="onsearch_dropdown(event, id)"\
                  class="dropdown-item" data-link="${archive_media}" title="${title}" \
                  data-val="url_archive" data-url="/${usr}/api/request"\
-                 dir-name="${dirname}" find-id="${ms}">Archieve</span>
+                 dir-name="${dirname}" find-id="${ms}">Archive</span>
                  
                 <div class="dropdown-divider"></div>
                 
@@ -620,12 +620,12 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
     <div class="form-check">
         <input class="form-check-input" type="checkbox" value="auto_archive" id="auto_archive" ${auto_archive}>
         <label class="form-check-label" for="auto_archive">
-        Automatic Archieve Generation
+        Automatic Archive Generation
         </label>
     </div>
     <div class="row">
         <div class="col-sm-4">
-            Archieve Formats
+            Archive Formats
         </div>
         <div class="col-sm-8">
             <div class="form-check-inline">
