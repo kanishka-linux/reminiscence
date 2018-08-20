@@ -150,7 +150,7 @@ Users first have to create directory from web interface
     
 ## Adding URLs
 
-Users have to navigate to required directory and then need to add links to it. URLs are fetched asynchronously from the source for gathering metadata initially. Users have to wait for few seconds, after that page will refresh automatically showing new content. It may happen, nothing would show up after automatic page refresh, if URL fetching is slow due to various reasons, then try refreshing page manually by clicking on directory entry again. Maybe in future, I will have to look into django channels and websockets to enable real-time duplex communication between client and server.
+Users have to navigate to required directory and then need to add links to it. URLs are fetched asynchronously from the source for gathering metadata initially. Users have to wait for few seconds, after that page will refresh automatically showing new content. It may happen, nothing would show up after automatic page refresh (e.g. due to slow URL fetching) then try refreshing page manually by clicking on directory entry again. Maybe in future, I will have to look into django channels and websockets to enable real-time duplex communication between client and server.
 
 ![reminiscence](/Images/show_bookmarks.png)
 
