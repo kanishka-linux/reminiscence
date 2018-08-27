@@ -80,7 +80,8 @@ Table of Contents
 3. Installation of above dependencies in Debian or Ubuntu based distros
 
         $ sudo apt install virtualenv wkhtmltopdf redis-server
-    
+
+**Note:** Name of above dependencies may change depending on distro or OS, so install accordingly. Once above dependencies are installed, execute following commands, which are distro/platform independent. 
     
 #### Now execute following commands in terminal.
 
@@ -117,6 +118,8 @@ Table of Contents
     **Note:** replace localhost address with local ip address of your server
             
               to access web-interface from anywhere on the local network
+
+    Admin interface available at: /admin/
               
 
 #### Setting up Celery (optional):
@@ -165,7 +168,7 @@ About summarization, there are many advance methods which may give even more bet
 
 ## Reader mode
 
-Once user will open document using inbuilt reader, the application will try to present text content, properly formatted for mobile devices whenever possible. In reader mode user will also find options **Original, PDF and PNG**, at the top header. These options will be available only when user has archived the link in those formats. Options for selecting archive file format is available in every user's **Settings** box.  If **Original**, format is selected then users can see the text content along with original stylesheet and linked images. Javascript will be removed from original file format due to security reasons. If page can't be displayed due to lack of javascript then users have to depend on either PDF or full-page PNG formats.
+Once user will open link using inbuilt reader, the application will try to present text content, properly formatted for mobile devices whenever possible. In reader mode user will also find options **Original, PDF and PNG**, at the top header. These options will be available only when user has archived the link in those formats. Options for selecting archive file format is available in every user's **Settings** box.  If **Original**, format is selected then users can see the text content along with original stylesheet and linked images. Javascript will be removed from original file format due to security reasons. If page can't be displayed due to lack of javascript then users have to depend on either PDF or full-page PNG formats.
 
 ![reminiscence](/Images/reader.png)
 
