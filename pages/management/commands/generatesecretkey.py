@@ -1,4 +1,5 @@
-import os, re
+import os
+import re
 import reminiscence
 from django.conf import settings
 from django.core import management
