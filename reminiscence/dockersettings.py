@@ -25,7 +25,7 @@ SECRET_KEY = '<Enter Secret Key Here>'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -172,9 +172,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 FAVICONS_STATIC = os.path.join(BASE_DIR, 'static', 'favicons')
 
@@ -198,7 +196,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
 
-USE_XVFB = True
+USE_XVFB = False
 ALLOW_ANY_ONE_SIGNUP = False
 
 # Vinanti Multiprocess Settings for background tasks
