@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+
+  nginx:
+    build:
+        context: .
+        dockerfile: Dockerfile.nginx
+    container_name: ng01
+    volumes:
+        - .:/usr/src/reminiscence
+    ports:
+        - "80:80"
+    depends_on:
+        - web
+  
+  web:
+    
+    build: .
+    container_name: dg01
+
+    command: bash -c "while ! nc -w 1 -z db 5432; do sleep 0.1; done; python manage.py migrate; python manage.py createdefaultsu; gunicorn --max-requests 1000 --worker-class gthread --workers 4 --thread 2 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi"
+        
+    ports:
+      - "8000:8000"
+    volumes:
+        - ./static:/usr/src/reminiscence/static/
+        - ./archive:/usr/src/reminiscence/archive/
+        - ./logs:/usr/src/reminiscence/logs/
+    depends_on:
+        - db
+        
+
+  db:
+    container_name: pg01
+    image: postgres:latest
+    volumes:
+        - ./db:/var/lib/postgresql/data/
+    
