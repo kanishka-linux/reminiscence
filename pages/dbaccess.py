@@ -262,6 +262,7 @@ class DBAccess:
                 'wkhtmltopdf', '--custom-header',
                 'User-Agent', settings.USER_AGENT,
                 '--javascript-delay', '500',
+                '--load-error-handling', 'ignore',
                 url_name, pdf
             ]
             if settings.USE_XVFB:
@@ -279,6 +280,7 @@ class DBAccess:
                 'wkhtmltoimage', '--quality', str(settings_row.png_quality),
                 '--custom-header', 'User-Agent', settings.USER_AGENT,
                 '--javascript-delay', '500',
+                '--load-error-handling', 'ignore',
                 url_name, png
             ]
             if settings.USE_XVFB:
