@@ -21,5 +21,3 @@ RUN mkdir -p logs archive
 RUN python manage.py applysettings --docker yes
 
 RUN python manage.py generatesecretkey
-
-RUN python manage.py nltkdownload
