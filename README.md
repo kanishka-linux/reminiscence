@@ -152,19 +152,19 @@ Table of Contents
 
 2. Enable/start docker service. Instructions for enabling docker might be different in different distros. Sample instruction for enabling/starting docker will look like
 
-    $ systemctl enable/start docker.service
+        $ systemctl enable/start docker.service
 
 3. clone github repository and enter directory
 
-    $ git clone https://github.com/kanishka-linux/reminiscence.git
+        $ git clone https://github.com/kanishka-linux/reminiscence.git
 
-    $ cd reminiscence
+        $ cd reminiscence
 
 5. build and start
 
-    $ sudo docker-compose up --build
+        $ sudo docker-compose up --build
 
-    Note: Above instruction will take some time when executed for the first time.
+        Note: Above instruction will take some time when executed for the first time.
 
 6. Default username: 'admin', default password: 'changepassword'
 
