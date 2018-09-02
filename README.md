@@ -148,15 +148,15 @@ Table of Contents
         
 ## Using Docker
 
-1. Using docker is convenient compared to normal installation method described above. It will take care of gunicorn, nginx and setting up of postgresql database. Setting and running up these three things can be a bit cumbersome, if done manually, which is described below in separate section. It will also automatically download headless version of wkhtmltopdf from official github repository (Since, many distros do not package wkhtmltopdf with headless feature) and nltk data set, apart from installing python based dependencies.
+Using docker is convenient compared to normal installation method described above. It will take care of gunicorn, nginx and setting up of postgresql database. Setting and running up these three things can be a bit cumbersome, if done manually, which is described below in separate section. It will also automatically download headless version of wkhtmltopdf from official github repository (Since, many distros do not package wkhtmltopdf with headless feature) and nltk data set, apart from installing python based dependencies.
 
-2. Install docker and docker-compose
+1. Install docker and docker-compose
 
-3. Enable/start docker service. Instructions for enabling docker might be different in different distros. Sample instruction for enabling/starting docker will look like
+2. Enable/start docker service. Instructions for enabling docker might be different in different distros. Sample instruction for enabling/starting docker will look like
 
         $ systemctl enable/start docker.service
 
-4. clone github repository and enter directory
+3. clone github repository and enter directory
 
         $ git clone https://github.com/kanishka-linux/reminiscence.git
 
@@ -176,9 +176,7 @@ Table of Contents
 
 7. Change default admin password from admin interface and create new regular user. After that logout, and open '**192.168.1.2**'. Now login with regular user for regular activity.
 
- 
-
-9. For custom configuration, modify nginx.conf and dockerfiles available in the repository. After that execute step 4 again.
+8. For custom configuration, modify nginx.conf and dockerfiles available in the repository. After that execute step 4 again.
 
 # Documentation
 
