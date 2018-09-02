@@ -46,6 +46,8 @@ class ImportBookmarks:
     @classmethod
     def import_bookmarks(cls, usr, settings_row, import_file, mode='file'):
         book_dict = cls.convert_bookmark_to_dict(import_file, mode=mode)
+        if not os.path.exists(settings.FAVICONS_STATIC):
+            os.makedirs(settings.FAVICONS_STATIC)
         insert_links_list = []
         insert_dir_list = []
         url_list = []
