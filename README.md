@@ -148,7 +148,7 @@ Table of Contents
         
 ## Using Docker
 
-Using docker is convenient compared to normal installation method described above. It will take care of gunicorn, nginx and setting up of postgresql database. Setting and running up these three things can be a bit cumbersome, if done manually, which is described below in separate section. It will also automatically download headless version of wkhtmltopdf from official github repository (Since, many distros do not package wkhtmltopdf with headless feature) and nltk data set, apart from installing python based dependencies.
+Using docker is convenient compared to normal installation method described above. It will take care of gunicorn, nginx and setting up of postgresql database. Setting and running up these three things can be a bit cumbersome, if done manually, which is described below in separate section. It will also automatically download headless version of wkhtmltopdf from official github repository (Since, many distros do not package wkhtmltopdf with headless feature) and nltk data set, apart from installing python based dependencies. Now follow following steps.
 
 1. Install docker and docker-compose
 
@@ -168,7 +168,7 @@ Using docker is convenient compared to normal installation method described abov
 
         Note: Above instruction will take some time when executed for the first time.
 
-5. Default username: 'admin', default password: 'changepassword'
+5. Above step will also create default user: 'admin' with default password: 'changepassword'
 
 6. If IP address of server is '**192.168.1.2**' then admin interface will be available at 
 
