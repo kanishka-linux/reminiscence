@@ -16,4 +16,4 @@ def signup(request):
             form = UserCreationForm()
         return render(request, 'signup.html', {'form': form})
     else:
-        return HttpResponse('<html>Sorry! New Sign UP Not allowed. Ask moderator or Admin to create account for you.</html>');
+        return render(request, 'nosignup.html')
