@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block stylesheet %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock %}
+
+{% block body %}
+  <div class="container">
+    <h1 class="text-center logo my-4">
+      <a href="{% url 'home' %}">Reminiscence</a>
+    </h1>
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-10 col-sm-12">
+            <div class="alert alert-warning text-center" role="alert">
+                Sorry! New sign up not allowed. Ask moderator or Admin to create account for you.
+            </div>
+          <div class="alert alert-success text-center" role="alert">
+            Already have an account? <a href="{% url 'login' %}">Log in</a>
+          </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
