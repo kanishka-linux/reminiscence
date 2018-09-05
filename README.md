@@ -35,6 +35,8 @@ Table of Contents
     
     * [Handling Background Tasks](#handling-background-tasks-without-using-celery-or-other-external-task-queue-manager)
 
+* [Future Roadmap](#future-roadmap)
+
 * [Motivation](#motivation)
 
 # Features
@@ -303,6 +305,18 @@ By default, reminiscence uses sqlite database, but users can replace it with any
 * Making 3000 http requests in the background, archiving their output as per content-type, along with generating tags/summary using NLTK and database (postgresql) write (without converting pages to png/pdf), took somewhere along 12-13 minutes with aiohttp as backend and 50 async http requests at a time. By default, Vinanti does not use aiohttp in this project. In order to use aiohttp, user should set **VINANTI_BACKEND='aiohttp'** in settings.py file. Converting pages to png/pdf will be time consuming and might take hours depending on server and number of bookmarked links.
 
 * Even though, this appraoch is working well for self-hosted application with limited number of users with limited tasks. For large number of tasks, it it better to use dedicated external task queue manager. That's why option has been provided to set up celery, if a user and his group has large number of bookmarked links which they want to convert to pdf/png format. Maybe in future, option may be provided for making http requests and postprocessing content to celery, if current setup with Vinanti won't deliver upto expectations.
+
+# Future Roadmap
+
+1. Modify architecture to include plugins/addons system, so that people can write custom scripts for their unique archival needs.
+
+2. Provide an option to change headless browsers for PDF/PNG generation. (i.e provide support for alternative headless browsers like Chromium, hlspy etc..)
+
+3. Support multi-word tagging
+
+4. Provide browser addons
+
+5. Document API 
 
 # Motivation
 
