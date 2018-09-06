@@ -215,6 +215,8 @@ PDF and full-page screenshot in PNG format of HTML page will be generated using 
 
 **Note:** Use Xvfb, only when wkhtmltopdf is not packaged with headless feature.
 
+**Note:** Alternatively Users can also download official headless wkhtmltopdf for their resepctive distro/OS from [here](https://github.com/wkhtmltopdf/wkhtmltopdf/releases). Only problem is that, users will have to update the package manually on their own for every new update.
+
 **Why not use Headless Chromium?** 
 
 Currently headless chromium doesn't support full page screenshot, otherwise I might have used it blindly. There is another headless browser [hlspy](https://github.com/kanishka-linux/hlspy), based on QtWebEngine, which I built for my personal use. **hlspy** can generate entire html content, pdf document and full page screenshot in one single request and that too using just one single process. In both chromium and wkhtmltopdf, one has to execute atleast two separate processes for doing the same thing. The main problem with hlspy is that it is not completely headless, it can't run without X. It requires xvfb for running in headless environment. 
