@@ -22,11 +22,11 @@ class SignUpTests(TestCase):
         if settings.ALLOW_ANY_ONE_SIGNUP:
             self.assertContains(self.response, 'csrfmiddlewaretoken')
         else:
-            self.assertContains(self.response, 'New Sign UP Not allowed')
+            self.assertContains(self.response, 'New sign up not allowed')
 
     def test_contains_form(self):
         if settings.ALLOW_ANY_ONE_SIGNUP:
             form = self.response.context.get('form')
             self.assertIsInstance(form, UserCreationForm)
         else:
-            self.assertContains(self.response, 'New Sign UP Not allowed')
+            self.assertContains(self.response, 'New sign up not allowed')
