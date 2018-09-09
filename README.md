@@ -320,6 +320,8 @@ By default, reminiscence uses sqlite database, but users can replace it with any
 
 5. Document API 
 
+6. Support for text annotation
+
 # Motivation
 
 Till few years back, I used to think that once something has been published on the web, it is going to remain there forever in some form or other. But web of today is different. Now we never know, when some valuable web resource (like web-pages, images, text, pdf etc...) will disappear from the web completely. There might be variety of reasons for disappearance (e.g. author of resource lost interest in maintaining it, low traffic or some other political-economic reasons). I don't want to go into details, but there are plenty of reasons due to which web-resource that we savoured in the past, might become un-available in the future. If we are lucky, then we may find mirrors of popular sites of the past, archived by volunteers. But, the same can't be said true of obscure and rare web content.
