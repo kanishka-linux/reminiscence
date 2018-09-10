@@ -180,6 +180,8 @@ Using docker is convenient compared to normal installation method described abov
 
 8. For custom configuration, modify nginx.conf and dockerfiles available in the repository. After that execute step 4 again.
 
+**Note:** If Windows users are facing problem in mounting data volume for Postgres, they are advised to refer this [issue](https://github.com/kanishka-linux/reminiscence/issues/1).
+
 # Documentation
 
 ## Creating Directory
