@@ -182,6 +182,8 @@ Using docker is convenient compared to normal installation method described abov
 
 **Note:** If Windows users are facing problem in mounting data volume for Postgres, they are advised to refer this [issue](https://github.com/kanishka-linux/reminiscence/issues/1).
 
+**Note:** Ubuntu 16.04 users might have to modify docker-compose.yml file and need to change version 3 to 2. [issue](https://github.com/kanishka-linux/reminiscence/issues/4)
+
 # Documentation
 
 ## Creating Directory
