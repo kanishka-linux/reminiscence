@@ -1,6 +1,6 @@
 # Reminiscence
 
-Self-hosted Bookmark and Archive manager
+Self-hosted Bookmark and Archive manager made with Django (https://www.djangoproject.com)
 
 Table of Contents
 =================
