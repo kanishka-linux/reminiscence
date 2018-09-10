@@ -186,7 +186,9 @@ Using docker is convenient compared to normal installation method described abov
 
 ## Creating Directory
 
-Users first have to create directory from web interface
+Users first have to create directory from web interface.
+
+**Note:** '/' and '&' are not allowed as characters in directory name.
 
 ![reminiscence](/Images/default.png)
     
