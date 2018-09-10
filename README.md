@@ -188,7 +188,7 @@ Using docker is convenient compared to normal installation method described abov
 
 Users first have to create directory from web interface.
 
-**Note:** '/' and '&' are not allowed as characters in directory name.
+**Note:** Currently '/' and '&' (along with few other special characters) are not allowed as characters in directory name. If users are facing problem when accessing directory, then they are advised to rename directory and remove special characters.
 
 ![reminiscence](/Images/default.png)
     
