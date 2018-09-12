@@ -31,7 +31,7 @@ Table of Contents
     
     * [About Database](#about-database)
 
-    * [Understanding Settings files](#understanding-settings-file)
+    * [Understanding Settings files](#understanding-settings-files)
     
     * [Gunicorn plus Nginx setup](#gunicorn-plus-nginx-setup)
     
