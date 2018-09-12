@@ -31,7 +31,7 @@ Table of Contents
     
     * [About Database](#about-database)
 
-    * [Understanding Settings file](#understanding-settings-file)
+    * [Understanding Settings files](#understanding-settings-file)
     
     * [Gunicorn plus Nginx setup](#gunicorn-plus-nginx-setup)
     
@@ -250,7 +250,21 @@ Note: Special search prefix **tag-wall:** will display all available tags.
 
 By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) . Users can also take a look at this [wiki](https://wiki.archlinux.org/index.php/PostgreSQL), for proper postgresql database setup. There might be some changes in the instructions depending on the OS and distributions you are using.
 
-## Understanding Settings File
+## Understanding Settings Files
+
+reminiscence folder contains three settings files 
+
+    1. settings.py
+
+    2. defaultsettings.py
+
+    3. dockersettings.py
+
+In normal installation procedure, settings.py file is used. If user will make changes in it then those changes will be reflected in normal installation method. 
+
+In docker based method dockersettings.py file is used. Settings of this file will be copied during docker installation method.
+
+defaultsettings.py contains default settings, which users can copy if user has somehow corrupted settings files while manually editing.
 
 ## Gunicorn plus Nginx setup
 
