@@ -30,6 +30,8 @@ Table of Contents
     * [Searching Bookmarks](#searching-bookmarks)
     
     * [About Database](#about-database)
+
+    * [Understanding Settings file](#understanding-settings-file)
     
     * [Gunicorn plus Nginx setup](#gunicorn-plus-nginx-setup)
     
@@ -247,6 +249,8 @@ Note: Special search prefix **tag-wall:** will display all available tags.
 ## About Database
 
 By default, reminiscence uses sqlite database, but users can replace it with any database supported by django ORM like postgresql. Some simple instructions for using postgresql with django are available [here](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) . Users can also take a look at this [wiki](https://wiki.archlinux.org/index.php/PostgreSQL), for proper postgresql database setup. There might be some changes in the instructions depending on the OS and distributions you are using.
+
+## Understanding Settings File
 
 ## Gunicorn plus Nginx setup
 
