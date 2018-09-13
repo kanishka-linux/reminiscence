@@ -264,7 +264,7 @@ reminiscence folder contains three settings files
 
 * In docker based method dockersettings.py file is used. Settings of this file will be copied during docker installation method.
 
-* defaultsettings.py contains default settings. If user has somehow corrupted settings files while manually editing, then original settings can be restored using this file.
+* defaultsettings.py is the backup file. If user has somehow corrupted settings files while manually editing, then original settings can be restored using this file.
 
 ## Gunicorn plus Nginx setup
 
