@@ -40,15 +40,29 @@
 <table data-refresh="{{refresh}}" class="table" >
 <thead class="thead-dark">
   <tr>
-    <th></th>
+    <th>
+    </th>
     <th class="align-middle">Title</th>
-    <th class="align-middle px-4">Action</th>
+    <th class="align-middle px-1">
+        
+        <div class="nav-item dropdown">
+          <div class="nav-link dropdown-toggle" href="#" id="dir-menu-common" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action
+          </div>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dir-menu-common">
+            <span class="dropdown-item" data-val="select-multiple" api-url="/{{user.username}}/api/request">Select Multiple</span>
+            <span class="dropdown-item" data-val="select-all" api-url="/{{user.username}}/api/request">Select All</span>
+            <div class="dropdown-divider"></div>
+            <span class="dropdown-item" data-val="move-multiple" api-url="/{{user.username}}/api/request">Move Selected</span>
+            <span class="dropdown-item" data-val="refresh-multiple" api-url="/{{user.username}}/api/request">Refresh Selected</span>
+          </div>
+        </div>
+    </th>
   </tr>
 </thead>
 <tbody id="tbody">
   {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path in usr_list %}
     <tr>
-        <td>{% if fav_path %}<img width="24" src="{{fav_path}}">{% endif %}</td>
+        <td>{% if fav_path %}<img width="24" src="{{fav_path}}" link-id="{{idd}}">{% endif %}</td>
       <td>
         <a href="{{ archive }}"><span class="text-lg-left">{{title}}</span></a></br>
             <small>
@@ -84,7 +98,7 @@
         </div>
         </br>
         <small>
-            <footer class="text-muted px-2 py-2">{{timestamp}}</footer>
+            <footer class="text-muted px-2 py-2" link-id="{{idd}}">{{timestamp}}</footer>
         </small>
         </td>
     </tr>
