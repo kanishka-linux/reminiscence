@@ -261,6 +261,20 @@ function dropdown_menu_clicked(element){
                             }
                         })
                     })
+    }else if(link == 'select-multiple' || link == 'select-all'){
+        var el = $('#tbody').find('tr td:first-child');
+        var checked = '';
+        if(link == 'select-all'){
+            checked = 'checked';
+        }
+        el.each(function(index){
+            var idd = $(this).nextAll().eq(1).find('footer').attr('link-id');
+            html = `<div class="form-check">
+            <input class="form-check-input" type="checkbox" value="check-box" id="multiple-select-box" check-id="${idd}" ${checked}>
+            </div>`
+            $(this).append(html);
+            console.log(idd);
+        })
     }else if(link == 'url_archive'){
         var nlink = $(element).attr('data-link');
         console.log(nlink)
