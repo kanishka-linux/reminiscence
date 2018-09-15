@@ -149,7 +149,7 @@ def get_resources(request, username, directory, url_id):
     return HttpResponse('Not Found')
 
 @login_required
-def perform_link_operation(request, username, directory, url_id):
+def perform_link_operation(request, username, directory, url_id=None):
     usr = request.user
     print(request.path_info)
     if username and usr.username != username:
@@ -164,9 +164,6 @@ def perform_link_operation(request, username, directory, url_id):
                 return HttpResponse('Deleted')
             elif request.path_info.endswith('move-bookmark'):
                 msg = dbxs.move_bookmarks(usr, request, url_id)
-                return HttpResponse(msg)
-            elif request.path_info.endswith('move-bookmark-multiple'):
-                move_to_dir, move_links_list = dbxs.move_bookmarks(usr, request, single=False)
                 return HttpResponse(msg)
             elif request.path_info.endswith('edit-bookmark'):
                 msg = dbxs.edit_bookmarks(usr, request, url_id)
@@ -186,6 +183,10 @@ def perform_link_operation(request, username, directory, url_id):
                 return cread.get_archived_file(url_id)
         else:
             return HttpResponse('Method not Permitted')
+    elif (directory and request.method == 'POST'
+            and request.path_info.endswith('move-bookmark-multiple')):
+        msg = dbxs.move_bookmarks(usr, request, single=False)
+        return HttpResponse(msg)
     else:
         return HttpResponse('What are you trying to accomplish!')
 
