@@ -183,9 +183,16 @@ def perform_link_operation(request, username, directory, url_id=None):
                 return cread.get_archived_file(url_id)
         else:
             return HttpResponse('Method not Permitted')
-    elif (directory and request.method == 'POST'
-            and request.path_info.endswith('move-bookmark-multiple')):
-        msg = dbxs.move_bookmarks(usr, request, single=False)
+    elif directory and request.method == 'POST':
+        msg = 'nothing'
+        if request.path_info.endswith('move-bookmark-multiple'):
+            msg = dbxs.move_bookmarks(usr, request, single=False)
+        elif request.path_info.endswith('archive-bookmark-multiple'):
+            msg = dbxs.group_links_actions(usr, request, directory, mode='archive')
+        elif request.path_info.endswith('merge-bookmark-with'):
+            msg = dbxs.group_links_actions(usr, request, directory, mode='merge')
+        elif request.path_info.endswith('edit-tags-multiple'):
+            msg = dbxs.group_links_actions(usr, request, directory, mode='tags')
         return HttpResponse(msg)
     else:
         return HttpResponse('What are you trying to accomplish!')
