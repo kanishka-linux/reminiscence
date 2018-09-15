@@ -54,9 +54,8 @@ urlpatterns = [
     path('<username>/<str:directory>/<int:url_id>/move-bookmark', perform_link_operation, name='move_bookmark'),
     path('<username>/<str:directory>/move-bookmark-multiple', perform_link_operation, name='move_bookmark_multiple'),
     path('<username>/<str:directory>/archive-bookmark-multiple', perform_link_operation, name='archive_bookmark_multiple'),
-    path('<username>/<str:directory>/merge-bookmark-with', perform_link_operation, name='merge_bookmark_with')
-    
-    
+    path('<username>/<str:directory>/merge-bookmark-with', perform_link_operation, name='merge_bookmark_with'),
+    path('<username>/<str:directory>/edit-tags-multiple', perform_link_operation, name='edit_tags_multiple')
 ]
 
 #url(r'^.*$', default_dest, name='catch_all')
