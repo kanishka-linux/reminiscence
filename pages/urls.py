@@ -52,7 +52,10 @@ urlpatterns = [
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.@+-]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources'),
     path('<username>/<str:directory>/<int:url_id>/edit-bookmark', perform_link_operation, name='edit_bookmark'),
     path('<username>/<str:directory>/<int:url_id>/move-bookmark', perform_link_operation, name='move_bookmark'),
-    path('<username>/<str:directory>/<int:url_id>/move-bookmark-multiple', perform_link_operation, name='move_bookmark_multiple')
+    path('<username>/<str:directory>/move-bookmark-multiple', perform_link_operation, name='move_bookmark_multiple'),
+    path('<username>/<str:directory>/archive-bookmark-multiple', perform_link_operation, name='archive_bookmark_multiple'),
+    path('<username>/<str:directory>/merge-bookmark-with', perform_link_operation, name='merge_bookmark_with')
+    
     
 ]
 
