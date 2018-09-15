@@ -488,7 +488,7 @@ class DBAccess:
                     if link.isnumeric():
                         link_id = int(link)
                         Library.objects.filter(id=link_id).update(directory=move_to_dir)
-            msg = 'Moved {} links to {}'.format(move_to_dir, len(move_links_list))
+            msg = 'Moved {1} links to {0}'.format(move_to_dir, len(move_links_list))
         return msg
 
     @staticmethod
