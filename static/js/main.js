@@ -631,7 +631,7 @@ function create_table_rows(usr, badge_nodes, index, title, netloc,
         </div>
         </br>
         <small>
-            <footer class="text-muted px-2 py-2">${timestamp}</footer>
+            <footer class="text-muted px-2 py-2" link-id="${idd}" data-url="/${usr}/api/request" dir-name="${dirname}">${timestamp}</footer>
         </small>
         </td>
     </tr>`
