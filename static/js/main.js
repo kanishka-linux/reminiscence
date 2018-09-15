@@ -85,7 +85,7 @@ function dropdown_menu_clicked(element){
                     }
                 })
             }else if(move_bookmark){
-                move_to_bookmark(post_data, api_link, nlink, csrftoken, el);
+                move_to_bookmark(post_data, api_link, nlink, csrftoken, el, '');
             }
         }
     }else if(link == 'url_read'){
@@ -272,10 +272,38 @@ function dropdown_menu_clicked(element){
             html = `<div class="form-check">
             <input class="form-check-input" type="checkbox" value="check-box" id="multiple-select-box" check-id="${idd}" ${checked}>
             </div>`
-            $(this).append(html);
-            console.log(idd);
+            var fm = $(this).find('input');
+            if(fm.length){
+                if (checked == 'checked'){
+                    fm.prop('checked', true);
+                }else{
+                    fm.prop('checked', false);
+                }
+            }else{
+                $(this).append(html);
+            }
         })
-    }else if(link == 'url_archive'){
+    }else if(link == 'move-multiple'){
+        var el = $('#tbody').find('tr td:first-child');
+        var elar = [];
+        var elpar = [];
+        el.each(function(index){
+            var elmid = $(this).find('#multiple-select-box:checked');
+            if (elmid.length){
+                elar.push(elmid.attr('check-id'));
+                elpar.push($(this).parent());
+            }
+        })
+        var elar_join = elar.join();
+        console.log(elar_join);
+        post_data = 'listdir=yes';
+        var api_link = $(element).attr('api-url');
+        var nlink = $(element).attr('data-link');
+        var csrftoken = getCookie('csrftoken');
+        console.log(api_link, nlink, post_data);
+        move_to_bookmark(post_data, api_link, nlink, csrftoken, elpar, elar_join);
+    }
+    else if(link == 'url_archive'){
         var nlink = $(element).attr('data-link');
         console.log(nlink)
         var csrftoken = getCookie('csrftoken');
@@ -441,7 +469,7 @@ function get_table_head(){
         </tr>`
 }
 
-function move_to_bookmark(post_data, api_link, nlink, csrftoken, el){
+function move_to_bookmark(post_data, api_link, nlink, csrftoken, el, idlist){
     var client = new postRequest();
     client.post(api_link, post_data, csrftoken, function(response) {
         console.log(response);
@@ -456,13 +484,22 @@ function move_to_bookmark(post_data, api_link, nlink, csrftoken, el){
                 if(val){
                     console.log(val);
                     post_data = `move_to_dir=${val}`;
+                    if (idlist){
+                        post_data = post_data + `&move_links=${idlist}`;
+                    }
                     var client = new postRequest();
                     client.post(
                         nlink, post_data,
                         csrftoken,
                         function(response) {
                             console.log(response);
-                            el.remove();
+                            if(idlist){
+                                for(i=0; i< el.length; i++){
+                                    el[i].remove();
+                                }
+                            }else{
+                                el.remove();
+                            }
                         })
                 }else{
                     console.log('Select Something');
