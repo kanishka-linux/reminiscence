@@ -490,6 +490,49 @@ class DBAccess:
                         Library.objects.filter(id=link_id).update(directory=move_to_dir)
             msg = 'Moved {1} links to {0}'.format(move_to_dir, len(move_links_list))
         return msg
+        
+    @classmethod
+    def group_links_actions(cls, usr, request, dirname, mode=None):
+        msg = 'Nothing'
+        links = request.POST.get('link_ids', '')
+        link_tags = request.POST.get('link_tags', '')
+        merge_dir = request.POST.get('merge_dir', '')
+        if links:
+            links_list = [i.strip() for i in links.split(',') if i.strip()]
+        else:
+            links_list = []
+        if link_tags:
+            tags_list = [i.strip() for i in link_tags.split(',') if i.strip()]
+        else:
+            tags_list = []
+        
+        qlist = UserSettings.objects.filter(usrid=usr)
+        if qlist:
+            set_row = qlist[0]
+        else:
+            set_row = None
+            
+        for link in links_list:
+            if link.isnumeric():
+                link_id = int(link)
+                qset = Library.objects.filter(id=link_id)
+                if qset:
+                    row = qset[0]
+                    if mode == 'archive':
+                        cls.process_add_url(usr, row.url, dirname,
+                                            archive_html=True, row=row,
+                                            settings_row=set_row)
+                    elif mode == 'tags' and tags_list:
+                        cls.edit_tags(usr, row.id, ','.join(tags_list), '')
+        if merge_dir and merge_dir != dirname and mode == 'merge':
+            qlist = Library.objects.filter(usr=usr, directory=dirname)
+            qlistm = Library.objects.filter(usr=usr, directory=merge_dir)
+            merge_list = set([row.url for row in qlistm if row.url])
+            for row in qlist:
+                if not row.url or row.url in merge_list:
+                    row.delete()
+            Library.objects.filter(usr=usr, directory=dirname).update(directory=merge_dir)
+        return msg
 
     @staticmethod
     def edit_bookmarks(usr, request, url_id):
