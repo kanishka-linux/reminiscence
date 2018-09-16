@@ -15,7 +15,7 @@ Table of Contents
 
 * [Documentation](#documentation)
 
-    * [Creating Directory](#creating-directing)
+    * [Creating Directory](#creating-directory)
     
     * [Adding URLs](#adding-urls)
     
