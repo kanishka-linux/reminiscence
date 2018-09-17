@@ -235,9 +235,13 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
 
 By default, all directories and all links are private and are not shared with anyone. However, users can select one public directory and one group directory from all available directories for sharing links. User can set public and group directory via settings. Links placed in public directory will be available for public viewing and links placed in group directory will be available for pre-determined list of users selected by account holder.
 
-Public links of a user can be accesed at the url: **/username/profile/public**
+Public links of a user can be accesed at the url: 
 
-Group links of a user can be accesed by pre-determined group of users at the url: **/username/profile/group**
+        /username/profile/public
+
+Group links of a user can be accesed by pre-determined group of users at the url: 
+
+        /username/profile/group
 
 ## Searching Bookmarks
 
