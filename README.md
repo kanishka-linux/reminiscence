@@ -14,10 +14,8 @@ Table of Contents
     * [Using Docker](#using-docker)
 
 * [Documentation](#documentation)
-
-    * [Creating Directory](#creating-directing)
     
-    * [Adding URLs](#adding-urls)
+    * [Adding Directories and Links](#adding-directories-and-links)
     
     * [Automatic Tagging and Summarization](#automatic-tagging-and-summarization)
     
@@ -188,19 +186,21 @@ Using docker is convenient compared to normal installation method described abov
 
 # Documentation
 
-## Creating Directory
+## Adding Directories And Links
 
-Users first have to create directory from web interface.
+1. Creating Directory
 
-**Note:** Currently '/' and '&' (along with few other special characters) are not allowed as characters in directory name. If users are facing problem when accessing directory, then they are advised to rename directory and remove special characters.
+    Users first have to create directory from web interface.
 
-![reminiscence](/Images/default.png)
+    **Note:** Currently '/' and '&' (along with few other special characters) are not allowed as characters in directory name. If users are facing problem when accessing directory, then they are advised to rename directory and remove special characters.
+
+    ![reminiscence](/Images/default.png)
     
-## Adding URLs
+2. Adding Links
 
-Users have to navigate to required directory and then need to add links to it. URLs are fetched asynchronously from the source for gathering metadata initially. Users have to wait for few seconds, after that page will refresh automatically showing new content. It may happen, nothing would show up after automatic page refresh (e.g. due to slow URL fetching) then try refreshing page manually by clicking on directory entry again. Maybe in future, I will have to look into django channels and websockets to enable real-time duplex communication between client and server.
+    Users have to navigate to required directory and then need to add links to it. URLs are fetched asynchronously from the source for gathering metadata initially. Users have to wait for few seconds, after that page will refresh automatically showing new content. It may happen, nothing would show up after automatic page refresh (e.g. due to slow URL fetching) then try refreshing page manually by clicking on directory entry again. Maybe in future, I will have to look into django channels and websockets to enable real-time duplex communication between client and server.
 
-![reminiscence](/Images/show_bookmarks.png)
+    ![reminiscence](/Images/show_bookmarks.png)
 
 
 ## Automatic Tagging and Summarization
