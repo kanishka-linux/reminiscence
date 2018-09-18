@@ -296,8 +296,67 @@ function dropdown_menu_clicked(element){
             var merge = true;
         }
         move_to_bookmark(post_data, api_link, nlink, csrftoken, elpar, elar_join, merge);
-    }
-    else if(link == 'url_archive'){
+    }else if(link == 'archive-bookmark-multiple'){
+        var [elpar, elar_join] = get_selected_items();
+        post_data = `link_ids=${elar_join}`;
+        var api_link = $(element).attr('api-url');
+        var nlink = $(element).attr('data-link');
+        var csrftoken = getCookie('csrftoken');
+        console.log(api_link, nlink, post_data);
+        var msg = 'This option will try to archive content of multiple selected entries. It will also overwrite existing archived content. Are You Sure?';
+        var resp = bootbox.confirm(msg, function(resp){
+                if(resp){
+                    var client = new postRequest();
+                    client.post(nlink, post_data, csrftoken, function(response) {
+                    console.log(response);
+                    })
+                }else{
+                    console.log('cancelled');
+                }
+            })
+    }else if(link == 'edit-tags-multiple'){
+        var [elpar, elar_join] = get_selected_items();
+        post_data = `link_ids=${elar_join}`;
+        var api_link = $(element).attr('api-url');
+        var nlink = $(element).attr('data-link');
+        var csrftoken = getCookie('csrftoken');
+        console.log(api_link, nlink, post_data);
+        var str = `<form id='infos-tag' novalidate>\
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label" for="tagid-multiple"><b>Tags</b></label>
+            <div class="col-sm-10">
+                <input id='tagid-multiple' type='text' name='tags' value=''\
+                 class="form-control" placeholder="Edit Tags of Multiple Entries"/>
+            </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <div class="form-group row">
+            <label class="col-sm-12 col-form-label"><b>This option will clear\
+             existing tags of selected entries and will apply new tags. So use with care.\
+             Refresh the page after tags are applied.</b></label>
+        </div>
+        </form>`;
+        var resp = bootbox.confirm(str, function(resp){
+                if(resp && elar_join){
+                   console.log('yes');
+                   var tags = $('#tagid-multiple').val();
+                   if(tags){
+                        console.log('--', tags, '--');
+                        var formdata = new FormData;
+                        formdata.append('link_ids', elar_join);
+                        formdata.append('link_tags', tags);
+                        var client = new postRequestUpload();
+                        client.post(nlink, formdata, csrftoken, function(response) {
+                            console.log(response);
+                        })
+                   }else{
+                       console.log('Empty tag not allowed for multiple entries');
+                   }
+                }else{
+                    console.log('cancelled', elar_join, '--');
+                }
+            })
+    }else if(link == 'url_archive'){
         var nlink = $(element).attr('data-link');
         console.log(nlink)
         var csrftoken = getCookie('csrftoken');
