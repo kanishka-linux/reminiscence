@@ -151,7 +151,7 @@ def get_resources(request, username, directory, url_id):
 @login_required
 def perform_link_operation(request, username, directory, url_id=None):
     usr = request.user
-    print(request.path_info)
+    logger.info(request.path_info)
     if username and usr.username != username:
         return HttpResponse('Not Allowed')
     elif directory and url_id:
