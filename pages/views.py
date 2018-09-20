@@ -258,6 +258,7 @@ def group_profile(request, username):
 def navigate_directory(request, username, directory_slug=None, tagname=None):
     usr = request.user
     directory = Slugify.decode(directory_slug)
+    directory_slug = Slugify.encode(directory)  # re-encode to ensure it is double encoded (passed in single)
     base_dir = '/{}/{}'.format(usr, directory_slug)
     usr_list = []
     if username and usr.username != username:
