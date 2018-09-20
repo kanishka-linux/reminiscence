@@ -53,8 +53,6 @@ class AddDir(forms.Form):
                 if not nqdir:
                     dbxs.process_add_url(usr, url, self.DEFAULT_DIRECTORY, False)
         else:
-            if '/' in dirname or ':' in dirname:
-                dirname = re.sub(r'/|:', '-', dirname)
             if dirname:
                 qdir = Library.objects.filter(usr=usr, directory=dirname)
                 if not qdir:
