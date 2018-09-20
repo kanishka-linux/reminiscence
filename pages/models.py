@@ -19,7 +19,6 @@ along with Reminiscence.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.template.defaultfilters import slugify
 
 
 class Library(models.Model):
@@ -34,7 +33,6 @@ class Library(models.Model):
     )
     usr = models.ForeignKey(User, related_name='usr', on_delete=models.CASCADE)
     directory = models.CharField(max_length=2048)
-    directory_slug = models.SlugField(max_length=2048, default=slugify(directory))
     url = models.CharField(max_length=4096, null=True)
     icon_url = models.CharField(max_length=4096, null=True)
     title = models.CharField(max_length=2048, null=True)
@@ -46,11 +44,6 @@ class Library(models.Model):
     
     def __str__(self):
         return '{}. {}'.format(self.id, self.title)
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        self.directory_slug = slugify(self.directory)
-        return super().save(force_insert, force_update, using, update_fields)
 
         
 class Tags(models.Model):
