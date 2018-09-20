@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.template.defaultfilters import slugify
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
 from pages.models import Library
@@ -32,8 +33,6 @@ class LibraryTests(TestCase):
         self.assertEquals(response.status_code, 200)
         
     def test_check_url(self):
-        url = reverse('navigate_directory', kwargs={'username': 'johndoe', 'directory': 'TMP'})
+        url = reverse('navigate_directory', kwargs={'username': 'johndoe', 'directory_slug': slugify('TMP')})
         response = self.client.get(url)
         self.assertContains(response, self.url)
-    
-    
