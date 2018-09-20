@@ -28,6 +28,8 @@ from urllib.parse import urlparse
 from datetime import datetime, timedelta
 from mimetypes import guess_extension, guess_type
 from collections import Counter
+
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, FileResponse
@@ -37,6 +39,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.views.static import directory_index
 
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
@@ -50,6 +53,13 @@ from .utils import ImportBookmarks
 
 
 logger = logging.getLogger(__name__)
+
+
+def _get_directory(usr, directory_slug):
+    row = Library.objects.filter(usr=usr, directory_slug=directory_slug).first()
+    if not row:
+        return None
+    return row.directory
 
 
 @login_required
@@ -68,7 +78,7 @@ def dashboard(request, username=None, directory=None):
     nlist = []
     index = 1
     for key, value in usr_list.items():
-        base_dir = '/{}/{}'.format(usr, key)
+        base_dir = '/{}/{}'.format(usr, slugify(key))
         base_remove = base_dir + '/remove'
         base_rename = base_dir + '/rename'
         nlist.append([index, key, value-1, base_dir, base_rename, base_remove])
@@ -78,19 +88,20 @@ def dashboard(request, username=None, directory=None):
 
 
 @login_required
-def rename_operation(request, username, directory):
+def rename_operation(request, username, directory_slug):
     usr = request.user
+    directory = _get_directory(usr, directory_slug)
     if username and usr.username != username:
         return redirect('logout')
     elif directory:
         if request.method == 'POST':
             ren_dir = request.POST.get('rename_directory', '')
             if ren_dir and ren_dir != directory:
-                Library.objects.filter(usr=usr, directory=directory).update(directory=ren_dir)
+                Library.objects.filter(usr=usr, directory=directory).update(directory=ren_dir, directory_slug=slugify(ren_dir))
             return redirect('home')
         else:
             form = RenameDir()
-            base_dir = '/{}/{}'.format(usr, directory)
+            base_dir = '/{}/{}'.format(usr, directory_slug)
             base_remove = base_dir + '/remove'
             base_rename = base_dir + '/rename'
             nlist = [[1, directory, 'N/A', base_dir, base_rename, base_remove]]
@@ -100,8 +111,9 @@ def rename_operation(request, username, directory):
         
 
 @login_required
-def remove_operation(request, username, directory):
+def remove_operation(request, username, directory_slug):
     usr = request.user
+    directory = _get_directory(usr, directory_slug)
     if username and usr.username != username:
         return redirect('logout')
     elif directory:
@@ -114,7 +126,7 @@ def remove_operation(request, username, directory):
             return redirect('home')
         else:
             form = RemoveDir()
-            base_dir = '/{}/{}'.format(usr, directory)
+            base_dir = '/{}/{}'.format(usr, directory_slug)
             base_remove = base_dir + '/remove'
             base_rename = base_dir + '/rename'
             nlist = [[1, directory, 'N/A', base_dir, base_rename, base_remove]]
@@ -124,9 +136,10 @@ def remove_operation(request, username, directory):
 
 
 @login_required
-def get_resources(request, username, directory, url_id):
+def get_resources(request, username, directory_slug, url_id):
     usr = request.user
     logger.info(request.path_info)
+    directory = _get_directory(usr, directory_slug)
     if username and usr.username != username:
         return HttpResponse('Not Allowed')
     elif directory and url_id:
@@ -149,9 +162,10 @@ def get_resources(request, username, directory, url_id):
     return HttpResponse('Not Found')
 
 @login_required
-def perform_link_operation(request, username, directory, url_id=None):
+def perform_link_operation(request, username, directory_slug, url_id=None):
     usr = request.user
     logger.info(request.path_info)
+    directory = _get_directory(usr, directory_slug)
     if username and usr.username != username:
         return HttpResponse('Not Allowed')
     elif directory and url_id:
@@ -212,12 +226,12 @@ def public_profile(request, username):
             if public_dir:
                 usr_list = dbxs.get_rows_by_directory(usr, directory=public_dir)
                 nlist = dbxs.populate_usr_list(usr, usr_list)
-                base_dir = '/{}/{}'.format(usr, public_dir)
+                base_dir = '/{}/{}'.format(usr, slugify(public_dir))
                 return render(
                             request, 'public.html',
                             {
                                 'usr_list': nlist, 'form':"",
-                                'base_dir':base_dir, 'dirname':public_dir
+                                'base_dir':base_dir, 'dirname': public_dir, 'dirslug': slugify(public_dir),
                             }
                         )
     return HttpResponse('No Public Profile Available')
@@ -237,21 +251,22 @@ def group_profile(request, username):
                 if group_usr.username in nbuddy:
                     usr_list = dbxs.get_rows_by_directory(usr, directory=group_dir)
                     nlist = dbxs.populate_usr_list(usr, usr_list)
-                    base_dir = '/{}/{}'.format(usr, group_dir)
+                    base_dir = '/{}/{}'.format(usr, slugify(group_dir))
                     return render(
                                 request, 'home_dir.html',
                                 {
                                     'usr_list': nlist, 'form':"",
-                                    'base_dir':base_dir, 'dirname':group_dir,
+                                    'base_dir':base_dir, 'dirname': group_dir, 'dirslug': slugify(group_dir),
                                     'refresh': 'no'
                                 }
                             )
     return HttpResponse('No Group Profile Available')
     
 @login_required
-def navigate_directory(request, username, directory=None, tagname=None):
+def navigate_directory(request, username, directory_slug=None, tagname=None):
     usr = request.user
-    base_dir = '/{}/{}'.format(usr, directory)
+    directory = _get_directory(usr, directory_slug)
+    base_dir = '/{}/{}'.format(usr, directory_slug)
     usr_list = []
     if username and usr.username != username:
         return redirect('/'+usr.username)
@@ -290,13 +305,13 @@ def navigate_directory(request, username, directory=None, tagname=None):
         except EmptyPage:
             dirlist = paginator.page(paginator.num_pages)
         
-        base_dir = '/{}/{}'.format(usr, directory)
+        base_dir = '/{}/{}'.format(usr, directory_slug)
         return render(
                     request, 'home_dir.html',
                     {
-                        'usr_list': dirlist, 'form':form,
-                        'base_dir':base_dir, 'dirname':directory,
-                        'refresh':add_url
+                        'usr_list': dirlist, 'form': form,
+                        'base_dir': base_dir, 'dirname': directory, 'dirslug': directory_slug,
+                        'refresh': add_url
                     }
                 )
     else:
