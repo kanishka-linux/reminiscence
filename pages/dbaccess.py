@@ -27,9 +27,10 @@ from urllib.parse import urlparse
 from mimetypes import guess_extension, guess_type
 from datetime import datetime
 
-from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.conf import settings
+
+from pages.helpers import Slugify
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
 from .models import Library, Tags, URLTags, UserSettings
@@ -245,7 +246,7 @@ class DBAccess:
                     
             media_path = os.path.join(media_path_parent, out_title)
             row.media_path = media_path
-            url = '/{}/{}/{}/archive'.format(usr.username, slugify(directory), row.id)
+            url = '/{}/{}/{}/archive'.format(usr.username, Slugify.encode(directory), row.id)
             row.url = url
             row.save()
             with open(media_path, 'wb') as fd:
@@ -383,7 +384,7 @@ class DBAccess:
         for title, url, idd, timestamp, tag, directory, media_path in usr_list:
             title = re.sub('_|-', ' ', title)
             title = re.sub('/', ' / ', title)
-            base_dir = '/{}/{}/{}'.format(usr, slugify(directory), idd)
+            base_dir = '/{}/{}/{}'.format(usr, Slugify.encode(directory), idd)
             base_remove = base_dir + '/remove'
             base_et = base_dir + '/edit-bookmark'
             move_single = base_dir + '/move-bookmark'
@@ -476,7 +477,7 @@ class DBAccess:
             move_to_dir = request.POST.get('move_to_dir', '')
             print(url_id, request.POST)
             if move_to_dir:
-                Library.objects.filter(id=url_id).update(directory=move_to_dir, directory_slug=slugify(move_to_dir))
+                Library.objects.filter(id=url_id).update(directory=move_to_dir)
             msg = 'Moved to {}'.format(move_to_dir)
         elif not single:
             move_to_dir = request.POST.get('move_to_dir', '')
@@ -489,7 +490,7 @@ class DBAccess:
                 for link in move_links_list:
                     if link.isnumeric():
                         link_id = int(link)
-                        Library.objects.filter(id=link_id).update(directory=move_to_dir, directory_slug=slugify(move_to_dir))
+                        Library.objects.filter(id=link_id).update(directory=move_to_dir)
             msg = 'Moved {1} links to {0}'.format(move_to_dir, len(move_links_list))
         return msg
         
@@ -533,7 +534,7 @@ class DBAccess:
             for row in qlist:
                 if not row.url or row.url in merge_list:
                     row.delete()
-            Library.objects.filter(usr=usr, directory=dirname).update(directory=merge_dir, directory_slug=slugify(merge_dir))
+            Library.objects.filter(usr=usr, directory=dirname).update(directory=merge_dir)
         return msg
 
     @staticmethod
