@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
-from django.template.defaultfilters import slugify
+from django.template.defaultfilters import urlencode
 from django.test import TestCase, Client
 from django.urls import resolve, reverse
+
 from pages.models import Library
 from pages.views import dashboard
 from django.utils import timezone
@@ -16,7 +17,10 @@ class LibraryTests(TestCase):
     def setUpTestData(cls):
         usr = User.objects.create_user(username='johndoe', password='clrsalgo')
         Library.objects.create(usr=usr, directory='TMP')
+        Library.objects.create(usr=usr, directory='TMP/tmp & SPECIAL')
         Library.objects.create(usr=usr, directory='TMP', title='Wiki',
+                               url=cls.url, timestamp=timezone.now())
+        Library.objects.create(usr=usr, directory='TMP/tmp & SPECIAL', title='Wiki',
                                url=cls.url, timestamp=timezone.now())
     
     def setUp(self):
@@ -31,8 +35,18 @@ class LibraryTests(TestCase):
         url = reverse('home_page', kwargs={'username': 'johndoe'})
         response = self.client.post(url, {'create_directory':'Sample'})
         self.assertEquals(response.status_code, 200)
+
+    def test_add_directory_special_chars(self):
+        url = reverse('home_page', kwargs={'username': 'johndoe'})
+        response = self.client.post(url, {'create_directory':'Sample/Example & Test'})
+        self.assertEquals(response.status_code, 200)
         
     def test_check_url(self):
-        url = reverse('navigate_directory', kwargs={'username': 'johndoe', 'directory_slug': slugify('TMP')})
+        url = reverse('navigate_directory', kwargs={'username': 'johndoe', 'directory_slug': 'TMP'})
+        response = self.client.get(url)
+        self.assertContains(response, self.url)
+
+    def test_check_url(self):
+        url = reverse('navigate_directory', kwargs={'username': 'johndoe', 'directory_slug': urlencode('TMP/tmp & SPECIAL', '')})
         response = self.client.get(url)
         self.assertContains(response, self.url)
