@@ -84,9 +84,11 @@ def rename_operation(request, username, directory):
         return redirect('logout')
     elif directory:
         if request.method == 'POST':
-            ren_dir = request.POST.get('rename_directory', '')
-            if ren_dir and ren_dir != directory:
-                Library.objects.filter(usr=usr, directory=directory).update(directory=ren_dir)
+            form = RenameDir(request.POST)
+            if form.is_valid():
+                form.clean_and_rename(usr, directory)
+            else:
+                logger.debug('invalid values {}'.format(request.POST))
             return redirect('home')
         else:
             form = RenameDir()
@@ -106,11 +108,11 @@ def remove_operation(request, username, directory):
         return redirect('logout')
     elif directory:
         if request.method == 'POST':
-            rem_dir = request.POST.get('remove_directory', '')
-            if rem_dir == 'yes':
-                qlist = Library.objects.filter(usr=usr, directory=directory)
-                for row in qlist:
-                    dbxs.remove_url_link(row=row)
+            form = RemoveDir(request.POST)
+            if form.is_valid():
+                form.check_and_remove_dir(usr, directory)
+            else:
+                logger.debug('invalid values {}'.format(request.POST))
             return redirect('home')
         else:
             form = RemoveDir()
