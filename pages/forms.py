@@ -46,15 +46,14 @@ class AddDir(forms.Form):
             if not qdir and len(url) > 9:
                 Library.objects.create(usr=usr, directory=self.DEFAULT_DIRECTORY, timestamp=timezone.now()).save()
                 dbxs.process_add_url(usr, url, self.DEFAULT_DIRECTORY, False)
-                print('add--bookmark')
+                logger.debug('add--bookmark')
             elif qdir and len(url) > 9:
                 nqdir = qdir.filter(url=url)
                 print(nqdir, 'nq')
                 if not nqdir:
                     dbxs.process_add_url(usr, url, self.DEFAULT_DIRECTORY, False)
         else:
-            if '/' in dirname or ':' in dirname:
-                dirname = re.sub(r'/|:', '-', dirname)
+            dirname = re.sub(r'/|:|#|\?|\\\\|\%', '-', dirname)
             if dirname:
                 qdir = Library.objects.filter(usr=usr, directory=dirname)
                 if not qdir:
@@ -74,11 +73,25 @@ class RenameDir(forms.Form):
         widget=forms.TextInput(attrs={'placeholder':'Enter New Name'})
     )
     
-    
+    def clean_and_rename(self, usr, directory):
+        ren_dir = self.cleaned_data.get('rename_directory')
+        if ren_dir and ren_dir != directory:
+            ren_dir = re.sub(r'/|:|#|\?|\\\\|\%', '-', ren_dir)
+            Library.objects.filter(usr=usr, directory=directory).update(directory=ren_dir)
+
+
 class RemoveDir(forms.Form):
     CHOICES = (
-        ('no', 'Do Not Remove'),
-        ('yes', 'Remove')
+        (False, 'Do Not Remove'),
+        (True, 'Remove')
     )
     remove_directory = forms.BooleanField(widget=forms.Select(choices=CHOICES))
     
+    def check_and_remove_dir(self, usr, directory):
+        print(self.cleaned_data)
+        rem_dir = self.cleaned_data.get('remove_directory', '')
+        logger.debug('{} {} {}'.format(rem_dir, usr, directory))
+        if rem_dir is True:
+            qlist = Library.objects.filter(usr=usr, directory=directory)
+            for row in qlist:
+                dbxs.remove_url_link(row=row)
