@@ -176,6 +176,9 @@ Using docker is convenient compared to normal installation method described abov
 
         192.168.1.2/admin/
 
+        Note: In this metod, there is no need to
+              attach port number to IP address.
+
 7. Change default admin password from admin interface and create new regular user. After that logout, and open '**192.168.1.2**'. Now login with regular user for regular activity.
 
 8. For custom configuration, modify nginx.conf and dockerfiles available in the repository. After that execute step 4 again.
