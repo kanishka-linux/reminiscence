@@ -55,6 +55,7 @@ class CustomRead:
     @classmethod
     def get_archived_file(cls, url_id, mode='html'):
         qset = Library.objects.filter(id=url_id)
+        streaming_mode = False
         if qset:
             row = qset[0]
             media_path = row.media_path
@@ -64,10 +65,22 @@ class CustomRead:
                     media_path = fln + '.pdf'
                 elif mode == 'png':
                     media_path = fln + '.png'
+            elif mode == 'archive' and media_path:
+                fln, ext = media_path.rsplit('.', 1)
+                mext_list = ['.mkv', '.mp4', '.mp3', '.flac']
+                for extn in mext_list:
+                    mfile = fln + extn
+                    if os.path.isfile(mfile) and os.stat(mfile).st_size:
+                        media_path = mfile
+                        streaming_mode = True
+                        break
+                
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
                 if not mtype:
                     mtype = 'application/octet-stream'
+                if streaming_mode:
+                    mtype = 'video/mp4'
                 ext = media_path.rsplit('.')[-1]
                 if ext:
                     filename = row.title + '.' + ext
@@ -87,7 +100,7 @@ class CustomRead:
                     response['content-length'] = os.stat(media_path).st_size
                     filename = filename.replace(' ', '.')
                     print(filename, mtype)
-                    if not cls.is_human_readable(mtype):
+                    if not cls.is_human_readable(mtype) and not streaming_mode:
                         response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
                     return response
             else:
