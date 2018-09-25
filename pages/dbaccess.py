@@ -80,7 +80,7 @@ class DBAccess:
     def process_add_url(cls, usr, url_name, directory,
                         archive_html, row=None,
                         settings_row=None, media_path=None,
-                        media_element=None):
+                        media_element=False):
         part = partial(cls.url_fetch_completed, usr, url_name,
                        directory, archive_html, row, settings_row,
                        media_path, media_element)
@@ -160,9 +160,10 @@ class DBAccess:
                                          directory=directory,
                                          url=url_name, title=title,
                                          summary=summary,
-                                         timestamp=timezone.now())
+                                         timestamp=timezone.now(),
+                                         media_element=media_element)
         else:
-            print('row - exists')
+            logger.debug('row - exists')
         if not media_path:
             if ext and ext.startswith('.'):
                 out_dir = ext[1:].upper()
@@ -182,9 +183,9 @@ class DBAccess:
             media_path = os.path.join(media_path_parent, out_title)
             row.media_path = media_path
             row.save()
-            if not os.path.exists(final_favicon_path) and favicon_link:
+            if favicon_link:
                 cls.vnt.get(favicon_link, out=final_favicon_path)
-            if not os.path.exists(final_og_image_path) and final_og_link:
+            if final_og_link:
                 cls.vnt.get(final_og_link, out=final_og_image_path)
         elif media_path and row:
             final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
@@ -299,9 +300,9 @@ class DBAccess:
                     cls.convert_to_pdf_png_task, cmd,
                     onfinished=partial(cls.finished_processing, 'image')
                 )
-        if media_element:
+        if media_element or row.media_element:
             out = os.path.join(media_path_parent, str(row.id)+'.mp4')
-            cmd_str = settings.DOWNLOAD_MANAGER.format(iurl=url_name, output=out)
+            cmd_str = settings_row.download_manager.format(iurl=url_name, output=out)
             cmd = cmd_str.split()
             logger.debug(cmd)
             if settings.USE_CELERY:
