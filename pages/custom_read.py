@@ -30,7 +30,7 @@ from django.urls import reverse
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
 from readability import Document
-from .models import Library
+from .models import Library, UserSettings
 from .dbaccess import DBAccess as dbxs
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class CustomRead:
     fav_path = settings.FAVICONS_STATIC
     
     @classmethod
-    def get_archived_file(cls, url_id, mode='html'):
+    def get_archived_file(cls, url_id, mode='html', req=None):
         qset = Library.objects.filter(id=url_id)
         streaming_mode = False
         if qset:
@@ -66,15 +66,25 @@ class CustomRead:
                 elif mode == 'png':
                     media_path = fln + '.png'
             elif mode == 'archive' and media_path:
-                fln, ext = media_path.rsplit('.', 1)
-                mext_list = ['.mkv', '.mp4', '.mp3', '.flac']
-                for extn in mext_list:
-                    mfile = fln + extn
+                mdir, _ = os.path.split(media_path)
+                filelist = os.listdir(mdir)
+                mlist = []
+                extset = set(['pdf', 'png', 'htm', 'html'])
+                for fl in filelist:
+                    ext = fl.rsplit('.', 1)
+                    if ext and ext[-1] not in extset:
+                        mlist.append(os.path.join(mdir, fl))
+                for mfile in mlist:
                     if os.path.isfile(mfile) and os.stat(mfile).st_size:
                         media_path = mfile
                         streaming_mode = True
                         break
-                
+                if streaming_mode and req:
+                    usr = req.user
+                    qlist = UserSettings.objects.filter(usrid=usr)
+                    if qlist and not qlist[0].media_streaming:
+                        streaming_mode = False
+                        
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
                 if not mtype:
