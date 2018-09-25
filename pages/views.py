@@ -174,7 +174,7 @@ def perform_link_operation(request, username, directory, url_id=None):
                 return HttpResponse('Wrong command')
         elif request.method == 'GET':
             if request.path_info.endswith('archive'):
-                return cread.get_archived_file(url_id, mode='archive')
+                return cread.get_archived_file(url_id, mode='archive', req=request)
             elif request.path_info.endswith('read'):
                 return cread.read_customized(url_id)
             elif request.path_info.endswith('read-pdf'):
@@ -449,7 +449,9 @@ def api_points(request, username):
                     'save_png': row.save_png,
                     'png_quality': row.png_quality,
                     'auto_archive': row.auto_archive,
-                    'pagination_value': row.pagination_value
+                    'pagination_value': row.pagination_value,
+                    'download_manager': row.download_manager,
+                    'media_streaming': row.media_streaming
                 }
                 if row.buddy_list:
                     ndict.update({'buddy':row.buddy_list})
@@ -467,7 +469,9 @@ def api_points(request, username):
                     'save_png': False,
                     'png_quality': 85,
                     'auto_archive': False,
-                    'pagination_value': 100
+                    'pagination_value': 100,
+                    'download_manager': 'wget {iurl} -O {output}',
+                    'media_streaming': False
                 }
             return HttpResponse(json.dumps(ndict))
         elif req_set_settings and req_set_settings == 'yes':
@@ -482,6 +486,9 @@ def api_points(request, username):
             png_quality = request.POST.get('png_quality', '')
             auto_archive = request.POST.get('auto_archive', '')
             pagination_value = request.POST.get('pagination_value', '100')
+            media_streaming = request.POST.get('media_streaming', 'false')
+            dm_str = 'wget {iurl} -O {output}'
+            download_manager = request.POST.get('download_manager', dm_str)
             if autotag == 'true':
                 autotag = True
             else:
@@ -510,6 +517,10 @@ def api_points(request, username):
                 auto_archive = True
             else:
                 auto_archive = False
+            if media_streaming == 'true':
+                media_streaming = True
+            else:
+                media_streaming = False
             if png_quality and png_quality.isnumeric():
                 png_quality = int(png_quality) if int(png_quality) in range(0, 101) else 85
             else:
@@ -531,6 +542,8 @@ def api_points(request, username):
                 row.png_quality = png_quality
                 row.auto_archive = auto_archive
                 row.pagination_value = pagination_value
+                row.media_streaming = media_streaming
+                row.download_manager = download_manager
                 row.save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
@@ -543,7 +556,9 @@ def api_points(request, username):
                                                   save_png=save_png,
                                                   png_quality=png_quality,
                                                   auto_archive=auto_archive,
-                                                  pagination_value=pagination_value)
+                                                  pagination_value=pagination_value,
+                                                  media_streaming=media_streaming,
+                                                  download_manager=download_manager)
                 row.save()
             if (autotag or auto_summary) and not os.path.exists(settings.NLTK_DATA_PATH):
                 dbxs.vnt_task.function(Summarizer.check_data_path)
