@@ -41,6 +41,7 @@ class Library(models.Model):
     access = models.PositiveSmallIntegerField(choices=ACCESS_CHOICES, default=PRIVATE)
     summary = models.TextField(null=True)
     tags = models.CharField(max_length=4096, null=True)
+    media_element = models.BooleanField(default=False)
     
     def __str__(self):
         return '{}. {}'.format(self.id, self.title)
@@ -83,6 +84,8 @@ class UserSettings(models.Model):
     png_quality = models.PositiveSmallIntegerField(default=85)
     pagination_value = models.PositiveSmallIntegerField(default=100)
     buddy_list = models.CharField(max_length=8192, null=True)
+    download_manager = models.CharField(max_length=8192, default='wget {iurl} -O {output}')
+    media_streaming = models.BooleanField(default=False)
 
 class GroupTable(models.Model):
     
