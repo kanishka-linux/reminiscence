@@ -56,11 +56,13 @@ class DBAccess:
     def add_new_url(cls, usr, request, directory, row):
         url_name = request.POST.get('add_url', '')
         if url_name:
-            if url_name.startswith('ar:'):
+            if url_name.startswith('md:'):
                 url_name = url_name[3:].strip()
                 archive_html = True
+                media_element = True
             else:
                 archive_html = False
+                media_element = False
             if row:
                 settings_row = row[0]
             else:
@@ -71,15 +73,17 @@ class DBAccess:
             if not url_list and url_name:
                 cls.process_add_url(usr, url_name,
                                     directory, archive_html, 
-                                    settings_row=settings_row)
+                                    settings_row=settings_row,
+                                    media_element=media_element)
                                 
     @classmethod
     def process_add_url(cls, usr, url_name, directory,
                         archive_html, row=None,
-                        settings_row=None, media_path=None):
+                        settings_row=None, media_path=None,
+                        media_element=None):
         part = partial(cls.url_fetch_completed, usr, url_name,
                        directory, archive_html, row, settings_row,
-                       media_path)
+                       media_path, media_element)
         if row:
             cls.vntbook.get(url_name, onfinished=part)
         else:
@@ -88,7 +92,7 @@ class DBAccess:
     @classmethod
     def url_fetch_completed(cls, usr, url_name, directory,
                             archive_html, row, settings_row,
-                            media_path, *args):
+                            media_path, media_element, *args):
         ext = None
         save = False
         save_text = False
@@ -113,6 +117,10 @@ class DBAccess:
                 soup = BeautifulSoup(req.html, 'html.parser')
                 if soup.title:
                     title = soup.title.text
+                    if title.lower() == 'youtube':
+                        try_srch = re.search('document.title[^;]*', req.html)
+                        if try_srch:
+                            title = try_srch.group().replace('document.title = ', '')
                 else:
                     title = url_name.rsplit('/')[-1]
                 ilink = soup.find('link', {'rel':'icon'})
@@ -192,7 +200,6 @@ class DBAccess:
                 cls.vnt.get(favicon_link, out=final_favicon_path)
             if not os.path.exists(final_og_image_path) and final_og_link:
                 cls.vnt.get(final_og_link, out=final_og_image_path)
-        #print(favicon_link, final_favicon_path)
         if save or save_text:
             if not os.path.exists(media_path_parent):
                 os.makedirs(media_path_parent)
@@ -204,7 +211,7 @@ class DBAccess:
                     fd.write(req.html)
             if settings_row and ext in ['.htm', '.html']:
                 cls.convert_html_pdf(media_path_parent, settings_row,
-                                     row, url_name, media_path)
+                                     row, url_name, media_path, media_element)
         if settings_row and tags_list:
             if save_summary:
                 cls.edit_tags(usr, row.id, ','.join(tags_list), '', old_row=row)
@@ -255,7 +262,7 @@ class DBAccess:
     @classmethod
     def convert_html_pdf(cls, media_path_parent,
                          settings_row, row, url_name,
-                         media_path):
+                         media_path, media_element):
         if settings_row.save_pdf:
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
@@ -291,6 +298,18 @@ class DBAccess:
                 cls.vnt_task.function(
                     cls.convert_to_pdf_png_task, cmd,
                     onfinished=partial(cls.finished_processing, 'image')
+                )
+        if media_element:
+            out = os.path.join(media_path_parent, str(row.id)+'.mp4')
+            cmd_str = settings.DOWNLOAD_MANAGER.format(iurl=url_name, output=out)
+            cmd = cmd_str.split()
+            logger.debug(cmd)
+            if settings.USE_CELERY:
+                cls.convert_to_pdf_png.delay(cmd)
+            else:
+                cls.vnt_task.function(
+                    cls.convert_to_pdf_png_task, cmd,
+                    onfinished=partial(cls.finished_processing, 'media')
                 )
     
     @classmethod
