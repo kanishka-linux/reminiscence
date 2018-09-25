@@ -161,6 +161,12 @@ function dropdown_menu_clicked(element){
             }else{
                 auto_summary = '';
             }
+            var media_streaming = json['media_streaming'];
+            if (media_streaming){
+                media_streaming = 'checked';
+            }else{
+                media_streaming = '';
+            }
             var save_pdf = json['save_pdf'];
             if (save_pdf){
                 save_pdf = 'checked';
@@ -185,10 +191,13 @@ function dropdown_menu_clicked(element){
             var public_dir = json['public_dir'];
             var group_dir = json['group_dir'];
             var pagination_value = json['pagination_value'];
+            
+            var download_manager = json['download_manager'];
             var msg = getsettings_html(autotag, auto_summary, total_tags,
                                        buddy_list, public_dir, group_dir,
                                        save_pdf, save_png, png_quality,
-                                       auto_archive, pagination_value);
+                                       auto_archive, pagination_value,
+                                       media_streaming, download_manager);
             console.log(autotag, auto_summary, total_tags, buddy_list);
             var resp = bootbox.confirm(msg, function(resp){
                 if (resp){
@@ -198,6 +207,7 @@ function dropdown_menu_clicked(element){
                     var auto_archive = $('#auto_archive').is(':checked');
                     var save_pdf = $('#arch-pdf').is(':checked');
                     var save_png = $('#arch-png').is(':checked');
+                    var media_streaming = $('#media-streaming').is(':checked');
                     console.log(autotag, auto_summary);
                     var total_tags = $('#total_tags').val();
                     var buddy_list = $('#buddy_list').val();
@@ -205,6 +215,7 @@ function dropdown_menu_clicked(element){
                     var group_dir = $('#group_dir').val();
                     var png_quality = $('#arch-png-quality').val();
                     var pagination_value = $('#pagination-value').val();
+                    var download_manager = $('#download-manager').val();
                     if(buddy_list == null){
                         buddy_list = "";
                     }
@@ -218,6 +229,7 @@ function dropdown_menu_clicked(element){
                     post_data = post_data + `&buddy_list=${buddy_list}&public_dir=${public_dir}&group_dir=${group_dir}`;
                     post_data = post_data + `&save_pdf=${save_pdf}&save_png=${save_png}&png_quality=${png_quality}`;
                     post_data = post_data + `&auto_archive=${auto_archive}&pagination_value=${pagination_value}`;
+                    post_data = post_data + `&media_streaming=${media_streaming}&download_manager=${download_manager}`;
                     console.log(total_tags, buddy_list, post_data);
                     var client = new postRequest();
                     client.post(nlink, post_data, csrftoken, function(response) {
@@ -721,7 +733,8 @@ function onsearch_dropdown(event, id){
 
 function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
                           public_dir, group_dir, arch_pdf, arch_png,
-                          arch_png_quality, auto_archive, pagination_value){
+                          arch_png_quality, auto_archive, pagination_value,
+                          media_streaming, download_manager){
     var html = `<div class="form-check">
         <input class="form-check-input" type="checkbox" value="autotag" id="autotag" ${autotag}>
         <label class="form-check-label" for="autotag">
@@ -734,7 +747,7 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
         Automatic Summary Extract
         </label>
     </div>
-    <div class="form-group row py-2">
+    <div class="form-group row py-1">
         <label class="col-sm-6 col-form-label">Total Tags Per URL</label>
         <div class="col-sm-6">
         <input class="form-control" type="text" value="${total_tags}" id="total_tags">
@@ -773,15 +786,27 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
             </div>
         </div>
     </div>
-    <div class="form-group row py-2">
+    <div class="form-group row py-1">
         <label class="col-sm-6 col-form-label">Screenshot PNG Quality</label>
         <div class="col-sm-6">
         <input class="form-control" type="text" id="arch-png-quality" value="${arch_png_quality}" placeholder="0-100">
         </div>
     </div>
-    
     <div class="dropdown-divider"></div>
-    <div class="form-group row py-2">
+    <div class="form-group row py-1">
+        <label class="col-sm-5 col-form-label">Download Manager</label>
+        <div class="col-sm-7">
+        <input class="form-control" type="text" id="download-manager" value="${download_manager}" placeholder="Enter Download manager template">
+        </div>
+    </div>
+    <div class="form-check-inline">
+        <input class="form-check-input" type="checkbox" value="media-streaming" id="media-streaming" ${media_streaming}>
+        <label class="form-check-label" for="media-streaming">
+        Allow Streaming of Archived Media
+        </label>
+    </div>
+    <div class="dropdown-divider"></div>
+    <div class="form-group row py-1">
         <label class="col-sm-6 col-form-label">Display Links Per Directory</label>
         <div class="col-sm-6">
         <input class="form-control" type="text" id="pagination-value" value="${pagination_value}">
