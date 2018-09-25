@@ -174,7 +174,7 @@ def perform_link_operation(request, username, directory, url_id=None):
                 return HttpResponse('Wrong command')
         elif request.method == 'GET':
             if request.path_info.endswith('archive'):
-                return cread.get_archived_file(url_id)
+                return cread.get_archived_file(url_id, mode='archive')
             elif request.path_info.endswith('read'):
                 return cread.read_customized(url_id)
             elif request.path_info.endswith('read-pdf'):
@@ -182,7 +182,7 @@ def perform_link_operation(request, username, directory, url_id=None):
             elif request.path_info.endswith('read-png'):
                 return cread.get_archived_file(url_id, mode='png')
             elif request.path_info.endswith('read-html'):
-                return cread.get_archived_file(url_id)
+                return cread.get_archived_file(url_id, mode='html')
         else:
             return HttpResponse('Method not Permitted')
     elif directory and request.method == 'POST':
@@ -262,7 +262,8 @@ def navigate_directory(request, username, directory=None, tagname=None):
         place_holder = 'Enter URL'
         if request.method == 'POST' and directory:
             form = AddURL(request.POST)
-            if form.is_valid():
+            url_name = request.POST.get('add_url', '')
+            if form.is_valid() or (url_name and url_name.startswith('md:')):
                 row = UserSettings.objects.filter(usrid=usr)
                 dbxs.add_new_url(usr, request, directory, row)
                 add_url = 'yes'
