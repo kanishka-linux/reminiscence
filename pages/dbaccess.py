@@ -305,13 +305,14 @@ class DBAccess:
             cmd_str = settings_row.download_manager.format(iurl=url_name, output=out)
             cmd = cmd_str.split()
             logger.debug(cmd)
-            if settings.USE_CELERY:
-                cls.convert_to_pdf_png.delay(cmd)
-            else:
-                cls.vnt_task.function(
-                    cls.convert_to_pdf_png_task, cmd,
-                    onfinished=partial(cls.finished_processing, 'media')
-                )
+            if cmd and cmd[0] in settings.DOWNLOAD_MANAGERS_ALLOWED:
+                if settings.USE_CELERY:
+                    cls.convert_to_pdf_png.delay(cmd)
+                else:
+                    cls.vnt_task.function(
+                        cls.convert_to_pdf_png_task, cmd,
+                        onfinished=partial(cls.finished_processing, 'media')
+                    )
     
     @classmethod
     def finished_processing(cls, val, *args):
