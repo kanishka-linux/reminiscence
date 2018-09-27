@@ -238,7 +238,7 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
 
 ## Archiving Media Elements
 
-How to Enable Archiving of Media elements?
+**Note:** This feature is available from v0.2+ onwards
 
 1. In settings.py file add your favourite download manager to DOWNLOAD_MANAGERS_ALLOWED list. Default are curl and wget. In case of docker based method users have to make corresponding changes in dockersettings.py file.
 
@@ -249,9 +249,9 @@ How to Enable Archiving of Media elements?
         iurl -> input url
         output -> output path
     
-3. Users should not substitute anything for 'iurl' and 'output' field. {iurl} and {output} fields should be kept as it is.  
+3. Users should not substitute anything for 'iurl' and 'output' field. i.e. {iurl} and {output} fields should be kept as it is.  
     
-4. Reminiscence server will take care of setting up of input url and output path field. However, Position of these two fields may change depending on the type of download manager. Users can add extra parameters to this command.
+4. Reminiscence server will take care of setting up of input url and output path field. However, users can change position of these two fields depending on the type of download manager. Users can add extra parameters to this command.
     
 5. If user is using youtube-dl as a download manager, then it is advisable to install ffmpeg along with it. In this case user has to take care of regular updating of youtube-dl on their own. Users can also use some custom script for managing archiving of media elements.
 
