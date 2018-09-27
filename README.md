@@ -22,6 +22,8 @@ Table of Contents
     * [Reader Mode](#reader-mode)
     
     * [Generating PDF and Full-Page Screenshot](#generating-pdf-and-png)
+
+    * [Archiving Media Elements](#archiving-media-elements)
     
     * [Public, Private and Group Directories](#public-private-group-directories)
     
@@ -233,6 +235,38 @@ PDF and full-page screenshot in PNG format of HTML page will be generated using 
 Currently headless chromium doesn't support full page screenshot, otherwise I might have used it blindly. There is another headless browser [hlspy](https://github.com/kanishka-linux/hlspy), based on QtWebEngine, which I built for my personal use. **hlspy** can generate entire html content, pdf document and full page screenshot in one single request and that too using just one single process. In both chromium and wkhtmltopdf, one has to execute atleast two separate processes for doing the same thing. The main problem with hlspy is that it is not completely headless, it can't run without X. It requires xvfb for running in headless environment. 
 
 In future, I'll try to provide a way to choose between different backends (i.e. chromium, wkhtmltopdf or hlspy) for performing these tasks.
+
+## Archiving Media Elements
+
+How to Enable Archiving of Media elements?
+
+1. In settings.py file add your favourite download manager to DOWNLOAD_MANAGERS_ALLOWED list. Default are curl and wget. In case of docker based method users have to make corresponding changes in dockersettings.py file.
+
+2. open web-interface settings box and add command to Download Manager Field:
+    
+        ex: wget {iurl} -O {output}
+    
+        iurl -> input url
+        output -> output path
+    
+3. Users should not substitute anything for 'iurl' and 'output' field. {iurl} and {output} fields should be kept as it is.  
+    
+4. Reminiscence server will take care of setting up of input url and output path field. However, Position of these two fields may change depending on the type of download manager. Users can add extra parameters to this command.
+    
+5. If user is using youtube-dl as a download manager, then it is advisable to install ffmpeg along with it. In this case user has to take care of regular updating of youtube-dl on their own. Users can also use some custom script for managing archiving of media elements.
+
+6. Web-interface also contains, streaming option. If this option is enabled, then HTML5 compliant media files can be played inside browsers, otherwise they will be available for download on the client machine.
+
+7. If users are upgrading from older version then they are advised to apply database migration using following commands, before using new features:
+
+        python manage.py makemigrations
+
+        python manage.py migrate
+
+8. Finally, when adding url to any directory just prepend **md:** to url, so that the particular entry will be recognized by custom download manager.
+
+9. Archived files are normally saved in **archive** folder. Users can change location of this folder via settings.py file. Users should note that in order to archive media files, the **archive** folder should not contain any space.
+e.g. archive location '/home/user/my downloads/archive' is not allowed. However location without space '/home/user/my_downloads/archive' is allowed.
 
 ## Public-Private-Group directories
 
