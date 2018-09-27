@@ -53,8 +53,8 @@ class CustomRead:
     fav_path = settings.FAVICONS_STATIC
     
     @classmethod
-    def get_archived_file(cls, url_id, mode='html', req=None):
-        qset = Library.objects.filter(id=url_id)
+    def get_archived_file(cls, usr, url_id, mode='html', req=None):
+        qset = Library.objects.filter(usr=usr, id=url_id)
         streaming_mode = False
         if qset:
             row = qset[0]
@@ -80,7 +80,6 @@ class CustomRead:
                         streaming_mode = True
                         break
                 if streaming_mode and req:
-                    usr = req.user
                     qlist = UserSettings.objects.filter(usrid=usr)
                     if qlist and not qlist[0].media_streaming:
                         streaming_mode = False
@@ -119,8 +118,8 @@ class CustomRead:
             return HttpResponse('<html>No url exists for this query</html>')
     
     @classmethod
-    def read_customized(cls, url_id):
-        qlist = Library.objects.filter(id=url_id).select_related()
+    def read_customized(cls, usr, url_id):
+        qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
         data = b"<html>Not Available</html>"
         mtype = 'text/html'
         if qlist:
