@@ -49,7 +49,6 @@ class AddDir(forms.Form):
                 logger.debug('add--bookmark')
             elif qdir and len(url) > 9:
                 nqdir = qdir.filter(url=url)
-                print(nqdir, 'nq')
                 if not nqdir:
                     dbxs.process_add_url(usr, url, self.DEFAULT_DIRECTORY, False)
         else:
@@ -88,9 +87,7 @@ class RemoveDir(forms.Form):
     remove_directory = forms.BooleanField(widget=forms.Select(choices=CHOICES))
     
     def check_and_remove_dir(self, usr, directory):
-        print(self.cleaned_data)
         rem_dir = self.cleaned_data.get('remove_directory', '')
-        logger.debug('{} {} {}'.format(rem_dir, usr, directory))
         if rem_dir is True:
             qlist = Library.objects.filter(usr=usr, directory=directory)
             for row in qlist:
