@@ -315,6 +315,55 @@ class DBAccess:
                     )
     
     @classmethod
+    def convert_html_pdf_with_chromium(cls, media_path_parent,
+                                       settings_row, row, url_name,
+                                       media_path, mode='pdf'):
+        if mode == 'pdf':
+            pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
+            cmd = [
+                'chromium', '--headless', '--disable-gpu',
+                '--print-to-pdf={}'.format(pdf), url_name]
+            if settings.USE_CELERY:
+                cls.convert_to_pdf_png.delay(cmd)
+            else:
+                cls.vnt_task.function(
+                    cls.convert_to_pdf_png_task, cmd,
+                    onfinished=partial(cls.finished_processing, 'pdf')
+                )
+        elif mode == 'dom':
+            htm = os.path.join(media_path_parent, str(row.id)+'.htm')
+            cmd = [
+                'chromium', '--headless', '--disable-gpu',
+                '--dump-dom', url_name
+                ]
+            if settings.USE_CELERY:
+                cls.getdom_chromium.delay(cmd, htm)
+            else:
+                cls.vnt_task.function(
+                    cls.getdom_task_chromium, cmd, htm,
+                    onfinished=partial(cls.finished_processing, 'html')
+                )
+        
+    
+    def getdom_task_chromium(cmd, htm):
+        if os.name == 'posix':
+            output = subprocess.check_output(cmd)
+        else:
+            output = subprocess.check_output(cmd, shell=True)
+        with open(htm, 'wb') as fd:
+            fd.write(output)
+        return True
+    
+    @task(name="convert-to-pdf-png")
+    def getdom_chromium(cmd, htm):
+        if os.name == 'posix':
+            output = subprocess.check_output(cmd)
+        else:
+            output = subprocess.check_output(cmd, shell=True)
+        with open(htm, 'wb') as fd:
+            fd.write(output)
+    
+    @classmethod
     def finished_processing(cls, val, *args):
         logger.info('{}-->>>>finished--->>>{}'.format(val, args))
         
@@ -465,11 +514,11 @@ class DBAccess:
         return lnk
     
     @staticmethod
-    def remove_url_link(url_id=None, row=None):
+    def remove_url_link(usr, url_id=None, row=None):
         if row:
             url_id = row.id
         elif url_id:
-            qlist = Library.objects.filter(id=url_id)
+            qlist = Library.objects.filter(usr=usr, id=url_id)
             if qlist:
                 row = qlist[0]
         if row:
@@ -495,7 +544,7 @@ class DBAccess:
             move_to_dir = request.POST.get('move_to_dir', '')
             print(url_id, request.POST)
             if move_to_dir:
-                Library.objects.filter(id=url_id).update(directory=move_to_dir)
+                Library.objects.filter(usr=usr, id=url_id).update(directory=move_to_dir)
             msg = 'Moved to {}'.format(move_to_dir)
         elif not single:
             move_to_dir = request.POST.get('move_to_dir', '')
@@ -508,7 +557,7 @@ class DBAccess:
                 for link in move_links_list:
                     if link.isnumeric():
                         link_id = int(link)
-                        Library.objects.filter(id=link_id).update(directory=move_to_dir)
+                        Library.objects.filter(usr=usr, id=link_id).update(directory=move_to_dir)
             msg = 'Moved {1} links to {0}'.format(move_to_dir, len(move_links_list))
         return msg
         
@@ -536,7 +585,7 @@ class DBAccess:
         for link in links_list:
             if link.isnumeric():
                 link_id = int(link)
-                qset = Library.objects.filter(id=link_id)
+                qset = Library.objects.filter(usr=usr, id=link_id)
                 if qset:
                     row = qset[0]
                     if mode == 'archive':
@@ -564,13 +613,13 @@ class DBAccess:
         print(url_id, request.POST)
         msg = 'Edited'
         if title and nurl:
-            Library.objects.filter(id=url_id).update(title=title, url=nurl)
+            Library.objects.filter(usr=usr, id=url_id).update(title=title, url=nurl)
             msg = msg + ' Title and Link'
         elif title:
-            Library.objects.filter(id=url_id).update(title=title)
+            Library.objects.filter(usr=usr, id=url_id).update(title=title)
             msg = msg + ' Title'
         elif nurl:
-            Library.objects.filter(id=url_id).update(url=nurl)
+            Library.objects.filter(usr=usr, id=url_id).update(url=nurl)
             msg = msg + ' Link'
         if tags or tags_old:
             msg = DBAccess.edit_tags(usr, url_id, tags, tags_old) 
@@ -598,7 +647,7 @@ class DBAccess:
         if old_row:
             lib_obj = old_row
         else:
-            lib_list = Library.objects.filter(id=url_id)
+            lib_list = Library.objects.filter(usr=usr, id=url_id)
             lib_obj = lib_list[0]
         lib_obj.tags = tags_list_library
         lib_obj.save()
