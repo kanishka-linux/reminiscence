@@ -94,4 +94,4 @@ class RemoveDir(forms.Form):
         if rem_dir is True:
             qlist = Library.objects.filter(usr=usr, directory=directory)
             for row in qlist:
-                dbxs.remove_url_link(row=row)
+                dbxs.remove_url_link(usr, row=row)
