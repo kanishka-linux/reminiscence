@@ -162,7 +162,7 @@ def perform_link_operation(request, username, directory, url_id=None):
                 rem_lnk = request.POST.get('remove_url', '')
                 print(url_id, request.POST)
                 if rem_lnk == 'yes':
-                    dbxs.remove_url_link(url_id=url_id)
+                    dbxs.remove_url_link(usr, url_id=url_id)
                 return HttpResponse('Deleted')
             elif request.path_info.endswith('move-bookmark'):
                 msg = dbxs.move_bookmarks(usr, request, url_id)
@@ -174,15 +174,15 @@ def perform_link_operation(request, username, directory, url_id=None):
                 return HttpResponse('Wrong command')
         elif request.method == 'GET':
             if request.path_info.endswith('archive'):
-                return cread.get_archived_file(url_id, mode='archive', req=request)
+                return cread.get_archived_file(usr, url_id, mode='archive', req=request)
             elif request.path_info.endswith('read'):
-                return cread.read_customized(url_id)
+                return cread.read_customized(usr, url_id)
             elif request.path_info.endswith('read-pdf'):
-                return cread.get_archived_file(url_id, mode='pdf')
+                return cread.get_archived_file(usr, url_id, mode='pdf')
             elif request.path_info.endswith('read-png'):
-                return cread.get_archived_file(url_id, mode='png')
+                return cread.get_archived_file(usr, url_id, mode='png')
             elif request.path_info.endswith('read-html'):
-                return cread.get_archived_file(url_id, mode='html')
+                return cread.get_archived_file(usr, url_id, mode='html')
         else:
             return HttpResponse('Method not Permitted')
     elif directory and request.method == 'POST':
@@ -321,8 +321,9 @@ def api_points(request, username):
         req_summary = request.POST.get('req_summary', '')
         req_import = request.POST.get('import-bookmark', '')
         req_upload = request.POST.get('upload-binary', '')
-        print(req_import)
-        print(request.FILES)
+        req_chromium_backend = request.POST.get('chromium-backend', '')
+        logger.debug(req_import)
+        logger.debug(request.FILES)
         if req_list and req_list == 'yes':
             q_list = Library.objects.filter(usr=usr)
             dir_list = set()
@@ -398,7 +399,7 @@ def api_points(request, username):
             reqid = request.POST.get('url_id', '')
             summary = 'not available'
             if reqid and reqid.isnumeric():
-                qlist = Library.objects.filter(id=int(reqid))
+                qlist = Library.objects.filter(usr=usr, id=int(reqid))
                 if qlist:
                     row = qlist[0]
                     summary = row.summary
@@ -423,7 +424,7 @@ def api_points(request, username):
             msg = "no modied"
             logger.debug(summary)
             if reqid and reqid.isnumeric() and summary:
-                qlist = Library.objects.filter(id=int(reqid)).update(summary=summary)
+                qlist = Library.objects.filter(usr=usr, id=int(reqid)).update(summary=summary)
                 msg = 'modified summary'
             return HttpResponse(msg)
         elif req_get_settings and req_get_settings == 'yes':
@@ -564,12 +565,31 @@ def api_points(request, username):
                 dbxs.vnt_task.function(Summarizer.check_data_path)
             ndict = {'status':'ok'}
             return HttpResponse(json.dumps(ndict))
+        elif req_chromium_backend and req_chromium_backend == 'yes':
+            url_id = request.POST.get('url_id', '')
+            mode = request.POST.get('mode', '')
+            if mode and mode in ['pdf', 'dom']:
+                qlist = UserSettings.objects.filter(usrid=usr)
+                if qlist:
+                    settings_row = qlist[0]
+                else:
+                    settings_row = None
+                qset = Library.objects.filter(usr=usr, id=url_id)
+                if qset:
+                    row = qset[0]
+                    if row.media_path:
+                        media_path_parent, _ = os.path.split(row.media_path)
+                        dbxs.convert_html_pdf_with_chromium(media_path_parent,
+                                                            settings_row, row,
+                                                            row.url, row.media_path,
+                                                            mode=mode)
+                return HttpResponse('OK')
         elif req_archive and req_archive in ['yes', 'force']:
             url_id = request.POST.get('url_id', '')
             dirname = request.POST.get('dirname', '')
             logger.debug('{}, {}'.format(url_id, dirname))
             if url_id and url_id.isnumeric() and dirname:
-                qset = Library.objects.filter(id=url_id)
+                qset = Library.objects.filter(usr=usr, id=url_id)
                 if qset:
                     row = qset[0]
                     media_path = row.media_path
