@@ -50,6 +50,8 @@ Table of Contents
 * Automatic archival of links to non-html content like pdf, jpg, txt etc..
 
     **i.e.** Bookmarking links to pdf, jpg etc.. via web-interface will automatically save those files on server.
+
+* Supports archival of media elements of a web-page using third party download managers (from v0.2+ onwards).
  
 * Directory based categorization of bookmarks
 
@@ -235,6 +237,8 @@ PDF and full-page screenshot in PNG format of HTML page will be generated using 
 Currently headless chromium doesn't support full page screenshot, otherwise I might have used it blindly. There is another headless browser [hlspy](https://github.com/kanishka-linux/hlspy), based on QtWebEngine, which I built for my personal use. **hlspy** can generate entire html content, pdf document and full page screenshot in one single request and that too using just one single process. In both chromium and wkhtmltopdf, one has to execute atleast two separate processes for doing the same thing. The main problem with hlspy is that it is not completely headless, it can't run without X. It requires xvfb for running in headless environment. 
 
 In future, I'll try to provide a way to choose between different backends (i.e. chromium, wkhtmltopdf or hlspy) for performing these tasks.
+
+**Note:** From v0.2+ onwards, support for headless Chromium has been added for generating HTML and PDF content. Users can use this feature if default archived content has some discrepancies. Users need to install Chromium to use this feature.
 
 ## Archiving Media Elements
 
