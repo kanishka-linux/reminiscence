@@ -326,6 +326,22 @@ function dropdown_menu_clicked(element){
                     console.log('cancelled');
                 }
             })
+    }else if(link == 'chromium_pdf' || link == 'chromium_dom'){
+        var api_link = $(element).attr('data-url');
+        var csrftoken = getCookie('csrftoken');
+        var url_id = $(element).attr('link-id');
+        var post_data = `chromium-backend=yes&url_id=${url_id}`;
+        if (link == 'chromium_pdf'){
+            mode = 'pdf';
+        }else{
+            mode = 'dom';
+        }
+        post_data = post_data + `&mode=${mode}`
+        var client = new postRequest();
+        console.log(post_data)
+        client.post(api_link, post_data, csrftoken, function(response) {
+            console.log(response);
+        })
     }else if(link == 'edit-tags-multiple'){
         var [elpar, elar_join] = get_selected_items();
         post_data = `link_ids=${elar_join}`;
