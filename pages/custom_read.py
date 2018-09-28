@@ -21,17 +21,21 @@ import os
 import re
 import logging
 import hashlib
+import time
+import uuid
 from urllib.parse import urlparse
 from mimetypes import guess_type
 
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, StreamingHttpResponse
 from django.conf import settings
 from django.urls import reverse
+from django.shortcuts import redirect
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
 from readability import Document
 from .models import Library, UserSettings
 from .dbaccess import DBAccess as dbxs
+from .utils import RangeFileResponse
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +92,6 @@ class CustomRead:
                 mtype = guess_type(media_path)[0]
                 if not mtype:
                     mtype = 'application/octet-stream'
-                if streaming_mode:
-                    mtype = 'video/mp4'
                 ext = media_path.rsplit('.')[-1]
                 if ext:
                     filename = row.title + '.' + ext
@@ -102,20 +104,71 @@ class CustomRead:
                 if mtype in ['text/html', 'text/htm']:
                     data = cls.format_html(row, media_path)
                     return HttpResponse(data)
+                elif streaming_mode:
+                    uid = str(uuid.uuid4())
+                    uid = uid.replace('-', '')
+                    while uid in settings.VIDEO_ID_DICT:
+                        logger.debug("no unique ID, Generating again")
+                        uid = str(uuid.uuid4())
+                        uid = uid.replace('-', '')
+                        time.sleep(0.01)
+                    settings.VIDEO_ID_DICT.update({uid:[media_path, time.time()]})
+                    settings.VIDEO_ID_DICT.move_to_end(uid, last=False)
+                    if len(settings.VIDEO_ID_DICT) > 1000:
+                        settings.VIDEO_ID_DICT.popitem()
+                    #return redirect('get_video', username=usr.username, video_id=uid)
+                    return cls.get_archived_video(req, usr.username, uid)
                 else:
                     response = FileResponse(open(media_path, 'rb'))
+                    mtype = 'video/webm' if mtype == 'video/x-matroska' else mtype
                     response['mimetype'] = mtype
                     response['content-type'] = mtype
                     response['content-length'] = os.stat(media_path).st_size
                     filename = filename.replace(' ', '.')
-                    print(filename, mtype)
+                    logger.info('{} , {}'.format(filename, mtype))
                     if not cls.is_human_readable(mtype) and not streaming_mode:
                         response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
                     return response
             else:
                 return HttpResponse('<html>File has not been archived in this format</html>')
         else:
-            return HttpResponse('<html>No url exists for this query</html>')
+            return HttpResponse(status=404)
+    
+    @staticmethod
+    def get_archived_video(request, username, video_id):
+        if video_id in settings.VIDEO_ID_DICT:
+            media_path, ltime = settings.VIDEO_ID_DICT.get(video_id)
+            logger.debug('{} {}'.format(media_path, ltime))
+            if time.time() - ltime <= settings.VIDEO_ID_EXPIRY_LIMIT*3600:
+                if os.path.isfile(media_path):
+                    mtype = guess_type(media_path)[0]
+                    if not mtype:
+                        mtype = 'application/octet-stream'
+                    range_header = request.META.get('HTTP_RANGE', '').strip()
+                    range_match = settings.RANGE_REGEX.match(range_header)
+                    size = os.stat(media_path).st_size
+                    if range_match:
+                        first_byte, last_byte = range_match.groups()
+                        first_byte = int(first_byte) if first_byte else 0
+                        last_byte = int(last_byte) if last_byte else size - 1
+                        if last_byte >= size:
+                            last_byte = size - 1
+                        length = last_byte - first_byte + 1
+                        response = StreamingHttpResponse(
+                            RangeFileResponse(open(media_path, 'rb'), offset=first_byte,
+                            length=length), status=206, content_type=mtype
+                        )
+                        response['Content-Length'] = str(length)
+                        response['Content-Range'] = 'bytes {}-{}/{}'.format(first_byte, last_byte, size)
+                    else:
+                        response = StreamingHttpResponse(FileResponse(open(media_path, 'rb')))
+                        response['content-length'] = size
+                    mtype = 'video/webm' if mtype == 'video/x-matroska' else mtype
+                    response['content-type'] = mtype
+                    response['mimetype'] = mtype
+                    response['Accept-Ranges'] = 'bytes'
+                    return response
+        return HttpResponse(status=404)
     
     @classmethod
     def read_customized(cls, usr, url_id):
