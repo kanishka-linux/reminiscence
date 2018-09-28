@@ -409,7 +409,8 @@ class DBAccess:
                     tags = row.tags.split(',')
                 nusr_list.append(
                     (row.title, row.url, row.id, row.timestamp,
-                     tags, row.directory, row.media_path)
+                     tags, row.directory, row.media_path,
+                     row.media_element)
                 )
         return nusr_list
 
@@ -431,7 +432,8 @@ class DBAccess:
                         uid:[
                             i.url_id.title, uid, i.url_id.id,
                             i.url_id.timestamp, [tagname],
-                            dirname, i.url_id.media_path
+                            dirname, i.url_id.media_path,
+                            i.url_id.media_element
                         ]
                     }
                 )
@@ -448,7 +450,7 @@ class DBAccess:
             nlist = []
         index = 1
         username = usr.username
-        for title, url, idd, timestamp, tag, directory, media_path in usr_list:
+        for title, url, idd, timestamp, tag, directory, media_path, media_element in usr_list:
             title = re.sub('_|-', ' ', title)
             title = re.sub('/', ' / ', title)
             base_dir = '/{}/{}/{}'.format(usr, directory, idd)
@@ -481,7 +483,8 @@ class DBAccess:
                                 'move-bookmark':move_single, 
                                 'move-multi': move_multiple, 'usr':username,
                                 'archive-media':archive_media, 'directory':directory,
-                                'read-url':read_url, 'id': idd, 'fav-path': fav_path
+                                'read-url':read_url, 'id': idd, 'fav-path': fav_path,
+                                'media-element': media_element
                             }
                         }
                     )
@@ -490,7 +493,8 @@ class DBAccess:
                     [
                         index, title, netloc, url, base_et, base_remove,
                         timestamp, tag, move_single, move_multiple,
-                        archive_media, directory, read_url, idd, fav_path
+                        archive_media, directory, read_url, idd, fav_path,
+                        media_element
                     ]
                 )
             index += 1
