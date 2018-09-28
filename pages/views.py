@@ -22,6 +22,7 @@ import re
 import json
 import time
 import shutil
+import pickle
 import logging
 from functools import reduce
 from itertools import chain
@@ -48,7 +49,7 @@ from .forms import AddDir, RenameDir, RemoveDir, AddURL
 from .custom_read import CustomRead as cread
 from .dbaccess import DBAccess as dbxs
 from .summarize import Summarizer
-from .utils import ImportBookmarks, RangeFileResponse
+from .utils import ImportBookmarks
 
 
 logger = logging.getLogger(__name__)
@@ -306,9 +307,13 @@ def navigate_directory(request, username, directory=None, tagname=None):
                 )
     else:
         return redirect('home')
-        
 
 def get_archived_video_link(request, username, video_id):
+    if video_id and '-' in video_id:
+        _, video_id = video_id.rsplit('-', 1)
+    if os.path.isfile(cread.CACHE_FILE):
+        with open(cread.CACHE_FILE, 'rb') as fd:
+            cread.VIDEO_ID_DICT = pickle.load(fd)
     return cread.get_archived_video(request, username, video_id)
 
 @login_required
@@ -327,6 +332,7 @@ def api_points(request, username):
         req_import = request.POST.get('import-bookmark', '')
         req_upload = request.POST.get('upload-binary', '')
         req_chromium_backend = request.POST.get('chromium-backend', '')
+        req_media_path = request.POST.get('get-media-path', '')
         logger.debug(req_import)
         logger.debug(request.FILES)
         if req_list and req_list == 'yes':
@@ -340,6 +346,12 @@ def api_points(request, username):
             dir_list.sort()
             dir_dict = {'dir':dir_list}
             return HttpResponse(json.dumps(dir_dict))
+        elif req_media_path and req_media_path == 'yes':
+            url_id = request.POST.get('url_id', '')
+            if url_id and url_id.isnumeric():
+                return_path = cread.get_archived_file(usr, url_id, mode='archive',
+                                                      req=request, return_path=True)
+                return HttpResponse(json.dumps({'link':return_path}))
         elif req_import and req_import == 'yes':
             req_file = request.FILES.get('file-upload', '')
             if req_file:
