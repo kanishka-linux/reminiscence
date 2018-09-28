@@ -342,6 +342,26 @@ function dropdown_menu_clicked(element){
         client.post(api_link, post_data, csrftoken, function(response) {
             console.log(response);
         })
+    }else if(link == 'url_media_public' ){
+        var api_link = $(element).attr('data-url');
+        var csrftoken = getCookie('csrftoken');
+        var url_id = $(element).attr('link-id');
+        var post_data = `get-media-path=yes&url_id=${url_id}`;
+        var client = new postRequest();
+        console.log(post_data)
+        client.post(api_link, post_data, csrftoken, function(response) {
+            console.log(response);
+            var json = JSON.parse(response);
+            var nurl = json['link'];
+            var final_url = window.location.protocol + '//' + window.location.hostname;
+            if(window.location.port){
+                final_url = final_url + ':' + window.location.port;
+            }
+            final_url = final_url + '/' + nurl;
+            console.log(final_url);
+            bootbox.alert(getsummary(final_url));
+        })
+        
     }else if(link == 'edit-tags-multiple'){
         var [elpar, elar_join] = get_selected_items();
         post_data = `link_ids=${elar_join}`;
