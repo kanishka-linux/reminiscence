@@ -62,7 +62,7 @@
   </tr>
 </thead>
 <tbody id="tbody">
-  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path in usr_list %}
+  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path, media_element in usr_list %}
     <tr>
         <td>{% if fav_path %}<img width="24" src="{{fav_path}}" link-id="{{idd}}">{% endif %}</td>
       <td>
@@ -87,7 +87,9 @@
                 
                 <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_summary" data-url="/{{user.username}}/api/request">Summary</span>
                 <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_read" data-url="/{{user.username}}/api/request">Read</span>
-                
+                {% if media_element %}
+                <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_media_public" data-url="/{{user.username}}/api/request" link-id="{{idd}}">Public Link</span>
+                {% endif %}
                 <div class="dropdown-divider"></div>
                 <span class="dropdown-item" data-link="{{ ms }}" title="{{title}}" data-val="url" data-url="/{{user.username}}/api/request">Move To</span>
                 
