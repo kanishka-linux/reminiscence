@@ -183,7 +183,13 @@ LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
 RANGE_REGEX = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+
+# Expiry Limit for Archived Public Media link in hours
+
 VIDEO_ID_EXPIRY_LIMIT = 24
+
+# Maximum items allowed in Public Playlist
+
 VIDEO_PUBLIC_LIST = 1000
 
 ARCHIVE_LOCATION = os.path.join(BASE_DIR, 'archive')
