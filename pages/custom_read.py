@@ -23,13 +23,16 @@ import logging
 import hashlib
 import time
 import uuid
+import pickle
 from urllib.parse import urlparse
 from mimetypes import guess_type
+from collections import OrderedDict
 
 from django.http import HttpResponse, FileResponse, StreamingHttpResponse
 from django.conf import settings
 from django.urls import reverse
 from django.shortcuts import redirect
+from django.utils.text import slugify
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
 from readability import Document
@@ -55,9 +58,11 @@ class CustomRead:
                   max_requests=settings.VINANTI_MAX_REQUESTS)
     vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
     fav_path = settings.FAVICONS_STATIC
+    VIDEO_ID_DICT = OrderedDict()
+    CACHE_FILE = os.path.join(settings.ARCHIVE_LOCATION, 'cache')
     
     @classmethod
-    def get_archived_file(cls, usr, url_id, mode='html', req=None):
+    def get_archived_file(cls, usr, url_id, mode='html', req=None, return_path=False):
         qset = Library.objects.filter(usr=usr, id=url_id)
         streaming_mode = False
         if qset:
@@ -105,19 +110,27 @@ class CustomRead:
                     data = cls.format_html(row, media_path)
                     return HttpResponse(data)
                 elif streaming_mode:
+                    if os.path.isfile(cls.CACHE_FILE):
+                        with open(cls.CACHE_FILE, 'rb') as fd:
+                            cls.VIDEO_ID_DICT = pickle.load(fd)
                     uid = str(uuid.uuid4())
                     uid = uid.replace('-', '')
-                    while uid in settings.VIDEO_ID_DICT:
+                    while uid in cls.VIDEO_ID_DICT:
                         logger.debug("no unique ID, Generating again")
                         uid = str(uuid.uuid4())
                         uid = uid.replace('-', '')
                         time.sleep(0.01)
-                    settings.VIDEO_ID_DICT.update({uid:[media_path, time.time()]})
-                    settings.VIDEO_ID_DICT.move_to_end(uid, last=False)
-                    if len(settings.VIDEO_ID_DICT) > 1000:
-                        settings.VIDEO_ID_DICT.popitem()
-                    #return redirect('get_video', username=usr.username, video_id=uid)
-                    return cls.get_archived_video(req, usr.username, uid)
+                    cls.VIDEO_ID_DICT.update({uid:[media_path, time.time()]})
+                    cls.VIDEO_ID_DICT.move_to_end(uid, last=False)
+                    if len(cls.VIDEO_ID_DICT) > settings.VIDEO_PUBLIC_LIST:
+                        cls.VIDEO_ID_DICT.popitem()
+                    with open(cls.CACHE_FILE, 'wb') as fd:
+                        pickle.dump(cls.VIDEO_ID_DICT, fd)
+                    if return_path:
+                        title_slug = slugify(row.title, allow_unicode=True)
+                        return '{}/getarchivedvideo/{}-{}'.format(usr.username, title_slug, uid)
+                    else:
+                        return cls.get_archived_video(req, usr.username, uid)
                 else:
                     response = FileResponse(open(media_path, 'rb'))
                     mtype = 'video/webm' if mtype == 'video/x-matroska' else mtype
@@ -134,10 +147,10 @@ class CustomRead:
         else:
             return HttpResponse(status=404)
     
-    @staticmethod
-    def get_archived_video(request, username, video_id):
-        if video_id in settings.VIDEO_ID_DICT:
-            media_path, ltime = settings.VIDEO_ID_DICT.get(video_id)
+    @classmethod
+    def get_archived_video(cls, request, username, video_id):
+        if video_id in cls.VIDEO_ID_DICT:
+            media_path, ltime = cls.VIDEO_ID_DICT.get(video_id)
             logger.debug('{} {}'.format(media_path, ltime))
             if time.time() - ltime <= settings.VIDEO_ID_EXPIRY_LIMIT*3600:
                 if os.path.isfile(media_path):
