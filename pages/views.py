@@ -20,6 +20,7 @@ along with Reminiscence.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 import json
+import time
 import shutil
 import logging
 from functools import reduce
@@ -30,8 +31,9 @@ from mimetypes import guess_extension, guess_type
 from collections import Counter
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, StreamingHttpResponse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -46,7 +48,7 @@ from .forms import AddDir, RenameDir, RemoveDir, AddURL
 from .custom_read import CustomRead as cread
 from .dbaccess import DBAccess as dbxs
 from .summarize import Summarizer
-from .utils import ImportBookmarks
+from .utils import ImportBookmarks, RangeFileResponse
 
 
 logger = logging.getLogger(__name__)
@@ -304,8 +306,11 @@ def navigate_directory(request, username, directory=None, tagname=None):
                 )
     else:
         return redirect('home')
-    
-    
+        
+
+def get_archived_video_link(request, username, video_id):
+    return cread.get_archived_video(request, username, video_id)
+
 @login_required
 def api_points(request, username):
     usr = request.user
