@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import re
+from collections import OrderedDict
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -181,6 +183,10 @@ LOGOUT_REDIRECT_URL = 'home'
 LOGIN_REDIRECT_URL = 'home'
 
 LOGIN_URL = 'login'
+
+RANGE_REGEX = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+VIDEO_ID_DICT = OrderedDict()
+VIDEO_ID_EXPIRY_LIMIT = 24
 
 ARCHIVE_LOCATION = os.path.join(BASE_DIR, 'archive')
 
