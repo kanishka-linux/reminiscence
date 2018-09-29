@@ -352,6 +352,22 @@ function dropdown_menu_clicked(element){
         client.post(api_link, post_data, csrftoken, function(response) {
             console.log(response);
         })
+    }else if(link == 'generate-media-playlist'){
+        var api_link = $(element).attr('api-url');
+        var csrftoken = getCookie('csrftoken');
+        var data_link = $(element).attr('data-link');
+        var directory = data_link.split('/')[2]
+        var server_url = window.location.protocol + '//' + window.location.hostname;
+        if(window.location.port){
+            server_url = server_url + ':' + window.location.port;
+        }
+        var post_data = `generate-media-playlist=yes&directory=${directory}&ip=${server_url}`;
+        var client = new postRequest();
+        console.log(post_data)
+        client.post(api_link, post_data, csrftoken, function(response) {
+            console.log(response);
+            window.location = response;
+        })
     }else if(link == 'url_media_public' ){
         var api_link = $(element).attr('data-url');
         var csrftoken = getCookie('csrftoken');
