@@ -111,7 +111,7 @@ Table of Contents
     
     $ pip install -r requirements.txt
     
-    $ mkdir logs archive
+    $ mkdir logs archive tmp
     
     $ python manage.py generatesecretkey
     
