@@ -241,7 +241,7 @@ class CustomRead:
             with open(plfile, 'wb') as fd:
                 pickle.dump(pls_txt, fd)
         pls_path = '/{}/getarchivedplaylist/{}/{}'.format(usr.username, directory, uid)
-        print(pls_path)
+        logger.debug(pls_path)
         return pls_path
         
     @classmethod
