@@ -16,7 +16,7 @@ RUN pip install -r requirements.txt
 
 ADD . /usr/src/reminiscence
 
-RUN mkdir -p logs archive
+RUN mkdir -p logs archive tmp
 
 RUN python manage.py applysettings --docker yes
 
