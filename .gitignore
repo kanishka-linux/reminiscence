@@ -7,3 +7,4 @@ static/favicons/
 static/nltk_data/
 db/
 logs/
+tmp/
