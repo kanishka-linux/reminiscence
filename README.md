@@ -253,7 +253,7 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
         iurl -> input url
         output -> output path
     
-3. Users should not substitute anything for 'iurl' and 'output' field. i.e. {iurl} and {output} fields should be kept as it is.  
+3. Users should not substitute anything for 'iurl' and 'output' field. i.e. {iurl} and {output} fields should be kept as it is. In short, users should just write regular command with parameters and leave the {iurl} and {output} field untouched.
     
 4. Reminiscence server will take care of setting up of input url and output path field. However, users can change position of these two fields depending on the type of download manager. Users can add extra parameters to this command.
     
