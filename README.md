@@ -271,12 +271,12 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
 
         ex=> md:https://some-website-with-media-link.org/media-link
 
-        Every entry added by this way will be treated as containing media
+        Every entry added by this way will be treated as containing media.
 
 9. Archived files are normally saved in **archive** folder. Users can change location of this folder via settings.py file. Users should note that in order to archive media files, the **archive** location should not contain any space.
 e.g. archive location '/home/user/my downloads/archive' is not allowed. However location without space '/home/user/my_downloads/archive' is allowed.
 
-10. By default, archived media links are not shared with anyone. However, users can create public links for some fixed time period. Once a public link has been created, it will remain valid for 24 hours. Users can change this value by changing value of VIDEO_ID_EXPIRY_LIMIT in settings.py. These public links are also useful for playing non-HTML5 compliant archived media on regular media players like mpv/mplayer/vlc etc..
+10. By default, archived media links are not shared with anyone. However, users can create public links for some fixed time. Once a public link has been created, it will remain valid for 24 hours. Users can change this value by changing value of VIDEO_ID_EXPIRY_LIMIT in settings.py. These public links are also useful for playing non-HTML5 compliant archived media on regular media players like mpv/mplayer/vlc etc..It is also possible to generate a playlist in m3u format for a directory containing media links, which can be played by any popular media player. 
 
 ## Public-Private-Group directories
 
