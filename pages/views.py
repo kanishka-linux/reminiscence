@@ -317,6 +317,20 @@ def get_archived_video_link(request, username, video_id):
     return cread.get_archived_video(request, username, video_id)
 
 @login_required
+def get_archived_playlist(request, username, directory, playlist_id):
+    plfile = os.path.join(settings.TMP_LOCATION, playlist_id)
+    pls_txt = ''
+    if os.path.isfile(plfile):
+        with open(plfile, 'rb') as fd:
+            pls_txt = pickle.load(fd)
+        os.remove(plfile)
+    response = HttpResponse()
+    response['Content-Type'] = 'audio/mpegurl'
+    response['Content-Disposition'] = 'attachment; filename={}.m3u'.format(directory)
+    response.write(bytes(pls_txt, 'utf-8'))
+    return response
+
+@login_required
 def api_points(request, username):
     usr = request.user
     default_dict = {'status':'none'}
@@ -333,6 +347,7 @@ def api_points(request, username):
         req_upload = request.POST.get('upload-binary', '')
         req_chromium_backend = request.POST.get('chromium-backend', '')
         req_media_path = request.POST.get('get-media-path', '')
+        req_media_playlist = request.POST.get('generate-media-playlist', '')
         logger.debug(req_import)
         logger.debug(request.FILES)
         if req_list and req_list == 'yes':
@@ -352,6 +367,12 @@ def api_points(request, username):
                 return_path = cread.get_archived_file(usr, url_id, mode='archive',
                                                       req=request, return_path=True)
                 return HttpResponse(json.dumps({'link':return_path}))
+        elif req_media_playlist and req_media_playlist == 'yes':
+            directory = request.POST.get('directory', '')
+            ip = request.POST.get('ip', '')
+            print(directory, ip)
+            pls_path = cread.generate_archive_media_playlist(ip, usr, directory)
+            return HttpResponse(pls_path)
         elif req_import and req_import == 'yes':
             req_file = request.FILES.get('file-upload', '')
             if req_file:
