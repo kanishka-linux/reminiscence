@@ -614,17 +614,25 @@ class DBAccess:
         nurl = request.POST.get('new_url', '')
         tags = request.POST.get('new_tags', '')
         tags_old = request.POST.get('old_tags', '')
+        media_link = request.POST.get('media_link', '')
         print(url_id, request.POST)
         msg = 'Edited'
+        if media_link and media_link == 'true':
+            media_element = True
+        else:
+            media_element = False
         if title and nurl:
-            Library.objects.filter(usr=usr, id=url_id).update(title=title, url=nurl)
+            Library.objects.filter(usr=usr, id=url_id).update(title=title, url=nurl, media_element=media_element)
             msg = msg + ' Title and Link'
         elif title:
-            Library.objects.filter(usr=usr, id=url_id).update(title=title)
+            Library.objects.filter(usr=usr, id=url_id).update(title=title, media_element=media_element)
             msg = msg + ' Title'
         elif nurl:
-            Library.objects.filter(usr=usr, id=url_id).update(url=nurl)
+            Library.objects.filter(usr=usr, id=url_id).update(url=nurl, media_element=media_element)
             msg = msg + ' Link'
+        else:
+            Library.objects.filter(usr=usr, id=url_id).update(media_element=media_element)
+        
         if tags or tags_old:
             msg = DBAccess.edit_tags(usr, url_id, tags, tags_old) 
         return msg
