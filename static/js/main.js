@@ -33,7 +33,14 @@ function dropdown_menu_clicked(element){
                 var title_value = al.text();
                 var post_url = 'new_url=';
                 var post_title = 'new_title=';
-                msg = getstr(title_value, url_value, badge_str);
+                var mel = el.find('.dropdown-item[data-val=url_media_public]');
+                if(mel.length){
+                    var media_element = 'checked';
+                }else{
+                    var media_element = '';
+                }
+                console.log(mel, mel.length);
+                msg = getstr(title_value, url_value, badge_str, media_element);
                 post_data = null;
             }else if (nlink.endsWith('move-bookmark')){
                 post_data = 'listdir=yes';
@@ -72,6 +79,8 @@ function dropdown_menu_clicked(element){
                                 badge_str = encodeURIComponent(badge_str);
                                 post_data = post_data + `&new_tags=${itag}&old_tags=${badge_str}`;
                             }
+                            var media_link = $('#media-element-check').is(':checked');
+                            post_data = post_data + `&media_link=${media_link}`;
                             console.log(post_data);
                         }else{
                             el.remove();
@@ -80,6 +89,7 @@ function dropdown_menu_clicked(element){
                             var client = new postRequest();
                             client.post(nlink, post_data, csrftoken, function(response) {
                                 console.log(response);
+                                window.location.reload();
                             })
                         }
                     }
@@ -888,7 +898,7 @@ function getcheckbox_string(list){
             </br><form id="radio-dir-boxes" novalidate> ${str} </form>`;
 }
 
-function getstr(title, url, tags){
+function getstr(title, url, tags, media_element){
     var placeholder = "Comma separated list of tags"
     var str = `<form id='infos' novalidate>\
     <label></label>
@@ -909,6 +919,12 @@ function getstr(title, url, tags){
         <div class="col-sm-10">
             <input id='tagid' type='text' name='tags' value='${tags}' class="form-control" placeholder="${placeholder}"/>
         </div>
+    </div>
+    <div class="form-check-inline">
+        <input class="form-check-input" type="checkbox" value="media-element-check" id="media-element-check" ${media_element}>
+        <label class="form-check-label" for="media-element-check">
+        Consider the link as media link
+        </label>
     </div>
     </form>`;
     return str;
