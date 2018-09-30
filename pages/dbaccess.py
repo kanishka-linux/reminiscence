@@ -323,6 +323,8 @@ class DBAccess:
             cmd = [
                 'chromium', '--headless', '--disable-gpu',
                 '--print-to-pdf={}'.format(pdf), url_name]
+            if not settings.CHROMIUM_SANDBOX:
+                cmd.insert(1, '--no-sandbox')
             if settings.USE_CELERY:
                 cls.convert_to_pdf_png.delay(cmd)
             else:
@@ -336,6 +338,8 @@ class DBAccess:
                 'chromium', '--headless', '--disable-gpu',
                 '--dump-dom', url_name
                 ]
+            if not settings.CHROMIUM_SANDBOX:
+                cmd.insert(1, '--no-sandbox')
             if settings.USE_CELERY:
                 cls.getdom_chromium.delay(cmd, htm)
             else:
