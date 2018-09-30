@@ -262,7 +262,7 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
     
 4. Reminiscence server will take care of setting up of input url i.e. {iurl} and output path field i.e. {output}. 
     
-5. If user is using youtube-dl as a download manager, then it is advisable to install ffmpeg along with it. In this case user has to take care of regular updating of youtube-dl on their own. In docker based installation, users have to add installtion instructions for youtube-dl/ffmpeg in Dockerfile.
+5. If user is using youtube-dl as a download manager, then it is advisable to install ffmpeg along with it. In this case user has to take care of regular updating of youtube-dl on their own. In docker based installation, users have to add installation instructions for ffmpeg in Dockerfile; and then need to modify requirements.txt and add youtube_dl as dependency.
 
 6. Web-interface settings box also contains, streaming option. If this option is enabled, then HTML5 compliant media files can be played inside browsers, otherwise they will be available for download on the client machine.
 
