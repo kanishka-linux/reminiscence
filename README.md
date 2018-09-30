@@ -65,13 +65,16 @@ Table of Contents
 
 * Supports multiple user accounts.
 
-* Supports public and group directory for every user, which can be shared with public or group of users.
+* Supports public and group directory for every user.
 
 * Upload any file from web-interface for archieving.
 
 * Easy to use admin interface for managing multiple users.
 
 * Import bookmarks from Netscape Bookmark HTML file format.
+
+* Supports streaming of archived media elements.
+
 
 # Installation
 
@@ -82,14 +85,16 @@ Table of Contents
         2. wkhtmltopdf (for html to pdf/png conversion)
     
         3. redis-server (optional)
+
+        4. chromium (optional from 0.2+)
     
 2. Installation of above dependencies in Arch or Arch based distros
 
-        $ sudo pacman -S python-virtualenv wkhtmltopdf redis
+        $ sudo pacman -S python-virtualenv wkhtmltopdf redis chromium
     
 3. Installation of above dependencies in Debian or Ubuntu based distros
 
-        $ sudo apt install virtualenv wkhtmltopdf redis-server
+        $ sudo apt install virtualenv wkhtmltopdf redis-server chromium-browser
 
 **Note:** Name of above dependencies may change depending on distro or OS, so install accordingly. Once above dependencies are installed, execute following commands, which are distro/platform independent. 
     
@@ -253,13 +258,13 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
         iurl -> input url
         output -> output path
     
-3. Users should not substitute anything for 'iurl' and 'output' field. i.e. {iurl} and {output} fields should be kept as it is. In short, users should just write regular command with parameters and leave the {iurl} and {output} field untouched.
+3. Users should not substitute anything for {iurl} and {output} field, they should be kept as it is. In short, users should just write regular command with parameters and leave the {iurl} and {output} field untouched. (Note: do not even remove curly brackets).
     
-4. Reminiscence server will take care of setting up of input url and output path field. However, users can change position of these two fields depending on the type of download manager. Users can add extra parameters to this command.
+4. Reminiscence server will take care of setting up of input url i.e. {iurl} and output path field i.e. {output}. 
     
 5. If user is using youtube-dl as a download manager, then it is advisable to install ffmpeg along with it. In this case user has to take care of regular updating of youtube-dl on their own. Users can also use some custom script for managing archiving of media elements.
 
-6. Web-interface also contains, streaming option. If this option is enabled, then HTML5 compliant media files can be played inside browsers, otherwise they will be available for download on the client machine.
+6. Web-interface settings box also contains, streaming option. If this option is enabled, then HTML5 compliant media files can be played inside browsers, otherwise they will be available for download on the client machine.
 
 7. If users are upgrading from older version then they are advised to apply database migration using following commands, before using new features:
 
