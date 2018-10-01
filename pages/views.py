@@ -426,7 +426,7 @@ def api_points(request, username):
                 search_term = req_search
                 mode = 'title'
             if mode == 'tag-wall':
-                usr_list = [('Total Tags', '', '', timezone.now(), tag_list, 'Tag-Wall', '')]
+                usr_list = [('Total Tags', '', '', timezone.now(), tag_list, 'Tag-Wall', '', '')]
             else:
                 logger.info('{}->{}'.format(mode, search_term))
                 usr_list = dbxs.get_rows_by_directory(usr, search_mode=mode, search=search_term)
