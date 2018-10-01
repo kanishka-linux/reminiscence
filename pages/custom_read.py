@@ -188,7 +188,6 @@ class CustomRead:
     @classmethod
     def generate_archive_media_playlist(cls, server, usr, directory):
         qset = Library.objects.filter(usr=usr, directory=directory)
-        streaming_mode = False
         pls_txt = '#EXTM3U\n'
         extset = set(['pdf', 'png', 'htm', 'html'])
         if not os.path.exists(settings.TMP_LOCATION):
@@ -197,6 +196,7 @@ class CustomRead:
             with open(cls.CACHE_FILE, 'rb') as fd:
                 cls.VIDEO_ID_DICT = pickle.load(fd)
         for row in qset:
+            streaming_mode = False
             media_path = row.media_path
             media_element = row.media_element
             title = row.title
