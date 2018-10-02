@@ -390,19 +390,19 @@ reminiscence folder contains three settings files
 
 # Future Roadmap
 
-1. - [x] Allow people to write custom scripts or use third party tools for their unique archival needs. 
+- [x] Allow people to write custom scripts or use third party tools for their unique archival needs. 
 
-2. - [x] Provide an option to change headless browsers for PDF/PNG generation.
+- [x] Provide an option to change headless browsers for PDF/PNG generation.
 
-3. - [ ] Provide token-based authentication which will help in developing browser addons or mobile applications
+- [ ] Provide token-based authentication which will help in developing browser addons or mobile applications
 
-4. - [ ] Support multi-word tagging
+- [ ] Support multi-word tagging
 
-5. - [ ] Provide browser addons
+- [ ] Provide browser addons
 
-6. - [ ] Document API 
+- [ ] Document API 
 
-7. - [ ] Support for text annotation
+- [ ] Support for text annotation
 
 # Motivation
 
