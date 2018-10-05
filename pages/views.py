@@ -163,7 +163,7 @@ def perform_link_operation(request, username, directory, url_id=None):
         if request.method == 'POST':
             if request.path_info.endswith('remove'):
                 rem_lnk = request.POST.get('remove_url', '')
-                print(url_id, request.POST)
+                logger.debug('{} , {}'.format(url_id, request.POST))
                 if rem_lnk == 'yes':
                     dbxs.remove_url_link(usr, url_id=url_id)
                 return HttpResponse('Deleted')
