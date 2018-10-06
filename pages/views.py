@@ -370,7 +370,7 @@ def api_points(request, username):
         elif req_media_playlist and req_media_playlist == 'yes':
             directory = request.POST.get('directory', '')
             ip = request.POST.get('ip', '')
-            print(directory, ip)
+            logger.debug('{} {}'.format(directory, ip))
             pls_path = cread.generate_archive_media_playlist(ip, usr, directory)
             return HttpResponse(pls_path)
         elif req_import and req_import == 'yes':
@@ -467,7 +467,6 @@ def api_points(request, username):
             return HttpResponse(msg)
         elif req_get_settings and req_get_settings == 'yes':
             qlist = UserSettings.objects.filter(usrid=usr)
-            print(qlist)
             if qlist:
                 row = qlist[0]
                 if row.public_dir:
