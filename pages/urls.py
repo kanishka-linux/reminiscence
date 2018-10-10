@@ -36,11 +36,13 @@ urlpatterns = [
     url(r'^logout/', auth_views.LogoutView.as_view(), name='logout'),
     url(r'^login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     url(r'^(?P<username>[\w\d.@+-]+)/?$', dashboard, name='home_page'),
-    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.@+-]+)/?$', navigate_directory, name='navigate_directory'),
-    url(r'^(?P<username>[\w\d.@+-]+)/tag/(?P<tagname>[\w\d\s.@+-]+)/?$', navigate_directory, name='navigate_tag'),
+    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_directory'),
+    url(r'^(?P<username>[\w\d.@+-]+)/tag/(?P<tagname>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_tag'),
     path('<username>/api/request', api_points, name='api_points'),
     path('<username>/profile/public', public_profile, name='public_profile'),
     path('<username>/profile/group', group_profile, name='group_profile'),
+    url(r'^(?P<username>[\w\d.@+-]+)/getarchivedvideo/(?P<video_id>[\w\d\_\-]+)/?$', get_archived_video_link, name='get_video'),
+    url(r'^(?P<username>[\w\d.@+-]+)/getarchivedplaylist/(?P<directory>[\w\d\s.&@+-]+)/(?P<playlist_id>[\w\d\_\-]+)/?$', get_archived_playlist, name='get_playlist'),
     path('<username>/<str:directory>/rename', rename_operation, name='rename_operation'),
     path('<username>/<str:directory>/remove', remove_operation, name='remove_operation'),
     path('<username>/<str:directory>/<int:url_id>/archive', perform_link_operation, name='archive_request'),
@@ -49,11 +51,13 @@ urlpatterns = [
     path('<username>/<str:directory>/<int:url_id>/read-pdf', perform_link_operation, name='read_pdf'),
     path('<username>/<str:directory>/<int:url_id>/read-png', perform_link_operation, name='read_png'),
     path('<username>/<str:directory>/<int:url_id>/read-html', perform_link_operation, name='read_html'),
-    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.@+-]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources'),
+    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources'),
     path('<username>/<str:directory>/<int:url_id>/edit-bookmark', perform_link_operation, name='edit_bookmark'),
     path('<username>/<str:directory>/<int:url_id>/move-bookmark', perform_link_operation, name='move_bookmark'),
-    path('<username>/<str:directory>/<int:url_id>/move-bookmark-multiple', perform_link_operation, name='move_bookmark_multiple')
-    
+    path('<username>/<str:directory>/move-bookmark-multiple', perform_link_operation, name='move_bookmark_multiple'),
+    path('<username>/<str:directory>/archive-bookmark-multiple', perform_link_operation, name='archive_bookmark_multiple'),
+    path('<username>/<str:directory>/merge-bookmark-with', perform_link_operation, name='merge_bookmark_with'),
+    path('<username>/<str:directory>/edit-tags-multiple', perform_link_operation, name='edit_tags_multiple')
 ]
 
 #url(r'^.*$', default_dest, name='catch_all')

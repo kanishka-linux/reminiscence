@@ -14,16 +14,16 @@ Table of Contents
     * [Using Docker](#using-docker)
 
 * [Documentation](#documentation)
-
-    * [Creating Directory](#creating-directing)
     
-    * [Adding URLs](#adding-urls)
+    * [Adding Directories and Links](#adding-directories-and-links)
     
     * [Automatic Tagging and Summarization](#automatic-tagging-and-summarization)
     
     * [Reader Mode](#reader-mode)
     
     * [Generating PDF and Full-Page Screenshot](#generating-pdf-and-png)
+
+    * [Archiving Media Elements](#archiving-media-elements)
     
     * [Public, Private and Group Directories](#public-private-group-directories)
     
@@ -50,6 +50,8 @@ Table of Contents
 * Automatic archival of links to non-html content like pdf, jpg, txt etc..
 
     **i.e.** Bookmarking links to pdf, jpg etc.. via web-interface will automatically save those files on server.
+
+* Supports archival of media elements of a web-page using third party download managers (from v0.2+ onwards).
  
 * Directory based categorization of bookmarks
 
@@ -63,13 +65,16 @@ Table of Contents
 
 * Supports multiple user accounts.
 
-* Supports public and group directory for every user, which can be shared with public or group of users.
+* Supports public and group directory for every user.
 
 * Upload any file from web-interface for archieving.
 
 * Easy to use admin interface for managing multiple users.
 
 * Import bookmarks from Netscape Bookmark HTML file format.
+
+* Supports streaming of archived media elements.
+
 
 # Installation
 
@@ -80,14 +85,16 @@ Table of Contents
         2. wkhtmltopdf (for html to pdf/png conversion)
     
         3. redis-server (optional)
+
+        4. chromium (optional from 0.2+)
     
 2. Installation of above dependencies in Arch or Arch based distros
 
-        $ sudo pacman -S python-virtualenv wkhtmltopdf redis
+        $ sudo pacman -S python-virtualenv wkhtmltopdf redis chromium
     
 3. Installation of above dependencies in Debian or Ubuntu based distros
 
-        $ sudo apt install virtualenv wkhtmltopdf redis-server
+        $ sudo apt install virtualenv wkhtmltopdf redis-server chromium-browser
 
 **Note:** Name of above dependencies may change depending on distro or OS, so install accordingly. Once above dependencies are installed, execute following commands, which are distro/platform independent. 
     
@@ -109,7 +116,7 @@ Table of Contents
     
     $ pip install -r requirements.txt
     
-    $ mkdir logs archive
+    $ mkdir logs archive tmp
     
     $ python manage.py generatesecretkey
     
@@ -178,6 +185,9 @@ Using docker is convenient compared to normal installation method described abov
 
         192.168.1.2/admin/
 
+        Note: In this metod, there is no need to
+              attach port number to IP address.
+
 7. Change default admin password from admin interface and create new regular user. After that logout, and open '**192.168.1.2**'. Now login with regular user for regular activity.
 
 8. For custom configuration, modify nginx.conf and dockerfiles available in the repository. After that execute step 4 again.
@@ -188,19 +198,21 @@ Using docker is convenient compared to normal installation method described abov
 
 # Documentation
 
-## Creating Directory
+## Adding Directories And Links
 
-Users first have to create directory from web interface.
+* **Creating Directory**
 
-**Note:** Currently '/' and '&' (along with few other special characters) are not allowed as characters in directory name. If users are facing problem when accessing directory, then they are advised to rename directory and remove special characters.
+    Users first have to create directory from web interface.
 
-![reminiscence](/Images/default.png)
+    **Note:** Currently '/' and few other special characters are not allowed as characters in directory name. If users are facing problem when accessing directory, then they are advised to rename directory and remove special characters.
+
+    ![reminiscence](/Images/default.png)
     
-## Adding URLs
+* **Adding Links**
 
-Users have to navigate to required directory and then need to add links to it. URLs are fetched asynchronously from the source for gathering metadata initially. Users have to wait for few seconds, after that page will refresh automatically showing new content. It may happen, nothing would show up after automatic page refresh (e.g. due to slow URL fetching) then try refreshing page manually by clicking on directory entry again. Maybe in future, I will have to look into django channels and websockets to enable real-time duplex communication between client and server.
+    Users have to navigate to required directory and then need to add links to it. URLs are fetched asynchronously from the source for gathering metadata initially. Users have to wait for few seconds, after that page will refresh automatically showing new content. It may happen, nothing would show up after automatic page refresh (e.g. due to slow URL fetching) then try refreshing page manually by clicking on directory entry again. Maybe in future, I will have to look into django channels and websockets to enable real-time duplex communication between client and server.
 
-![reminiscence](/Images/show_bookmarks.png)
+    ![reminiscence](/Images/show_bookmarks.png)
 
 
 ## Automatic Tagging and Summarization
@@ -231,13 +243,57 @@ Currently headless chromium doesn't support full page screenshot, otherwise I mi
 
 In future, I'll try to provide a way to choose between different backends (i.e. chromium, wkhtmltopdf or hlspy) for performing these tasks.
 
+**Note:** From v0.2+ onwards, support for headless Chromium has been added for generating HTML and PDF content. Users can use this feature if default archived content has some discrepancies. Users need to install Chromium to use this feature.
+
+## Archiving Media Elements
+
+**Note:** This feature is available from v0.2+ onwards
+
+1. In settings.py file add your favourite download manager to DOWNLOAD_MANAGERS_ALLOWED list. Default are curl and wget. In case of docker based method users have to make corresponding changes in dockersettings.py file.
+
+2. open web-interface settings box and add command to Download Manager Field:
+    
+        ex: wget {iurl} -O {output}
+    
+        iurl -> input url
+        output -> output path
+    
+3. Users should not substitute anything for {iurl} and {output} field, they should be kept as it is. In short, users should just write regular command with parameters and leave the {iurl} and {output} field untouched. (Note: do not even remove curly brackets).
+    
+4. Reminiscence server will take care of setting up of input url i.e. {iurl} and output path field i.e. {output}. 
+    
+5. If user is using youtube-dl as a download manager, then it is advisable to install ffmpeg along with it. In this case user has to take care of regular updating of youtube-dl on their own. In docker based installation, users have to add installation instructions for ffmpeg in Dockerfile; and then need to modify requirements.txt and add youtube_dl as dependency.
+
+6. Web-interface settings box also contains, streaming option. If this option is enabled, then HTML5 compliant media files can be played inside browsers, otherwise they will be available for download on the client machine.
+
+7. If users are upgrading from older version then they are advised to apply database migration using following commands, before using new features:
+
+        python manage.py makemigrations
+
+        python manage.py migrate
+
+8. Finally, when adding url to any directory just prepend **md:** to url, so that the particular entry will be recognized by custom download manager.
+
+        ex=> md:https://some-website-with-media-link.org/media-link
+
+        Every entry added by this way will be treated as containing media.
+
+9. Archived files are normally saved in **archive** folder. Users can change location of this folder via settings.py file. Users should note that in order to archive media files, the **archive** location should not contain any space.
+e.g. archive location '/home/user/my downloads/archive' is not allowed. However location without space '/home/user/my_downloads/archive' is allowed.
+
+10. By default, archived media links are not shared with anyone. However, users can create public links for some fixed time. Once a public link has been created, it will remain valid for 24 hours. Users can change this value by changing value of VIDEO_ID_EXPIRY_LIMIT in settings.py. These public links are also useful for playing non-HTML5 compliant archived media on regular media players like mpv/mplayer/vlc etc..It is also possible to generate a playlist in m3u format for a directory containing media links, which can be played by any popular media player. 
+
 ## Public-Private-Group directories
 
 By default, all directories and all links are private and are not shared with anyone. However, users can select one public directory and one group directory from all available directories for sharing links. User can set public and group directory via settings. Links placed in public directory will be available for public viewing and links placed in group directory will be available for pre-determined list of users selected by account holder.
 
-Public links of a user can be accesed at the url: **/username/profile/public**
+Public links of a user can be accesed at the url: 
 
-Group links of a user can be accesed by pre-determined group of users at the url: **/username/profile/group**
+        /username/profile/public
+
+Group links of a user can be accesed by pre-determined group of users at the url: 
+
+        /username/profile/group
 
 ## Searching Bookmarks
 
@@ -334,17 +390,19 @@ reminiscence folder contains three settings files
 
 # Future Roadmap
 
-1. Modify architecture to include plugins/addons system, so that people can write custom scripts for their unique archival needs.
+- [x] Allow people to write custom scripts or use third party tools for their unique archival needs. 
 
-2. Provide an option to change headless browsers for PDF/PNG generation. (i.e provide support for alternative headless browsers like Chromium, hlspy etc..)
+- [x] Provide an option to change headless browsers for PDF/PNG generation.
 
-3. Support multi-word tagging
+- [ ] Provide token-based authentication which will help in developing browser addons or mobile applications
 
-4. Provide browser addons
+- [ ] Support multi-word tagging
 
-5. Document API 
+- [ ] Provide browser addons
 
-6. Support for text annotation
+- [ ] Document API 
+
+- [ ] Support for text annotation
 
 # Motivation
 

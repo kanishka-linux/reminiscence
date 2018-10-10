@@ -2,8 +2,9 @@
 *.sqlite3
 *.pyc
 __pycache__/
-archive/*/
+archive/
 static/favicons/
 static/nltk_data/
 db/
 logs/
+tmp/

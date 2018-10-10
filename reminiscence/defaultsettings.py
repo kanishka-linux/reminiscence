@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import re
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -181,7 +182,19 @@ LOGIN_REDIRECT_URL = 'home'
 
 LOGIN_URL = 'login'
 
+RANGE_REGEX = re.compile(r'bytes\s*=\s*(\d+)\s*-\s*(\d*)', re.I)
+
+# Expiry Limit for Archived Public Media link in hours
+
+VIDEO_ID_EXPIRY_LIMIT = 24
+
+# Maximum items allowed in Public Playlist
+
+VIDEO_PUBLIC_LIST = 1000
+
 ARCHIVE_LOCATION = os.path.join(BASE_DIR, 'archive')
+
+TMP_LOCATION = os.path.join(BASE_DIR, 'tmp')
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
 
@@ -207,3 +220,7 @@ MULTIPROCESS_VINANTI_MAX_REQUESTS = 4
 
 VINANTI_BACKEND = 'urllib'
 VINANTI_MAX_REQUESTS = 20
+
+DOWNLOAD_MANAGERS_ALLOWED = ['curl', 'wget']
+
+CHROMIUM_SANDBOX = True

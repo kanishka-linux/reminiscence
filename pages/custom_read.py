@@ -21,17 +21,24 @@ import os
 import re
 import logging
 import hashlib
+import time
+import uuid
+import pickle
 from urllib.parse import urlparse
 from mimetypes import guess_type
+from collections import OrderedDict
 
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, StreamingHttpResponse
 from django.conf import settings
 from django.urls import reverse
+from django.shortcuts import redirect
+from django.utils.text import slugify
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
 from readability import Document
-from .models import Library
+from .models import Library, UserSettings
 from .dbaccess import DBAccess as dbxs
+from .utils import RangeFileResponse
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +58,15 @@ class CustomRead:
                   max_requests=settings.VINANTI_MAX_REQUESTS)
     vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
     fav_path = settings.FAVICONS_STATIC
+    VIDEO_ID_DICT = OrderedDict()
+    CACHE_FILE = os.path.join(settings.TMP_LOCATION, 'cache')
     
     @classmethod
-    def get_archived_file(cls, url_id, mode='html'):
-        qset = Library.objects.filter(id=url_id)
+    def get_archived_file(cls, usr, url_id, mode='html', req=None, return_path=False):
+        qset = Library.objects.filter(usr=usr, id=url_id)
+        streaming_mode = False
+        if not os.path.exists(settings.TMP_LOCATION):
+            os.makedirs(settings.TMP_LOCATION)
         if qset:
             row = qset[0]
             media_path = row.media_path
@@ -64,6 +76,25 @@ class CustomRead:
                     media_path = fln + '.pdf'
                 elif mode == 'png':
                     media_path = fln + '.png'
+            elif mode == 'archive' and media_path:
+                mdir, _ = os.path.split(media_path)
+                filelist = os.listdir(mdir)
+                mlist = []
+                extset = set(['pdf', 'png', 'htm', 'html'])
+                for fl in filelist:
+                    ext = fl.rsplit('.', 1)
+                    if ext and ext[-1] not in extset:
+                        mlist.append(os.path.join(mdir, fl))
+                for mfile in mlist:
+                    if os.path.isfile(mfile) and os.stat(mfile).st_size:
+                        media_path = mfile
+                        streaming_mode = True
+                        break
+                if streaming_mode and req:
+                    qlist = UserSettings.objects.filter(usrid=usr)
+                    if qlist and not qlist[0].media_streaming:
+                        streaming_mode = False
+                        
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
                 if not mtype:
@@ -80,24 +111,142 @@ class CustomRead:
                 if mtype in ['text/html', 'text/htm']:
                     data = cls.format_html(row, media_path)
                     return HttpResponse(data)
+                elif streaming_mode:
+                    if os.path.isfile(cls.CACHE_FILE):
+                        with open(cls.CACHE_FILE, 'rb') as fd:
+                            cls.VIDEO_ID_DICT = pickle.load(fd)
+                    uid = str(uuid.uuid4())
+                    uid = uid.replace('-', '')
+                    while uid in cls.VIDEO_ID_DICT:
+                        logger.debug("no unique ID, Generating again")
+                        uid = str(uuid.uuid4())
+                        uid = uid.replace('-', '')
+                        time.sleep(0.01)
+                    cls.VIDEO_ID_DICT.update({uid:[media_path, time.time()]})
+                    cls.VIDEO_ID_DICT.move_to_end(uid, last=False)
+                    if len(cls.VIDEO_ID_DICT) > settings.VIDEO_PUBLIC_LIST:
+                        cls.VIDEO_ID_DICT.popitem()
+                    with open(cls.CACHE_FILE, 'wb') as fd:
+                        pickle.dump(cls.VIDEO_ID_DICT, fd)
+                    if return_path:
+                        title_slug = slugify(row.title, allow_unicode=True)
+                        return '{}/getarchivedvideo/{}-{}'.format(usr.username, title_slug, uid)
+                    else:
+                        return cls.get_archived_video(req, usr.username, uid)
                 else:
                     response = FileResponse(open(media_path, 'rb'))
+                    mtype = 'video/webm' if mtype == 'video/x-matroska' else mtype
                     response['mimetype'] = mtype
                     response['content-type'] = mtype
                     response['content-length'] = os.stat(media_path).st_size
                     filename = filename.replace(' ', '.')
-                    print(filename, mtype)
-                    if not cls.is_human_readable(mtype):
+                    logger.info('{} , {}'.format(filename, mtype))
+                    if not cls.is_human_readable(mtype) and not streaming_mode:
                         response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
                     return response
             else:
                 return HttpResponse('<html>File has not been archived in this format</html>')
         else:
-            return HttpResponse('<html>No url exists for this query</html>')
+            return HttpResponse(status=404)
     
     @classmethod
-    def read_customized(cls, url_id):
-        qlist = Library.objects.filter(id=url_id).select_related()
+    def get_archived_video(cls, request, username, video_id):
+        if video_id in cls.VIDEO_ID_DICT:
+            media_path, ltime = cls.VIDEO_ID_DICT.get(video_id)
+            logger.debug('{} {}'.format(media_path, ltime))
+            if time.time() - ltime <= settings.VIDEO_ID_EXPIRY_LIMIT*3600:
+                if os.path.isfile(media_path):
+                    mtype = guess_type(media_path)[0]
+                    if not mtype:
+                        mtype = 'application/octet-stream'
+                    range_header = request.META.get('HTTP_RANGE', '').strip()
+                    range_match = settings.RANGE_REGEX.match(range_header)
+                    size = os.stat(media_path).st_size
+                    if range_match:
+                        first_byte, last_byte = range_match.groups()
+                        first_byte = int(first_byte) if first_byte else 0
+                        last_byte = int(last_byte) if last_byte else size - 1
+                        if last_byte >= size:
+                            last_byte = size - 1
+                        length = last_byte - first_byte + 1
+                        response = StreamingHttpResponse(
+                            RangeFileResponse(open(media_path, 'rb'), offset=first_byte,
+                            length=length), status=206, content_type=mtype
+                        )
+                        response['Content-Length'] = str(length)
+                        response['Content-Range'] = 'bytes {}-{}/{}'.format(first_byte, last_byte, size)
+                    else:
+                        response = StreamingHttpResponse(FileResponse(open(media_path, 'rb')))
+                        response['content-length'] = size
+                    mtype = 'video/webm' if mtype == 'video/x-matroska' else mtype
+                    response['content-type'] = mtype
+                    response['mimetype'] = mtype
+                    response['Accept-Ranges'] = 'bytes'
+                    return response
+        return HttpResponse(status=404)
+    
+    @classmethod
+    def generate_archive_media_playlist(cls, server, usr, directory):
+        qset = Library.objects.filter(usr=usr, directory=directory)
+        pls_txt = '#EXTM3U\n'
+        extset = set(['pdf', 'png', 'htm', 'html'])
+        if not os.path.exists(settings.TMP_LOCATION):
+            os.makedirs(settings.TMP_LOCATION)
+        if os.path.isfile(cls.CACHE_FILE):
+            with open(cls.CACHE_FILE, 'rb') as fd:
+                cls.VIDEO_ID_DICT = pickle.load(fd)
+        for row in qset:
+            streaming_mode = False
+            media_path = row.media_path
+            media_element = row.media_element
+            title = row.title
+            if media_path and media_element:
+                mdir, _ = os.path.split(media_path)
+                filelist = os.listdir(mdir)
+                mlist = []
+                for fl in filelist:
+                    ext = fl.rsplit('.', 1)
+                    if ext and ext[-1] not in extset:
+                        mlist.append(os.path.join(mdir, fl))
+                for mfile in mlist:
+                    if os.path.isfile(mfile) and os.stat(mfile).st_size:
+                        media_path = mfile
+                        streaming_mode = True
+                        break
+            if media_path and os.path.exists(media_path):
+                mtype = guess_type(media_path)[0]
+                if not mtype:
+                    mtype = 'application/octet-stream'
+                if streaming_mode:
+                    uid = str(uuid.uuid4())
+                    uid = uid.replace('-', '')
+                    while uid in cls.VIDEO_ID_DICT:
+                        logger.debug("no unique ID, Generating again")
+                        uid = str(uuid.uuid4())
+                        uid = uid.replace('-', '')
+                        time.sleep(0.01)
+                    cls.VIDEO_ID_DICT.update({uid:[media_path, time.time()]})
+                    cls.VIDEO_ID_DICT.move_to_end(uid, last=False)
+                    if len(cls.VIDEO_ID_DICT) > settings.VIDEO_PUBLIC_LIST:
+                        cls.VIDEO_ID_DICT.popitem()
+                    title_slug = slugify(title, allow_unicode=True)
+                    return_path = '{}/{}/getarchivedvideo/{}-{}'.format(server, usr.username, title_slug, uid)
+                    pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(title, return_path)
+        with open(cls.CACHE_FILE, 'wb') as fd:
+            pickle.dump(cls.VIDEO_ID_DICT, fd)
+        uid = str(uuid.uuid4())
+        uid = uid.replace('-', '')
+        plfile = os.path.join(settings.TMP_LOCATION, uid)
+        if not os.path.isfile(plfile):
+            with open(plfile, 'wb') as fd:
+                pickle.dump(pls_txt, fd)
+        pls_path = '/{}/getarchivedplaylist/{}/{}'.format(usr.username, directory, uid)
+        logger.debug(pls_path)
+        return pls_path
+        
+    @classmethod
+    def read_customized(cls, usr, url_id):
+        qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
         data = b"<html>Not Available</html>"
         mtype = 'text/html'
         if qlist:

@@ -33,7 +33,14 @@ function dropdown_menu_clicked(element){
                 var title_value = al.text();
                 var post_url = 'new_url=';
                 var post_title = 'new_title=';
-                msg = getstr(title_value, url_value, badge_str);
+                var mel = el.find('.dropdown-item[data-val=url_media_public]');
+                if(mel.length){
+                    var media_element = 'checked';
+                }else{
+                    var media_element = '';
+                }
+                console.log(mel, mel.length);
+                msg = getstr(title_value, url_value, badge_str, media_element);
                 post_data = null;
             }else if (nlink.endsWith('move-bookmark')){
                 post_data = 'listdir=yes';
@@ -72,6 +79,8 @@ function dropdown_menu_clicked(element){
                                 badge_str = encodeURIComponent(badge_str);
                                 post_data = post_data + `&new_tags=${itag}&old_tags=${badge_str}`;
                             }
+                            var media_link = $('#media-element-check').is(':checked');
+                            post_data = post_data + `&media_link=${media_link}`;
                             console.log(post_data);
                         }else{
                             el.remove();
@@ -80,12 +89,13 @@ function dropdown_menu_clicked(element){
                             var client = new postRequest();
                             client.post(nlink, post_data, csrftoken, function(response) {
                                 console.log(response);
+                                window.location.reload();
                             })
                         }
                     }
                 })
             }else if(move_bookmark){
-                move_to_bookmark(post_data, api_link, nlink, csrftoken, el);
+                move_to_bookmark(post_data, api_link, nlink, csrftoken, el, '', false);
             }
         }
     }else if(link == 'url_read'){
@@ -161,6 +171,12 @@ function dropdown_menu_clicked(element){
             }else{
                 auto_summary = '';
             }
+            var media_streaming = json['media_streaming'];
+            if (media_streaming){
+                media_streaming = 'checked';
+            }else{
+                media_streaming = '';
+            }
             var save_pdf = json['save_pdf'];
             if (save_pdf){
                 save_pdf = 'checked';
@@ -185,10 +201,13 @@ function dropdown_menu_clicked(element){
             var public_dir = json['public_dir'];
             var group_dir = json['group_dir'];
             var pagination_value = json['pagination_value'];
+            
+            var download_manager = json['download_manager'];
             var msg = getsettings_html(autotag, auto_summary, total_tags,
                                        buddy_list, public_dir, group_dir,
                                        save_pdf, save_png, png_quality,
-                                       auto_archive, pagination_value);
+                                       auto_archive, pagination_value,
+                                       media_streaming, download_manager);
             console.log(autotag, auto_summary, total_tags, buddy_list);
             var resp = bootbox.confirm(msg, function(resp){
                 if (resp){
@@ -198,6 +217,7 @@ function dropdown_menu_clicked(element){
                     var auto_archive = $('#auto_archive').is(':checked');
                     var save_pdf = $('#arch-pdf').is(':checked');
                     var save_png = $('#arch-png').is(':checked');
+                    var media_streaming = $('#media-streaming').is(':checked');
                     console.log(autotag, auto_summary);
                     var total_tags = $('#total_tags').val();
                     var buddy_list = $('#buddy_list').val();
@@ -205,6 +225,7 @@ function dropdown_menu_clicked(element){
                     var group_dir = $('#group_dir').val();
                     var png_quality = $('#arch-png-quality').val();
                     var pagination_value = $('#pagination-value').val();
+                    var download_manager = $('#download-manager').val();
                     if(buddy_list == null){
                         buddy_list = "";
                     }
@@ -218,6 +239,7 @@ function dropdown_menu_clicked(element){
                     post_data = post_data + `&buddy_list=${buddy_list}&public_dir=${public_dir}&group_dir=${group_dir}`;
                     post_data = post_data + `&save_pdf=${save_pdf}&save_png=${save_png}&png_quality=${png_quality}`;
                     post_data = post_data + `&auto_archive=${auto_archive}&pagination_value=${pagination_value}`;
+                    post_data = post_data + `&media_streaming=${media_streaming}&download_manager=${download_manager}`;
                     console.log(total_tags, buddy_list, post_data);
                     var client = new postRequest();
                     client.post(nlink, post_data, csrftoken, function(response) {
@@ -261,6 +283,153 @@ function dropdown_menu_clicked(element){
                             }
                         })
                     })
+    }else if(link == 'select-multiple' || link == 'select-all'){
+        var el = $('#tbody').find('tr td:first-child');
+        var checked = '';
+        if(link == 'select-all'){
+            checked = 'checked';
+        }
+        el.each(function(index){
+            var idd = $(this).nextAll().eq(1).find('footer').attr('link-id');
+            html = `<div class="form-check">
+            <input class="form-check-input" type="checkbox" value="check-box" id="multiple-select-box" check-id="${idd}" ${checked}>
+            </div>`
+            var fm = $(this).find('input');
+            if(fm.length){
+                if (checked == 'checked'){
+                    fm.prop('checked', true);
+                }else{
+                    fm.prop('checked', false);
+                }
+            }else{
+                $(this).append(html);
+            }
+        })
+    }else if(link == 'move-multiple' || link == 'merge-bookmark-with'){
+        var [elpar, elar_join] = get_selected_items();
+        post_data = 'listdir=yes';
+        var api_link = $(element).attr('api-url');
+        var nlink = $(element).attr('data-link');
+        var csrftoken = getCookie('csrftoken');
+        console.log(api_link, nlink, post_data);
+        if(link == 'move-multiple'){
+            var merge = false;
+        }else{
+            var merge = true;
+        }
+        move_to_bookmark(post_data, api_link, nlink, csrftoken, elpar, elar_join, merge);
+    }else if(link == 'archive-bookmark-multiple'){
+        var [elpar, elar_join] = get_selected_items();
+        post_data = `link_ids=${elar_join}`;
+        var api_link = $(element).attr('api-url');
+        var nlink = $(element).attr('data-link');
+        var csrftoken = getCookie('csrftoken');
+        console.log(api_link, nlink, post_data);
+        var msg = 'This option will try to archive content of multiple selected entries. It will also overwrite existing archived content. Are You Sure?';
+        var resp = bootbox.confirm(msg, function(resp){
+                if(resp){
+                    var client = new postRequest();
+                    client.post(nlink, post_data, csrftoken, function(response) {
+                    console.log(response);
+                    })
+                }else{
+                    console.log('cancelled');
+                }
+            })
+    }else if(link == 'chromium_pdf' || link == 'chromium_dom'){
+        var api_link = $(element).attr('data-url');
+        var csrftoken = getCookie('csrftoken');
+        var url_id = $(element).attr('link-id');
+        var post_data = `chromium-backend=yes&url_id=${url_id}`;
+        if (link == 'chromium_pdf'){
+            mode = 'pdf';
+        }else{
+            mode = 'dom';
+        }
+        post_data = post_data + `&mode=${mode}`
+        var client = new postRequest();
+        console.log(post_data)
+        client.post(api_link, post_data, csrftoken, function(response) {
+            console.log(response);
+        })
+    }else if(link == 'generate-media-playlist'){
+        var api_link = $(element).attr('api-url');
+        var csrftoken = getCookie('csrftoken');
+        var data_link = $(element).attr('data-link');
+        var directory = data_link.split('/')[2]
+        var server_url = window.location.protocol + '//' + window.location.hostname;
+        if(window.location.port){
+            server_url = server_url + ':' + window.location.port;
+        }
+        var post_data = `generate-media-playlist=yes&directory=${directory}&ip=${server_url}`;
+        var client = new postRequest();
+        console.log(post_data)
+        client.post(api_link, post_data, csrftoken, function(response) {
+            console.log(response);
+            window.location = response;
+        })
+    }else if(link == 'url_media_public' ){
+        var api_link = $(element).attr('data-url');
+        var csrftoken = getCookie('csrftoken');
+        var url_id = $(element).attr('link-id');
+        var post_data = `get-media-path=yes&url_id=${url_id}`;
+        var client = new postRequest();
+        console.log(post_data)
+        client.post(api_link, post_data, csrftoken, function(response) {
+            console.log(response);
+            var json = JSON.parse(response);
+            var nurl = json['link'];
+            var final_url = window.location.protocol + '//' + window.location.hostname;
+            if(window.location.port){
+                final_url = final_url + ':' + window.location.port;
+            }
+            final_url = final_url + '/' + nurl;
+            console.log(final_url);
+            bootbox.alert(getsummary(final_url));
+        })
+        
+    }else if(link == 'edit-tags-multiple'){
+        var [elpar, elar_join] = get_selected_items();
+        post_data = `link_ids=${elar_join}`;
+        var api_link = $(element).attr('api-url');
+        var nlink = $(element).attr('data-link');
+        var csrftoken = getCookie('csrftoken');
+        console.log(api_link, nlink, post_data);
+        var str = `<form id='infos-tag' novalidate>\
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label" for="tagid-multiple"><b>Tags</b></label>
+            <div class="col-sm-10">
+                <input id='tagid-multiple' type='text' name='tags' value=''\
+                 class="form-control" placeholder="Edit Tags of Multiple Entries"/>
+            </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <div class="form-group row">
+            <label class="col-sm-12 col-form-label"><b>This option will clear\
+             existing tags of selected entries and will apply new tags. So use with care.\
+             Refresh the page after tags are applied.</b></label>
+        </div>
+        </form>`;
+        var resp = bootbox.confirm(str, function(resp){
+                if(resp && elar_join){
+                   console.log('yes');
+                   var tags = $('#tagid-multiple').val();
+                   if(tags){
+                        console.log('--', tags, '--');
+                        var formdata = new FormData;
+                        formdata.append('link_ids', elar_join);
+                        formdata.append('link_tags', tags);
+                        var client = new postRequestUpload();
+                        client.post(nlink, formdata, csrftoken, function(response) {
+                            console.log(response);
+                        })
+                   }else{
+                       console.log('Empty tag not allowed for multiple entries');
+                   }
+                }else{
+                    console.log('cancelled', elar_join, '--');
+                }
+            })
     }else if(link == 'url_archive'){
         var nlink = $(element).attr('data-link');
         console.log(nlink)
@@ -313,6 +482,22 @@ function dropdown_menu_clicked(element){
             })
         }
     }
+}
+
+function get_selected_items(){
+    var el = $('#tbody').find('tr td:first-child');
+    var elar = [];
+    var elpar = [];
+    el.each(function(index){
+        var elmid = $(this).find('#multiple-select-box:checked');
+        if (elmid.length){
+            elar.push(elmid.attr('check-id'));
+            elpar.push($(this).parent());
+        }
+    })
+    var elar_join = elar.join();
+    console.log(elar_join);
+    return [elpar, elar_join];
 }
 
 function clear_and_apply_badges(el, newtaglist, oldtaglist){
@@ -427,7 +612,7 @@ function get_table_head(){
         </tr>`
 }
 
-function move_to_bookmark(post_data, api_link, nlink, csrftoken, el){
+function move_to_bookmark(post_data, api_link, nlink, csrftoken, el, idlist, merge){
     var client = new postRequest();
     client.post(api_link, post_data, csrftoken, function(response) {
         console.log(response);
@@ -441,14 +626,28 @@ function move_to_bookmark(post_data, api_link, nlink, csrftoken, el){
                 var val = info.find("input[name=optradio]:checked").attr('value');
                 if(val){
                     console.log(val);
-                    post_data = `move_to_dir=${val}`;
+                    if(merge){
+                        post_data = `merge_dir=${val}`;
+                    }else{
+                        post_data = `move_to_dir=${val}`;
+                        if (idlist){
+                            post_data = post_data + `&move_links=${idlist}`;
+                        }
+                    }
+                    console.log(post_data);
                     var client = new postRequest();
                     client.post(
                         nlink, post_data,
                         csrftoken,
                         function(response) {
                             console.log(response);
-                            el.remove();
+                            if(idlist){
+                                for(i=0; i< el.length; i++){
+                                    el[i].remove();
+                                }
+                            }else{
+                                el.remove();
+                            }
                         })
                 }else{
                     console.log('Select Something');
@@ -580,7 +779,7 @@ function create_table_rows(usr, badge_nodes, index, title, netloc,
         </div>
         </br>
         <small>
-            <footer class="text-muted px-2 py-2">${timestamp}</footer>
+            <footer class="text-muted px-2 py-2" link-id="${idd}" data-url="/${usr}/api/request" dir-name="${dirname}">${timestamp}</footer>
         </small>
         </td>
     </tr>`
@@ -596,7 +795,8 @@ function onsearch_dropdown(event, id){
 
 function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
                           public_dir, group_dir, arch_pdf, arch_png,
-                          arch_png_quality, auto_archive, pagination_value){
+                          arch_png_quality, auto_archive, pagination_value,
+                          media_streaming, download_manager){
     var html = `<div class="form-check">
         <input class="form-check-input" type="checkbox" value="autotag" id="autotag" ${autotag}>
         <label class="form-check-label" for="autotag">
@@ -609,7 +809,7 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
         Automatic Summary Extract
         </label>
     </div>
-    <div class="form-group row py-2">
+    <div class="form-group row py-1">
         <label class="col-sm-6 col-form-label">Total Tags Per URL</label>
         <div class="col-sm-6">
         <input class="form-control" type="text" value="${total_tags}" id="total_tags">
@@ -648,15 +848,27 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
             </div>
         </div>
     </div>
-    <div class="form-group row py-2">
+    <div class="form-group row py-1">
         <label class="col-sm-6 col-form-label">Screenshot PNG Quality</label>
         <div class="col-sm-6">
         <input class="form-control" type="text" id="arch-png-quality" value="${arch_png_quality}" placeholder="0-100">
         </div>
     </div>
-    
     <div class="dropdown-divider"></div>
-    <div class="form-group row py-2">
+    <div class="form-group row py-1">
+        <label class="col-sm-5 col-form-label">Download Manager</label>
+        <div class="col-sm-7">
+        <input class="form-control" type="text" id="download-manager" value="${download_manager}" placeholder="Enter Download manager template">
+        </div>
+    </div>
+    <div class="form-check-inline">
+        <input class="form-check-input" type="checkbox" value="media-streaming" id="media-streaming" ${media_streaming}>
+        <label class="form-check-label" for="media-streaming">
+        Allow Streaming of Archived Media
+        </label>
+    </div>
+    <div class="dropdown-divider"></div>
+    <div class="form-group row py-1">
         <label class="col-sm-6 col-form-label">Display Links Per Directory</label>
         <div class="col-sm-6">
         <input class="form-control" type="text" id="pagination-value" value="${pagination_value}">
@@ -665,19 +877,15 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
     
     <div class="dropdown-divider"></div>
     <div class="form-group row">
-        <label class="col-sm-4 col-form-label">Public Directory</label>
-        <div class="col-sm-8">
+        <label class="col-sm-2 col-form-label">Public Directory</label>
+        <div class="col-sm-4 py-2">
         <input class="form-control" type="text" value="${public_dir}" id="public_dir">
         </div>
-    </div>
-    
-    <div class="form-group row">
-        <label class="col-sm-4 col-form-label">Group Directory</label>
-        <div class="col-sm-8">
+        <label class="col-sm-2 col-form-label">Group Directory</label>
+        <div class="col-sm-4 py-2">
         <input class="form-control" type="text" value="${group_dir}" id="group_dir">
         </div>
     </div>
-    
     <div class="form-group row">
         <label class="col-sm-4 col-form-label">Group Users</label>
         <div class="col-sm-8">
@@ -702,7 +910,7 @@ function getcheckbox_string(list){
             </br><form id="radio-dir-boxes" novalidate> ${str} </form>`;
 }
 
-function getstr(title, url, tags){
+function getstr(title, url, tags, media_element){
     var placeholder = "Comma separated list of tags"
     var str = `<form id='infos' novalidate>\
     <label></label>
@@ -723,6 +931,12 @@ function getstr(title, url, tags){
         <div class="col-sm-10">
             <input id='tagid' type='text' name='tags' value='${tags}' class="form-control" placeholder="${placeholder}"/>
         </div>
+    </div>
+    <div class="form-check-inline">
+        <input class="form-check-input" type="checkbox" value="media-element-check" id="media-element-check" ${media_element}>
+        <label class="form-check-label" for="media-element-check">
+        Consider the link as media link
+        </label>
     </div>
     </form>`;
     return str;

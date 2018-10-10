@@ -20,7 +20,9 @@ along with Reminiscence.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 import json
+import time
 import shutil
+import pickle
 import logging
 from functools import reduce
 from itertools import chain
@@ -30,8 +32,9 @@ from mimetypes import guess_extension, guess_type
 from collections import Counter
 from django.utils import timezone
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, StreamingHttpResponse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -84,9 +87,11 @@ def rename_operation(request, username, directory):
         return redirect('logout')
     elif directory:
         if request.method == 'POST':
-            ren_dir = request.POST.get('rename_directory', '')
-            if ren_dir and ren_dir != directory:
-                Library.objects.filter(usr=usr, directory=directory).update(directory=ren_dir)
+            form = RenameDir(request.POST)
+            if form.is_valid():
+                form.clean_and_rename(usr, directory)
+            else:
+                logger.debug('invalid values {}'.format(request.POST))
             return redirect('home')
         else:
             form = RenameDir()
@@ -106,11 +111,11 @@ def remove_operation(request, username, directory):
         return redirect('logout')
     elif directory:
         if request.method == 'POST':
-            rem_dir = request.POST.get('remove_directory', '')
-            if rem_dir == 'yes':
-                qlist = Library.objects.filter(usr=usr, directory=directory)
-                for row in qlist:
-                    dbxs.remove_url_link(row=row)
+            form = RemoveDir(request.POST)
+            if form.is_valid():
+                form.check_and_remove_dir(usr, directory)
+            else:
+                logger.debug('invalid values {}'.format(request.POST))
             return redirect('home')
         else:
             form = RemoveDir()
@@ -149,24 +154,21 @@ def get_resources(request, username, directory, url_id):
     return HttpResponse('Not Found')
 
 @login_required
-def perform_link_operation(request, username, directory, url_id):
+def perform_link_operation(request, username, directory, url_id=None):
     usr = request.user
-    print(request.path_info)
+    logger.info(request.path_info)
     if username and usr.username != username:
         return HttpResponse('Not Allowed')
     elif directory and url_id:
         if request.method == 'POST':
             if request.path_info.endswith('remove'):
                 rem_lnk = request.POST.get('remove_url', '')
-                print(url_id, request.POST)
+                logger.debug('{} , {}'.format(url_id, request.POST))
                 if rem_lnk == 'yes':
-                    dbxs.remove_url_link(url_id=url_id)
+                    dbxs.remove_url_link(usr, url_id=url_id)
                 return HttpResponse('Deleted')
             elif request.path_info.endswith('move-bookmark'):
                 msg = dbxs.move_bookmarks(usr, request, url_id)
-                return HttpResponse(msg)
-            elif request.path_info.endswith('move-bookmark-multiple'):
-                move_to_dir, move_links_list = dbxs.move_bookmarks(usr, request, single=False)
                 return HttpResponse(msg)
             elif request.path_info.endswith('edit-bookmark'):
                 msg = dbxs.edit_bookmarks(usr, request, url_id)
@@ -175,17 +177,28 @@ def perform_link_operation(request, username, directory, url_id):
                 return HttpResponse('Wrong command')
         elif request.method == 'GET':
             if request.path_info.endswith('archive'):
-                return cread.get_archived_file(url_id)
+                return cread.get_archived_file(usr, url_id, mode='archive', req=request)
             elif request.path_info.endswith('read'):
-                return cread.read_customized(url_id)
+                return cread.read_customized(usr, url_id)
             elif request.path_info.endswith('read-pdf'):
-                return cread.get_archived_file(url_id, mode='pdf')
+                return cread.get_archived_file(usr, url_id, mode='pdf')
             elif request.path_info.endswith('read-png'):
-                return cread.get_archived_file(url_id, mode='png')
+                return cread.get_archived_file(usr, url_id, mode='png')
             elif request.path_info.endswith('read-html'):
-                return cread.get_archived_file(url_id)
+                return cread.get_archived_file(usr, url_id, mode='html')
         else:
             return HttpResponse('Method not Permitted')
+    elif directory and request.method == 'POST':
+        msg = 'nothing'
+        if request.path_info.endswith('move-bookmark-multiple'):
+            msg = dbxs.move_bookmarks(usr, request, single=False)
+        elif request.path_info.endswith('archive-bookmark-multiple'):
+            msg = dbxs.group_links_actions(usr, request, directory, mode='archive')
+        elif request.path_info.endswith('merge-bookmark-with'):
+            msg = dbxs.group_links_actions(usr, request, directory, mode='merge')
+        elif request.path_info.endswith('edit-tags-multiple'):
+            msg = dbxs.group_links_actions(usr, request, directory, mode='tags')
+        return HttpResponse(msg)
     else:
         return HttpResponse('What are you trying to accomplish!')
 
@@ -252,7 +265,8 @@ def navigate_directory(request, username, directory=None, tagname=None):
         place_holder = 'Enter URL'
         if request.method == 'POST' and directory:
             form = AddURL(request.POST)
-            if form.is_valid():
+            url_name = request.POST.get('add_url', '')
+            if form.is_valid() or (url_name and url_name.startswith('md:')):
                 row = UserSettings.objects.filter(usrid=usr)
                 dbxs.add_new_url(usr, request, directory, row)
                 add_url = 'yes'
@@ -293,8 +307,29 @@ def navigate_directory(request, username, directory=None, tagname=None):
                 )
     else:
         return redirect('home')
-    
-    
+
+def get_archived_video_link(request, username, video_id):
+    if video_id and '-' in video_id:
+        _, video_id = video_id.rsplit('-', 1)
+    if os.path.isfile(cread.CACHE_FILE):
+        with open(cread.CACHE_FILE, 'rb') as fd:
+            cread.VIDEO_ID_DICT = pickle.load(fd)
+    return cread.get_archived_video(request, username, video_id)
+
+@login_required
+def get_archived_playlist(request, username, directory, playlist_id):
+    plfile = os.path.join(settings.TMP_LOCATION, playlist_id)
+    pls_txt = ''
+    if os.path.isfile(plfile):
+        with open(plfile, 'rb') as fd:
+            pls_txt = pickle.load(fd)
+        os.remove(plfile)
+    response = HttpResponse()
+    response['Content-Type'] = 'audio/mpegurl'
+    response['Content-Disposition'] = 'attachment; filename={}.m3u'.format(directory)
+    response.write(bytes(pls_txt, 'utf-8'))
+    return response
+
 @login_required
 def api_points(request, username):
     usr = request.user
@@ -310,8 +345,11 @@ def api_points(request, username):
         req_summary = request.POST.get('req_summary', '')
         req_import = request.POST.get('import-bookmark', '')
         req_upload = request.POST.get('upload-binary', '')
-        print(req_import)
-        print(request.FILES)
+        req_chromium_backend = request.POST.get('chromium-backend', '')
+        req_media_path = request.POST.get('get-media-path', '')
+        req_media_playlist = request.POST.get('generate-media-playlist', '')
+        logger.debug(req_import)
+        logger.debug(request.FILES)
         if req_list and req_list == 'yes':
             q_list = Library.objects.filter(usr=usr)
             dir_list = set()
@@ -323,6 +361,18 @@ def api_points(request, username):
             dir_list.sort()
             dir_dict = {'dir':dir_list}
             return HttpResponse(json.dumps(dir_dict))
+        elif req_media_path and req_media_path == 'yes':
+            url_id = request.POST.get('url_id', '')
+            if url_id and url_id.isnumeric():
+                return_path = cread.get_archived_file(usr, url_id, mode='archive',
+                                                      req=request, return_path=True)
+                return HttpResponse(json.dumps({'link':return_path}))
+        elif req_media_playlist and req_media_playlist == 'yes':
+            directory = request.POST.get('directory', '')
+            ip = request.POST.get('ip', '')
+            logger.debug('{} {}'.format(directory, ip))
+            pls_path = cread.generate_archive_media_playlist(ip, usr, directory)
+            return HttpResponse(pls_path)
         elif req_import and req_import == 'yes':
             req_file = request.FILES.get('file-upload', '')
             if req_file:
@@ -376,7 +426,7 @@ def api_points(request, username):
                 search_term = req_search
                 mode = 'title'
             if mode == 'tag-wall':
-                usr_list = [('Total Tags', '', '', timezone.now(), tag_list, 'Tag-Wall', '')]
+                usr_list = [('Total Tags', '', '', timezone.now(), tag_list, 'Tag-Wall', '', '')]
             else:
                 logger.info('{}->{}'.format(mode, search_term))
                 usr_list = dbxs.get_rows_by_directory(usr, search_mode=mode, search=search_term)
@@ -387,7 +437,7 @@ def api_points(request, username):
             reqid = request.POST.get('url_id', '')
             summary = 'not available'
             if reqid and reqid.isnumeric():
-                qlist = Library.objects.filter(id=int(reqid))
+                qlist = Library.objects.filter(usr=usr, id=int(reqid))
                 if qlist:
                     row = qlist[0]
                     summary = row.summary
@@ -412,12 +462,11 @@ def api_points(request, username):
             msg = "no modied"
             logger.debug(summary)
             if reqid and reqid.isnumeric() and summary:
-                qlist = Library.objects.filter(id=int(reqid)).update(summary=summary)
+                qlist = Library.objects.filter(usr=usr, id=int(reqid)).update(summary=summary)
                 msg = 'modified summary'
             return HttpResponse(msg)
         elif req_get_settings and req_get_settings == 'yes':
             qlist = UserSettings.objects.filter(usrid=usr)
-            print(qlist)
             if qlist:
                 row = qlist[0]
                 if row.public_dir:
@@ -438,7 +487,9 @@ def api_points(request, username):
                     'save_png': row.save_png,
                     'png_quality': row.png_quality,
                     'auto_archive': row.auto_archive,
-                    'pagination_value': row.pagination_value
+                    'pagination_value': row.pagination_value,
+                    'download_manager': row.download_manager,
+                    'media_streaming': row.media_streaming
                 }
                 if row.buddy_list:
                     ndict.update({'buddy':row.buddy_list})
@@ -456,7 +507,9 @@ def api_points(request, username):
                     'save_png': False,
                     'png_quality': 85,
                     'auto_archive': False,
-                    'pagination_value': 100
+                    'pagination_value': 100,
+                    'download_manager': 'wget {iurl} -O {output}',
+                    'media_streaming': False
                 }
             return HttpResponse(json.dumps(ndict))
         elif req_set_settings and req_set_settings == 'yes':
@@ -471,6 +524,9 @@ def api_points(request, username):
             png_quality = request.POST.get('png_quality', '')
             auto_archive = request.POST.get('auto_archive', '')
             pagination_value = request.POST.get('pagination_value', '100')
+            media_streaming = request.POST.get('media_streaming', 'false')
+            dm_str = 'wget {iurl} -O {output}'
+            download_manager = request.POST.get('download_manager', dm_str)
             if autotag == 'true':
                 autotag = True
             else:
@@ -499,6 +555,10 @@ def api_points(request, username):
                 auto_archive = True
             else:
                 auto_archive = False
+            if media_streaming == 'true':
+                media_streaming = True
+            else:
+                media_streaming = False
             if png_quality and png_quality.isnumeric():
                 png_quality = int(png_quality) if int(png_quality) in range(0, 101) else 85
             else:
@@ -520,6 +580,8 @@ def api_points(request, username):
                 row.png_quality = png_quality
                 row.auto_archive = auto_archive
                 row.pagination_value = pagination_value
+                row.media_streaming = media_streaming
+                row.download_manager = download_manager
                 row.save()
             else:
                 row = UserSettings.objects.create(usrid=usr, autotag=autotag,
@@ -532,18 +594,39 @@ def api_points(request, username):
                                                   save_png=save_png,
                                                   png_quality=png_quality,
                                                   auto_archive=auto_archive,
-                                                  pagination_value=pagination_value)
+                                                  pagination_value=pagination_value,
+                                                  media_streaming=media_streaming,
+                                                  download_manager=download_manager)
                 row.save()
             if (autotag or auto_summary) and not os.path.exists(settings.NLTK_DATA_PATH):
                 dbxs.vnt_task.function(Summarizer.check_data_path)
             ndict = {'status':'ok'}
             return HttpResponse(json.dumps(ndict))
+        elif req_chromium_backend and req_chromium_backend == 'yes':
+            url_id = request.POST.get('url_id', '')
+            mode = request.POST.get('mode', '')
+            if mode and mode in ['pdf', 'dom']:
+                qlist = UserSettings.objects.filter(usrid=usr)
+                if qlist:
+                    settings_row = qlist[0]
+                else:
+                    settings_row = None
+                qset = Library.objects.filter(usr=usr, id=url_id)
+                if qset:
+                    row = qset[0]
+                    if row.media_path:
+                        media_path_parent, _ = os.path.split(row.media_path)
+                        dbxs.convert_html_pdf_with_chromium(media_path_parent,
+                                                            settings_row, row,
+                                                            row.url, row.media_path,
+                                                            mode=mode)
+                return HttpResponse('OK')
         elif req_archive and req_archive in ['yes', 'force']:
             url_id = request.POST.get('url_id', '')
             dirname = request.POST.get('dirname', '')
             logger.debug('{}, {}'.format(url_id, dirname))
             if url_id and url_id.isnumeric() and dirname:
-                qset = Library.objects.filter(id=url_id)
+                qset = Library.objects.filter(usr=usr, id=url_id)
                 if qset:
                     row = qset[0]
                     media_path = row.media_path
