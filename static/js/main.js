@@ -877,19 +877,15 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
     
     <div class="dropdown-divider"></div>
     <div class="form-group row">
-        <label class="col-sm-4 col-form-label">Public Directory</label>
-        <div class="col-sm-8">
+        <label class="col-sm-2 col-form-label">Public Directory</label>
+        <div class="col-sm-4 py-2">
         <input class="form-control" type="text" value="${public_dir}" id="public_dir">
         </div>
-    </div>
-    
-    <div class="form-group row">
-        <label class="col-sm-4 col-form-label">Group Directory</label>
-        <div class="col-sm-8">
+        <label class="col-sm-2 col-form-label">Group Directory</label>
+        <div class="col-sm-4 py-2">
         <input class="form-control" type="text" value="${group_dir}" id="group_dir">
         </div>
     </div>
-    
     <div class="form-group row">
         <label class="col-sm-4 col-form-label">Group Users</label>
         <div class="col-sm-8">
