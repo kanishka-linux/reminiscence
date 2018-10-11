@@ -21,6 +21,38 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class UserSettings(models.Model):
+    
+    WHITE = 0
+    DARK = 1
+    LIGHT = 2
+    GRAY = 3
+    
+    READER_CHOICES = (
+        (WHITE, 'default'),
+        (DARK, 'dark'),
+        (LIGHT, 'light'),
+        (GRAY, 'gray')
+    )
+    
+    usrid =  models.ForeignKey(User, related_name='usr_settings',
+                               on_delete=models.CASCADE)
+    autotag = models.BooleanField(default=False)
+    auto_summary = models.BooleanField(default=False)
+    auto_archive = models.BooleanField(default=False)
+    total_tags = models.PositiveSmallIntegerField(default=5)
+    public_dir = models.CharField(max_length=2048, null=True)
+    group_dir = models.CharField(max_length=2048, null=True)
+    save_pdf = models.BooleanField(default=False)
+    save_png = models.BooleanField(default=False)
+    png_quality = models.PositiveSmallIntegerField(default=85)
+    pagination_value = models.PositiveSmallIntegerField(default=100)
+    buddy_list = models.CharField(max_length=8192, null=True)
+    download_manager = models.CharField(max_length=8192, default='wget {iurl} -O {output}')
+    media_streaming = models.BooleanField(default=False)
+    reader_theme = models.PositiveSmallIntegerField(choices=READER_CHOICES, default=WHITE)
+    
+
 class Library(models.Model):
     
     PUBLIC = 0
@@ -31,6 +63,7 @@ class Library(models.Model):
         (PRIVATE, 'Private'),
         (GROUP, 'Group')
     )
+    
     usr = models.ForeignKey(User, related_name='usr', on_delete=models.CASCADE)
     directory = models.CharField(max_length=2048)
     url = models.CharField(max_length=4096, null=True)
@@ -42,6 +75,8 @@ class Library(models.Model):
     summary = models.TextField(null=True)
     tags = models.CharField(max_length=4096, null=True)
     media_element = models.BooleanField(default=False)
+    reader_mode = models.PositiveSmallIntegerField(choices=UserSettings.READER_CHOICES,
+                                                   default=UserSettings.WHITE)
     
     def __str__(self):
         return '{}. {}'.format(self.id, self.title)
@@ -68,24 +103,6 @@ class URLTags(models.Model):
     def __str__(self):
         return '{}, {}'.format(self.url_id, self.tag_id)
 
-        
-class UserSettings(models.Model):
-    
-    usrid =  models.ForeignKey(User, related_name='usr_settings',
-                               on_delete=models.CASCADE)
-    autotag = models.BooleanField(default=False)
-    auto_summary = models.BooleanField(default=False)
-    auto_archive = models.BooleanField(default=False)
-    total_tags = models.PositiveSmallIntegerField(default=5)
-    public_dir = models.CharField(max_length=2048, null=True)
-    group_dir = models.CharField(max_length=2048, null=True)
-    save_pdf = models.BooleanField(default=False)
-    save_png = models.BooleanField(default=False)
-    png_quality = models.PositiveSmallIntegerField(default=85)
-    pagination_value = models.PositiveSmallIntegerField(default=100)
-    buddy_list = models.CharField(max_length=8192, null=True)
-    download_manager = models.CharField(max_length=8192, default='wget {iurl} -O {output}')
-    media_streaming = models.BooleanField(default=False)
 
 class GroupTable(models.Model):
     
