@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block stylesheet %}
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+{% endblock %}
+
+{% block body %}
+  <div class="container">
+    <h1 class="text-center logo my-4">
+      <a href="{{path}}">Back</a>
+    </h1>
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-10 col-sm-12">
+            <div class="alert alert-warning text-center" role="alert">
+                Sorry! File has not been archived in this format.
+                Consider archiving it again. If there is any problem
+                in default archiving method, then try using 
+                Chromium backend for generating HTML/PDF.
+            </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
