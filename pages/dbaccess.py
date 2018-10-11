@@ -606,9 +606,8 @@ class DBAccess:
         if merge_dir and merge_dir != dirname and mode == 'merge':
             qlist = Library.objects.filter(usr=usr, directory=dirname)
             qlistm = Library.objects.filter(usr=usr, directory=merge_dir)
-            merge_list = set([row.url for row in qlistm if row.url])
             for row in qlist:
-                if not row.url or row.url in merge_list:
+                if not row.url:
                     row.delete()
             Library.objects.filter(usr=usr, directory=dirname).update(directory=merge_dir)
         return msg
