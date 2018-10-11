@@ -181,11 +181,11 @@ def perform_link_operation(request, username, directory, url_id=None):
             elif request.path_info.endswith('read'):
                 return cread.read_customized(usr, url_id)
             elif request.path_info.endswith('read-pdf'):
-                return cread.get_archived_file(usr, url_id, mode='pdf')
+                return cread.get_archived_file(usr, url_id, mode='pdf', req=request)
             elif request.path_info.endswith('read-png'):
-                return cread.get_archived_file(usr, url_id, mode='png')
+                return cread.get_archived_file(usr, url_id, mode='png', req=request)
             elif request.path_info.endswith('read-html'):
-                return cread.get_archived_file(usr, url_id, mode='html')
+                return cread.get_archived_file(usr, url_id, mode='html', req=request)
         else:
             return HttpResponse('Method not Permitted')
     elif directory and request.method == 'POST':
