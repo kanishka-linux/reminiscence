@@ -176,6 +176,8 @@ STATICFILES_DIRS = [
 
 FAVICONS_STATIC = os.path.join(BASE_DIR, 'static', 'favicons')
 
+DEFAULT_FAVICON_PATH = os.path.join(BASE_DIR, 'static', 'archive.svg')
+
 LOGOUT_REDIRECT_URL = 'home'
 
 LOGIN_REDIRECT_URL = 'home'
