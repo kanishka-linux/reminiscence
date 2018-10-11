@@ -156,12 +156,17 @@ class DBAccess:
             ext = '.bin'
             title = url_name.rsplit('/', 1)[-1]
         if row is None:
+            if settings_row and settings_row.reader_theme:
+                reader_theme = settings_row.reader_theme
+            else:
+                reader_theme = UserSettings.WHITE
             row = Library.objects.create(usr=usr,
                                          directory=directory,
                                          url=url_name, title=title,
                                          summary=summary,
                                          timestamp=timezone.now(),
-                                         media_element=media_element)
+                                         media_element=media_element,
+                                         reader_mode=reader_theme)
         else:
             logger.debug('row - exists')
         if not media_path:
