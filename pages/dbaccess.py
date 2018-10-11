@@ -67,14 +67,10 @@ class DBAccess:
                 settings_row = row[0]
             else:
                 settings_row = None
-            url_list = Library.objects.filter(usr=usr,
-                                              directory=directory,
-                                              url=url_name)
-            if not url_list and url_name:
-                cls.process_add_url(usr, url_name,
-                                    directory, archive_html, 
-                                    settings_row=settings_row,
-                                    media_element=media_element)
+            cls.process_add_url(usr, url_name,
+                                directory, archive_html, 
+                                settings_row=settings_row,
+                                media_element=media_element)
                                 
     @classmethod
     def process_add_url(cls, usr, url_name, directory,
