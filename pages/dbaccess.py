@@ -477,7 +477,7 @@ class DBAccess:
             if os.path.exists(final_favicon_path):
                 fav_path = settings.STATIC_URL + 'favicons/{}.ico'.format(idd)
             else:
-                fav_path = ""
+                fav_path = settings.STATIC_URL + 'archive.svg'
             if create_dict:
                 nlist.update(
                         {
