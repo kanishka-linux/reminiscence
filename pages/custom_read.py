@@ -246,13 +246,23 @@ class CustomRead:
         return pls_path
         
     @classmethod
-    def read_customized(cls, usr, url_id):
+    def read_customized(cls, usr, url_id, mode='read', req=None):
         qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
         data = b"<html>Not Available</html>"
         mtype = 'text/html'
         if qlist:
             row = qlist[0]
             media_path = row.media_path
+            if mode in ['read-default', 'read-dark', 'read-light', 'read-gray']:
+                if mode == 'read-dark':
+                    row.reader_mode = UserSettings.DARK
+                elif mode == 'read-light':
+                    row.reader_mode = UserSettings.LIGHT
+                elif mode == 'read-gray':
+                    row.reader_mode = UserSettings.GRAY
+                else:
+                    row.reader_mode = UserSettings.WHITE
+                row.save()
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
                 
@@ -373,7 +383,16 @@ class CustomRead:
             read_html = base_dir + '/read-html'
         else:
             read_url = read_pdf = read_png = read_html = '#'
-            
+        card_bg = ''
+        card_tab = ''
+        if row.reader_mode == UserSettings.DARK:
+            card_bg = 'text-white bg-dark'
+            card_tab = 'bg-dark border-dark text-white'
+        elif row.reader_mode == UserSettings.LIGHT:
+            card_bg = 'bg-light'
+        elif row.reader_mode == UserSettings.GRAY:
+            card_bg = 'text-white bg-secondary'
+            card_tab = 'bg-secondary border-secondary text-white'
         template = """
         <html>
             <head>
@@ -386,13 +405,13 @@ class CustomRead:
         <body>
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-sm"></div>
-                    <div class="col-sm">
-                        <div class='card text-left bg-light mb-3'>
+                    <div class="col-sm {card_bg}"></div>
+                    <div class="col-sm {card_bg}">
+                        <div class='card text-left {card_bg} mb-3'>
                             <div class='card-header'>
                                 <ul class="nav nav-tabs card-header-tabs">
                                     <li class="nav-item">
-                                        <a class="nav-link active" href="{read_url}">HTML</a>
+                                        <a class="nav-link {card_tab} active" href="{read_url}">HTML</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" href="{read_html}">Original</a>
@@ -405,20 +424,22 @@ class CustomRead:
                                     </li>
                                 </ul>
                             </div>
+                            
                             <div class='card-body'>
                                 <h5 class="card-title">{title}</h5>
                                 {content}
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm"></div>
+                    <div class="col-sm {card_bg}"></div>
                 </div>
             </div>
         </body>
         </html>
         """.format(title=title, content=content,
                    read_url=read_url, read_pdf=read_pdf,
-                   read_png=read_png, read_html=read_html)
+                   read_png=read_png, read_html=read_html,
+                   card_bg=card_bg, card_tab=card_tab)
         return template
 
     @classmethod
