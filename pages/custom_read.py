@@ -31,7 +31,7 @@ from collections import OrderedDict
 from django.http import HttpResponse, FileResponse, StreamingHttpResponse
 from django.conf import settings
 from django.urls import reverse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.utils.text import slugify
 from vinanti import Vinanti
 from bs4 import BeautifulSoup
@@ -145,7 +145,8 @@ class CustomRead:
                         response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
                     return response
             else:
-                return HttpResponse('<html>File has not been archived in this format</html>')
+                back_path = req.path_info.rsplit('/', 1)[0] + '/read'
+                return render(req, 'archive_not_found.html', {'path':back_path})
         else:
             return HttpResponse(status=404)
     
