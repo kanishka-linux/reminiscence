@@ -179,9 +179,18 @@ def perform_link_operation(request, username, directory, url_id=None):
             if request.path_info.endswith('archive'):
                 return cread.get_archived_file(usr, url_id, mode='archive', req=request)
             elif request.path_info.endswith('read'):
-                return cread.read_customized(usr, url_id)
+                return cread.read_customized(usr, url_id, mode='read', req=request)
+            elif request.path_info.endswith('read-dark'):
+                return cread.read_customized(usr, url_id, mode='read-dark', req=request)
+            elif request.path_info.endswith('read-light'):
+                return cread.read_customized(usr, url_id, mode='read-light', req=request)
+            elif request.path_info.endswith('read-gray'):
+                return cread.read_customized(usr, url_id, mode='read-gray', req=request)
+            elif request.path_info.endswith('read-default'):
+                return cread.read_customized(usr, url_id, mode='read-default', req=request)
             elif request.path_info.endswith('read-pdf'):
                 return cread.get_archived_file(usr, url_id, mode='pdf', req=request)
+            
             elif request.path_info.endswith('read-png'):
                 return cread.get_archived_file(usr, url_id, mode='png', req=request)
             elif request.path_info.endswith('read-html'):
