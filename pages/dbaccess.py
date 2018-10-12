@@ -22,6 +22,7 @@ import re
 import json
 import shutil
 import logging
+import urllib.parse
 from functools import partial
 from urllib.parse import urlparse
 from mimetypes import guess_extension, guess_type
@@ -107,7 +108,7 @@ class DBAccess:
                 ext = '.txt'
             else:
                 ext = guess_extension(content_type)
-            print(content_type, '------', ext)
+            logger.debug('{} ----> {}'.format(content_type, ext))
         if req and req.html and not req.binary:
             if 'text/html' in req.content_type:
                 soup = BeautifulSoup(req.html, 'html.parser')
@@ -118,7 +119,7 @@ class DBAccess:
                         if try_srch:
                             title = try_srch.group().replace('document.title = ', '')
                 else:
-                    title = url_name.rsplit('/')[-1]
+                    title = cls.unquote_title(url_name)
                 ilink = soup.find('link', {'rel':'icon'})
                 slink = soup.find('link', {'rel':'shortcut icon'})
                 mlink = soup.find('meta', {'property':'og:image'})
@@ -143,10 +144,10 @@ class DBAccess:
                     summary, tags_list = Summarizer.get_summary_and_tags(req.html,
                                                                          settings_row.total_tags)
             else:
-                title = url_name.rsplit('/')[-1]
+                title = cls.unquote_title(url_name)
                 save = True
         elif req and req.binary:
-            title = url_name.rsplit('/')[-1]
+            title = cls.unquote_title(url_name)
             save = True
         else:
             ext = '.bin'
@@ -206,7 +207,6 @@ class DBAccess:
             if not os.path.exists(media_path_parent):
                 os.makedirs(media_path_parent)
             if save:
-                #req.save(req.request_object, media_path)
                 cls.vnt.get(url_name, out=media_path)
             else:
                 with open(media_path, 'w') as fd:
@@ -221,6 +221,11 @@ class DBAccess:
                 cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         return row.id
     
+    @staticmethod
+    def unquote_title(url):
+        title = url.rsplit('/')[-1]
+        return urllib.parse.unquote(title)
+        
     @classmethod
     def save_in_binary_format(cls, usr, request, directory):
         url_list = []
