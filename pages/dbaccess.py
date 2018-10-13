@@ -549,6 +549,14 @@ class DBAccess:
                     if os.path.exists(resource_dir):
                         shutil.rmtree(resource_dir)
                         logger.info('removing {}'.format(resource_dir))
+            final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(url_id) + '.ico')
+            final_og_image_path = os.path.join(settings.FAVICONS_STATIC, str(url_id) + '.png')
+            if os.path.exists(final_favicon_path):
+                os.remove(final_favicon_path)
+                logger.info('removed {}'.format(final_favicon_path))
+            if os.path.exists(final_og_image_path):
+                os.remove(final_og_image_path)
+                logger.info('removed {}'.format(final_og_image_path))
             row.delete()
 
     @staticmethod
