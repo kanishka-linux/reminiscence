@@ -146,6 +146,15 @@ class ImportBookmarks:
             content = re.sub('ICON="(.*?)"', "", content)
             ncontent = re.sub('\n', " ", content)
             links_group = re.findall('<DT><H3(.*?)/DL>', ncontent)
+            if not links_group:
+                title_search = re.search('<TITLE>(?P<title>.*?)</TITLE>', ncontent)
+                if title_search:
+                    title_bookmark = title_search.group('title')
+                else:
+                    title_bookmark = 'My Bookmarks'
+                logger.debug('Adding Bookmark Directory: {}'.format(title_bookmark))
+                ncontent = ncontent.replace('</H1>', '</H1><DT><H3>{}</H3>'.format(title_bookmark))
+                links_group = re.findall('<DT><H3(.*?)/DL>', ncontent)
             nsr = 0
             nlinks = []
             for i, j in enumerate(links_group):
@@ -181,6 +190,8 @@ class ImportBookmarks:
                     dirname = '{}-{}'.format(dirname, nsr)
                     nsr += 1
                 links_dict.update({dirname:nlinks.copy()})
+        else:
+            logger.error('File format not recognized. Report the issue.')
         return links_dict
     
 
