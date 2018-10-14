@@ -396,13 +396,15 @@ reminiscence folder contains three settings files
 
 - [ ] Provide token-based authentication which will help in developing browser addons or mobile applications
 
+- [ ] Monitor/archive selected links periodically
+
 - [ ] Support multi-word tagging
+
+- [ ] Support for text annotation
 
 - [ ] Provide browser addons
 
 - [ ] Document API 
-
-- [ ] Support for text annotation
 
 # Motivation
 
