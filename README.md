@@ -405,7 +405,7 @@ reminiscence folder contains three settings files
 - [ ] Provide browser addons
 
 - [ ] Document API 
-- 
+
 - [ ] Add support for WARC format
 
 # Motivation
