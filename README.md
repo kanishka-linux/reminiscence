@@ -51,7 +51,7 @@ Table of Contents
 
     **i.e.** Bookmarking links to pdf, jpg etc.. via web-interface will automatically save those files on server.
 
-* Supports archival of media elements of a web-page using third party download managers (from v0.2+ onwards).
+* Supports archival of media elements of a web-page using third party download managers.
  
 * Directory based categorization of bookmarks
 
@@ -86,7 +86,7 @@ Table of Contents
     
         3. redis-server (optional)
 
-        4. chromium (optional from 0.2+)
+        4. chromium (optional from v0.2+)
     
 2. Installation of above dependencies in Arch or Arch based distros
 
