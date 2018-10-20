@@ -738,11 +738,11 @@ function create_table_rows(usr, badge_nodes, index, title, netloc,
             ${badge_nodes}
         </td>
         <td>
-        <div class="btn-group m-r-10">
+        <div class="btn-group m-r-10 px-3">
         
             <button aria-expanded="false" data-toggle="dropdown"\
-             class="btn btn-info dropdown-toggle waves-effect waves-light"\
-             type="button"><span class="caret">Select</span></button>
+             class="btn btn-link dropdown-toggle waves-effect waves-light"\
+             type="button"><span class="caret"><img src="/static/menu.svg" width="20"></span></button>
              
             <ul role="menu" class="dropdown-menu dropdown-menu-right" id="dropdown-menu-${index}">
             
