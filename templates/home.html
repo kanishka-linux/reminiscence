@@ -2,6 +2,8 @@
 
 {% load widget_tweaks %}
 
+{% load static %}
+
 {% block breadcrumb %}
   <li class="breadcrumb-item active"><a href="/{{user.username}}">Home</a></li>
 {% endblock %}
@@ -33,16 +35,16 @@
 <table class="table table-hover" >
 <thead class="thead-dark" id="thead-dark">
   <tr>
-    <th>Sr</th>
+    <th></th>
     <th>Directory</th>
     <th class="align-middle px-1">Links</th>
-    <th class="align-middle px-4">Action</th>
+    <th class="align-middle">Action</th>
   </tr>
 </thead>
 <tbody id="tbody">
   {% for index, key, value, loc, rename_link, remove_link in usr_list %}
     <tr>
-        <td>{{index}}</td>
+        <td><img src="{% static 'folder.svg' %}" width="20"></td>
       <td>
         <a href="{{ loc }}">{{ key }}</a>
       </td>
@@ -53,7 +55,7 @@
       <td>
           
            <div class="btn-group m-r-10">
-            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button"><span class="caret">Select</span></button>
+            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-link dropdown-toggle waves-effect waves-light" type="button"><span class="caret"><img src="{% static 'menu.svg' %}" width="20"></span></button>
             <ul role="menu" class="dropdown-menu dropdown-menu-right">
                 <a class="dropdown-item" data-link="{{ rename_link }}" href="{{rename_link}}" title="{{key}}" data-val="dir">Rename</a>
                 <div class="dropdown-divider"></div>
