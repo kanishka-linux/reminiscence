@@ -2,6 +2,8 @@
 
 {% load widget_tweaks %}
 
+{% load static %}
+
 {% block breadcrumb %}
     <li class="breadcrumb-item">
         <a href="/{{user.username}}">
@@ -43,9 +45,9 @@
     <th>
     </th>
     <th class="align-middle">Title</th>
-    <th class="align-middle px-1">
+    <th class="align-middle px-2">
         <div class="nav-item dropdown">
-          <div class="nav-link dropdown-toggle" href="#" id="dir-menu-common" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Action
+          <div class="nav-link dropdown-toggle" href="#" id="dir-menu-common" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Menu
           </div>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dir-menu-common">
             <span class="dropdown-item" data-val="select-multiple" api-url="/{{user.username}}/api/request">Select Multiple</span>
@@ -81,8 +83,8 @@
             {% endif %}
         </td>
         <td>
-        <div class="btn-group m-r-10 align-middle">
-            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-info dropdown-toggle waves-effect waves-light" type="button"><span class="caret">Select</span></button>
+        <div class="btn-group m-r-10 align-middle px-3">
+            <button aria-expanded="false" data-toggle="dropdown" class="btn btn-link dropdown-toggle waves-effect waves-light" type="button"><span class="caret"><img src="{% static 'menu.svg' %}" width="20"></span></button>
             <ul role="menu" class="dropdown-menu dropdown-menu-right">
                 <span class="dropdown-item" data-link="{{ edit_b }}" title="{{title}}" data-val="url">Edit Bookmark</span>
                 <div class="dropdown-divider"></div>
