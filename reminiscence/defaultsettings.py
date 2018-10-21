@@ -101,7 +101,6 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'reminiscence.urls'
 
 # Add root url location, keep it blank or add location ex: /bookmark
-# and then add ^bookmark/ to urls.py
 
 ROOT_URL_LOCATION = ''
 
