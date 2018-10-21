@@ -463,7 +463,7 @@ class DBAccess:
         for title, url, idd, timestamp, tag, directory, media_path, media_element in usr_list:
             title = re.sub('_|-', ' ', title)
             title = re.sub('/', ' / ', title)
-            base_dir = '/{}/{}/{}'.format(usr, directory, idd)
+            base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory, idd)
             base_remove = base_dir + '/remove'
             base_et = base_dir + '/edit-bookmark'
             move_single = base_dir + '/move-bookmark'
