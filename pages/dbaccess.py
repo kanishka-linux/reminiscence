@@ -185,9 +185,10 @@ class DBAccess:
             media_path = os.path.join(media_path_parent, out_title)
             row.media_path = media_path
             row.save()
-            if favicon_link:
+            if favicon_link and favicon_link.startswith('http'):
                 cls.vnt.get(favicon_link, out=final_favicon_path)
-            if final_og_link:
+            logger.debug(final_og_link)
+            if final_og_link and final_og_link.startswith('http'):
                 cls.vnt.get(final_og_link, out=final_og_image_path)
         elif media_path and row:
             final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
@@ -199,9 +200,11 @@ class DBAccess:
                 row.save()
             else:
                 save_summary = True
-            if not os.path.exists(final_favicon_path) and favicon_link:
+            if (not os.path.exists(final_favicon_path)
+                    and favicon_link and favicon_link.startswith('http')):
                 cls.vnt.get(favicon_link, out=final_favicon_path)
-            if not os.path.exists(final_og_image_path) and final_og_link:
+            if (not os.path.exists(final_og_image_path)
+                    and final_og_link and final_og_link.startswith('http')):
                 cls.vnt.get(final_og_link, out=final_og_image_path)
         if save or save_text:
             if not os.path.exists(media_path_parent):
