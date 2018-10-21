@@ -71,12 +71,18 @@ def dashboard(request, username=None, directory=None):
     nlist = []
     index = 1
     for key, value in usr_list.items():
-        base_dir = '/{}/{}'.format(usr, key)
+        base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, key)
         base_remove = base_dir + '/remove'
         base_rename = base_dir + '/rename'
         nlist.append([index, key, value-1, base_dir, base_rename, base_remove])
         index += 1
-    response = render(request, 'home.html', {'usr_list': nlist, 'form':form})
+    response = render(
+                    request, 'home.html',
+                    {
+                        'usr_list': nlist, 'form':form,
+                        'root':settings.ROOT_URL_LOCATION
+                    }
+                )
     return response
 
 
@@ -95,11 +101,17 @@ def rename_operation(request, username, directory):
             return redirect('home')
         else:
             form = RenameDir()
-            base_dir = '/{}/{}'.format(usr, directory)
+            base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
             base_remove = base_dir + '/remove'
             base_rename = base_dir + '/rename'
             nlist = [[1, directory, 'N/A', base_dir, base_rename, base_remove]]
-            return render(request, 'home.html', {'usr_list': nlist, 'form':form})
+            return render(
+                        request, 'home.html',
+                        {
+                            'usr_list': nlist, 'form':form,
+                            'root':settings.ROOT_URL_LOCATION
+                        }
+                    )
     else:
         return redirect('logout')
         
@@ -119,11 +131,17 @@ def remove_operation(request, username, directory):
             return redirect('home')
         else:
             form = RemoveDir()
-            base_dir = '/{}/{}'.format(usr, directory)
+            base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
             base_remove = base_dir + '/remove'
             base_rename = base_dir + '/rename'
             nlist = [[1, directory, 'N/A', base_dir, base_rename, base_remove]]
-            return render(request, 'home.html', {'usr_list': nlist, 'form':form})
+            return render(
+                        request, 'home.html',
+                        {
+                            'usr_list': nlist, 'form':form,
+                            'root':settings.ROOT_URL_LOCATION
+                        }
+                    )
     else:
         return redirect('logout')
 
@@ -226,12 +244,13 @@ def public_profile(request, username):
             if public_dir:
                 usr_list = dbxs.get_rows_by_directory(usr, directory=public_dir)
                 nlist = dbxs.populate_usr_list(usr, usr_list)
-                base_dir = '/{}/{}'.format(usr, public_dir)
+                base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, public_dir)
                 return render(
                             request, 'public.html',
                             {
                                 'usr_list': nlist, 'form':"",
-                                'base_dir':base_dir, 'dirname':public_dir
+                                'base_dir':base_dir, 'dirname':public_dir,
+                                'root': settings.ROOT_URL_LOCATION
                             }
                         )
     return HttpResponse('No Public Profile Available')
@@ -251,13 +270,15 @@ def group_profile(request, username):
                 if group_usr.username in nbuddy:
                     usr_list = dbxs.get_rows_by_directory(usr, directory=group_dir)
                     nlist = dbxs.populate_usr_list(usr, usr_list)
-                    base_dir = '/{}/{}'.format(usr, group_dir)
+                    base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, group_dir)
+                    api_url = '{}/{}/api/request'.format(settings.ROOT_URL_LOCATION, usr)
                     return render(
                                 request, 'home_dir.html',
                                 {
                                     'usr_list': nlist, 'form':"",
                                     'base_dir':base_dir, 'dirname':group_dir,
-                                    'refresh': 'no'
+                                    'refresh': 'no', 'root': settings.ROOT_URL_LOCATION,
+                                    'api_url': api_url
                                 }
                             )
     return HttpResponse('No Group Profile Available')
@@ -265,10 +286,10 @@ def group_profile(request, username):
 @login_required
 def navigate_directory(request, username, directory=None, tagname=None):
     usr = request.user
-    base_dir = '/{}/{}'.format(usr, directory)
+    base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
     usr_list = []
     if username and usr.username != username:
-        return redirect('/'+usr.username)
+        return redirect(settings.ROOT_URL_LOCATION+'/'+usr.username)
     add_url = 'no'
     if directory or tagname:
         place_holder = 'Enter URL'
@@ -305,13 +326,15 @@ def navigate_directory(request, username, directory=None, tagname=None):
         except EmptyPage:
             dirlist = paginator.page(paginator.num_pages)
         
-        base_dir = '/{}/{}'.format(usr, directory)
+        base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+        api_url = '{}/{}/api/request'.format(settings.ROOT_URL_LOCATION, usr.username)
         return render(
                     request, 'home_dir.html',
                     {
                         'usr_list': dirlist, 'form':form,
                         'base_dir':base_dir, 'dirname':directory,
-                        'refresh':add_url
+                        'refresh':add_url, 'root':settings.ROOT_URL_LOCATION,
+                        'api_url': api_url
                     }
                 )
     else:
@@ -344,7 +367,7 @@ def api_points(request, username):
     usr = request.user
     default_dict = {'status':'none'}
     if username and usr.username != username:
-        return redirect('/'+usr.username)
+        return redirect(settings.ROOT_URL_LOCATION+'/'+usr.username)
     if request.method == 'POST':
         req_list = request.POST.get('listdir', '')
         req_search = request.POST.get('search', '')
@@ -639,7 +662,8 @@ def api_points(request, username):
                 if qset:
                     row = qset[0]
                     media_path = row.media_path
-                    url_ar = '/{}/{}/{}/archive'.format(usr.username, dirname, url_id)
+                    url_ar = '{}/{}/{}/{}/archive'.format(settings.ROOT_URL_LOCATION,
+                                                          usr.username, dirname, url_id)
                     dict_val = {'url': url_ar}
                     if media_path and os.path.exists(media_path) and req_archive == 'yes':
                         dict_val.update({'status':'already archived'})
