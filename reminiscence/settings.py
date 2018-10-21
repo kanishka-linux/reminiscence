@@ -100,6 +100,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'reminiscence.urls'
 
+# Add root url location
+
+ROOT_URL_LOCATION = '/bookmark'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
