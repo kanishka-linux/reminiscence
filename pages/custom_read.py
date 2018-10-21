@@ -352,7 +352,7 @@ class CustomRead:
                     if link.name == 'img':
                         link['src'] = resource_link + '/' + lnk_hash
                         if custom_html:
-                            link['class'] = 'card-img-top'
+                            link['class'] = 'img-thumbnail'
                     else:
                         lnk_hash = lnk_hash + '.css'
                         link['href'] = resource_link + '/' + lnk_hash
@@ -367,7 +367,7 @@ class CustomRead:
                     if link.name == 'img':
                         link['src'] = nlnk
                         if custom_html:
-                            link['class'] = 'card-img-top'
+                            link['class'] = 'img-thumbnail'
                     else:
                         link['href'] = nlnk
         if custom_html:
@@ -424,7 +424,6 @@ class CustomRead:
         <body>
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-sm {card_bg}"></div>
                     <div class="col-sm {card_bg}">
                         <div class='card text-left {card_bg} mb-3'>
                             <div class='card-header'>
@@ -450,7 +449,6 @@ class CustomRead:
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm {card_bg}"></div>
                 </div>
             </div>
         </body>
