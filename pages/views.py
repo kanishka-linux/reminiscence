@@ -463,6 +463,7 @@ def api_points(request, username):
                 logger.info('{}->{}'.format(mode, search_term))
                 usr_list = dbxs.get_rows_by_directory(usr, search_mode=mode, search=search_term)
             ndict = dbxs.populate_usr_list(usr, usr_list, create_dict=True)
+            ndict.update({'root':settings.ROOT_URL_LOCATION})
             return HttpResponse(json.dumps(ndict))
         elif req_summary and req_summary == 'yes':
             ndict = {}
