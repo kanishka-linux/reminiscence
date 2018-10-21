@@ -130,7 +130,13 @@ class CustomRead:
                         pickle.dump(cls.VIDEO_ID_DICT, fd)
                     if return_path:
                         title_slug = slugify(row.title, allow_unicode=True)
-                        return '{}/getarchivedvideo/{}-{}'.format(usr.username, title_slug, uid)
+                        if settings.ROOT_URL_LOCATION:
+                            root_loc = settings.ROOT_URL_LOCATION
+                            if root_loc.startswith('/'):
+                                root_loc = root_loc[1:]
+                            return '{}/{}/getarchivedvideo/{}-{}'.format(root_loc, usr.username, title_slug, uid)
+                        else:
+                            return '{}/getarchivedvideo/{}-{}'.format(usr.username, title_slug, uid)
                     else:
                         return cls.get_archived_video(req, usr.username, uid)
                 else:
@@ -231,7 +237,15 @@ class CustomRead:
                     if len(cls.VIDEO_ID_DICT) > settings.VIDEO_PUBLIC_LIST:
                         cls.VIDEO_ID_DICT.popitem()
                     title_slug = slugify(title, allow_unicode=True)
-                    return_path = '{}/{}/getarchivedvideo/{}-{}'.format(server, usr.username, title_slug, uid)
+                    if settings.ROOT_URL_LOCATION:
+                        root_loc = settings.ROOT_URL_LOCATION
+                        if root_loc.startswith('/'):
+                            root_loc = root_loc[1:]
+                        return_path = '{}/{}/{}/getarchivedvideo/{}-{}'.format(server, root_loc,
+                                                                               usr.username,
+                                                                               title_slug, uid)
+                    else:
+                        return_path = '{}/{}/getarchivedvideo/{}-{}'.format(server, usr.username, title_slug, uid)
                     pls_txt = pls_txt+'#EXTINF:0, {0}\n{1}\n'.format(title, return_path)
         with open(cls.CACHE_FILE, 'wb') as fd:
             pickle.dump(cls.VIDEO_ID_DICT, fd)
@@ -241,7 +255,8 @@ class CustomRead:
         if not os.path.isfile(plfile):
             with open(plfile, 'wb') as fd:
                 pickle.dump(pls_txt, fd)
-        pls_path = '/{}/getarchivedplaylist/{}/{}'.format(usr.username, directory, uid)
+        pls_path = '{}/{}/getarchivedplaylist/{}/{}'.format(settings.ROOT_URL_LOCATION, 
+                                                            usr.username, directory, uid)
         logger.debug(pls_path)
         return pls_path
         
@@ -307,7 +322,9 @@ class CustomRead:
     def format_html(cls, row, media_path, content=None, custom_html=False):
         media_dir, file_path = os.path.split(media_path)
         resource_dir = os.path.join(settings.ARCHIVE_LOCATION, 'resources', str(row.id))
-        resource_link = '/{}/{}/{}/{}'.format(row.usr.username, row.directory, str(row.id), 'resources')
+        resource_link = '{}/{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION,
+                                                row.usr.username, row.directory,
+                                                str(row.id), 'resources')
         if not os.path.exists(resource_dir):
             os.makedirs(resource_dir)
         if not content:
@@ -376,7 +393,9 @@ class CustomRead:
     @staticmethod
     def custom_template(title, content, row):
         if row:
-            base_dir = '/{}/{}/{}'.format(row.usr.username, row.directory, row.id)
+            base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION,
+                                            row.usr.username, row.directory,
+                                            row.id)
             read_url = base_dir + '/read'
             read_pdf = base_dir + '/read-pdf'
             read_png = base_dir + '/read-png'
