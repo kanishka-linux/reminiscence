@@ -356,7 +356,7 @@ function dropdown_menu_clicked(element){
         var api_link = $(element).attr('api-url');
         var csrftoken = getCookie('csrftoken');
         var data_link = $(element).attr('data-link');
-        var directory = data_link.split('/')[2]
+        var directory = $('.breadcrumb-item').eq(1).find('a').eq(0).text().trim();
         var server_url = window.location.protocol + '//' + window.location.hostname;
         if(window.location.port){
             server_url = server_url + ':' + window.location.port;
