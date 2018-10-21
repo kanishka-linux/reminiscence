@@ -17,12 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.urls import re_path as url
+from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
+if settings.ROOT_URL_LOCATION:
+    root_loc = settings.ROOT_URL_LOCATION
+    if root_loc.startswith('/'):
+        root_loc = root_loc[1:]
+    if not root_loc.endswith('/'):
+        root_loc = root_loc + '/'
+    root_loc = '^' + root_loc
+else:
+    root_loc = ''
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^bookmark/', include('pages.urls')),
+    url(r'{}'.format(root_loc), include('pages.urls')),
 ]
 
 urlpatterns += staticfiles_urlpatterns()
