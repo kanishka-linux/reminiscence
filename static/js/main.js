@@ -565,6 +565,7 @@ function generate_table_body(nlink, search, mode){
         var tlm = document.getElementById("tbody");
         console.log(tlm);
         var json = JSON.parse(response);
+        var root_loc = json['root'];
         tlm.innerHTML="";
         for (var key in json){
             var value = json[key];
@@ -586,6 +587,7 @@ function generate_table_body(nlink, search, mode){
             var read_url = value['read-url'];
             var fav_path = value['fav-path'];
             var idd = value['id'];
+            
             var badges = create_badge_nodes(usr, taglist, 'div');
             if (mode == 'dir'){
                 var dir_badge = "";
@@ -596,7 +598,7 @@ function generate_table_body(nlink, search, mode){
                     usr, badges, index, title, netloc, loc,
                     timestamp, edit_b, ms, remove_link,
                     archive_media, directory, dir_badge,
-                    read_url, idd, fav_path);
+                    read_url, idd, fav_path, root_loc);
             $("#tbody").append(table_content);
         }
     })
@@ -725,7 +727,8 @@ function display_upload_file_name(event){
 function create_table_rows(usr, badge_nodes, index, title, netloc,
                            loc, timestamp, edit_b, ms, remove_link,
                            archive_media, dirname, dir_badge,
-                           read_url, idd, fav_path){
+                           read_url, idd, fav_path, root){
+    console.log(root);
     var string = `<tr>
         <td><img width="24" src="${fav_path}"></td>
       <td>
@@ -754,19 +757,19 @@ function create_table_rows(usr, badge_nodes, index, title, netloc,
                 
                 <span id="drop-read-${index}" onclick="onsearch_dropdown(event, id)"\
                  class="dropdown-item" data-link="${read_url}" title="${title}" data-val="url_read"\
-                 data-url="/${usr}/api/request">Read</span>
+                 data-url="${root}/${usr}/api/request">Read</span>
                 
                 <div class="dropdown-divider"></div>
                 
                 <span id="drop-move-${index}" onclick="onsearch_dropdown(event, id)"\
                  class="dropdown-item" data-link="${ms}" title="${title}" data-val="url"\
-                 data-url="/${usr}/api/request">Move To</span>
+                 data-url="${root}/${usr}/api/request">Move To</span>
                 
                 <div class="dropdown-divider"></div>
                 
                 <span id="drop-archive-${index}" onclick="onsearch_dropdown(event, id)"\
                  class="dropdown-item" data-link="${archive_media}" title="${title}" \
-                 data-val="url_archive" data-url="/${usr}/api/request"\
+                 data-val="url_archive" data-url="${root}/${usr}/api/request"\
                  dir-name="${dirname}" find-id="${ms}">Archive</span>
                  
                 <div class="dropdown-divider"></div>
@@ -779,7 +782,7 @@ function create_table_rows(usr, badge_nodes, index, title, netloc,
         </div>
         </br>
         <small>
-            <footer class="text-muted px-2 py-2" link-id="${idd}" data-url="/${usr}/api/request" dir-name="${dirname}">${timestamp}</footer>
+            <footer class="text-muted px-2 py-2" link-id="${idd}" data-url="${root}/${usr}/api/request" dir-name="${dirname}">${timestamp}</footer>
         </small>
         </td>
     </tr>`
