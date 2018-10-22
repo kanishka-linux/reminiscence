@@ -37,6 +37,8 @@ Table of Contents
     
     * [Handling Background Tasks](#handling-background-tasks-without-using-celery-or-other-external-task-queue-manager)
 
+    * [Improving Performance](#improving performance)
+
 * [Future Roadmap](#future-roadmap)
 
 * [Motivation](#motivation)
@@ -387,6 +389,26 @@ reminiscence folder contains three settings files
 * Making 3000 http requests in the background, archiving their output as per content-type, along with generating tags/summary using NLTK and database (postgresql) write (without converting pages to png/pdf), took somewhere along 12-13 minutes with aiohttp as backend and 50 async http requests at a time. By default, Vinanti does not use aiohttp in this project. In order to use aiohttp, user should set **VINANTI_BACKEND='aiohttp'** in settings.py file. Converting pages to png/pdf will be time consuming and might take hours depending on server and number of bookmarked links.
 
 * Even though, this appraoch is working well for self-hosted application with limited number of users with limited tasks. For large number of tasks, it it better to use dedicated external task queue manager. That's why option has been provided to set up celery, if a user and his group has large number of bookmarked links which they want to convert to pdf/png format. Maybe in future, option may be provided for making http requests and postprocessing content to celery, if current setup with Vinanti won't deliver upto expectations.
+
+
+## Improving Performance
+
+* Prefer python version 3.6.5+
+
+* Replace default sqlite database with postgresql
+
+* Use headless version of wkhtmltopdf
+
+* Use celery for pdf/png conversion
+
+* Use aiohttp backend for Vinanti for fetching web-pages asynchronously
+
+* When using gunicorn, adjust workers depending on number of cpu cores of the server.
+
+    According to gunicorn docs, preferred number of workers = 2n+1, where n = number of cores
+
+* Minimum 2GB RAM
+
 
 # Future Roadmap
 
