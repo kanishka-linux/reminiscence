@@ -37,7 +37,7 @@ Table of Contents
     
     * [Handling Background Tasks](#handling-background-tasks-without-using-celery-or-other-external-task-queue-manager)
 
-    * [Improving Performance](#improving performance)
+    * [Improving Performance](#improving-performance)
 
 * [Future Roadmap](#future-roadmap)
 
