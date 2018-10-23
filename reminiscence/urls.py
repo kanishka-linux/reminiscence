@@ -27,11 +27,13 @@ if settings.ROOT_URL_LOCATION:
     if not root_loc.endswith('/'):
         root_loc = root_loc + '/'
     root_loc = '^' + root_loc
+    admin_loc = root_loc
 else:
     root_loc = ''
-
+    admin_loc = '^'
+    
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+    url(r'{}admin/'.format(admin_loc), admin.site.urls),
     url(r'{}'.format(root_loc), include('pages.urls')),
 ]
 
