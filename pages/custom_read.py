@@ -24,7 +24,7 @@ import hashlib
 import time
 import uuid
 import pickle
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 from mimetypes import guess_type
 from collections import OrderedDict
 
@@ -148,7 +148,7 @@ class CustomRead:
                     filename = filename.replace(' ', '.')
                     logger.info('{} , {}'.format(filename, mtype))
                     if not cls.is_human_readable(mtype) and not streaming_mode:
-                        response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+                        response['Content-Disposition'] = 'attachment; filename="{}"'.format(quote(filename))
                     return response
             else:
                 back_path = req.path_info.rsplit('/', 1)[0] + '/read'
