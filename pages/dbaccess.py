@@ -367,7 +367,7 @@ class DBAccess:
             fd.write(output)
         return True
     
-    @task(name="convert-to-pdf-png")
+    @task(name="convert-to-pdf-png-chromium")
     def getdom_chromium(cmd, htm):
         if os.name == 'posix':
             output = subprocess.check_output(cmd)
