@@ -327,6 +327,8 @@ class DBAccess:
     def convert_html_pdf_with_chromium(cls, media_path_parent,
                                        settings_row, row, url_name,
                                        media_path, mode='pdf'):
+        if not os.path.exists(media_path_parent):
+            os.makedirs(media_path_parent)
         if mode == 'pdf':
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
