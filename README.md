@@ -35,11 +35,13 @@ Table of Contents
     
     * [Gunicorn plus Nginx setup](#gunicorn-plus-nginx-setup)
     
-    * [Handling Background Tasks](#handling-background-tasks-without-using-celery-or-other-external-task-queue-manager)
+    * [Handling Background Tasks](https://github.com/kanishka-linux/reminiscence/wiki/Background-Tasks)
 
-    * [Improving Performance](#improving-performance)
+    * [Improving Performance](https://github.com/kanishka-linux/reminiscence/wiki/Improving-Performance)
 
-* [Future Roadmap](#future-roadmap)
+    * [Browser Addons](https://github.com/kanishka-linux/reminiscence/wiki/Browser-Addons)
+
+* [Future Roadmap](https://github.com/kanishka-linux/reminiscence/wiki/Future-Roadmap)
 
 * [Motivation](#motivation)
 
@@ -197,6 +199,8 @@ Using docker is convenient compared to normal installation method described abov
 **Note:** If Windows users are facing problem in mounting data volume for Postgres, they are advised to refer this [issue](https://github.com/kanishka-linux/reminiscence/issues/1).
 
 **Note:** Ubuntu 16.04 users might have to modify docker-compose.yml file and need to change version 3 to 2. [issue](https://github.com/kanishka-linux/reminiscence/issues/4)
+
+**Note:** For setting celery inside docker follow [these instruction](https://github.com/kanishka-linux/reminiscence/wiki/Celery-Plus-Docker). Sometimes gunicorn doesn't work properly with default background task handler inside docker. In such cases users can enable celery.
 
 # Documentation
 
@@ -380,55 +384,7 @@ reminiscence folder contains three settings files
 
 * Once nginx config file is properly configured, start/enable nginx.service. For detailed instructions take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) or refer this [wiki](https://wiki.archlinux.org/index.php/Nginx). There are some barebone instructions available [here](http://gunicorn.org/index.html#deployment), which users might find useful.
 
-## Handling background tasks without using celery or other external task queue manager
 
-* This application has to perform number of background tasks, like Fetching web-page, favicons and converting pages to pdf/png.  In order to do these tasks application uses [Vinanti](https://github.com/kanishka-linux/vinanti) library. I wrote this library as a simple easy to use async HTTP client which one can integrate with synchronous codebase of python. However, it can be used easily for executing some arbitrary function in the background (using either threads or processes) without having to worry about managing threads/processes manually. It was just an experiment, but it worked very well in this self-hosted application. 
-
-* When importing list of bookmarks numbering 1500+, it has to make 1500 requests to bookmarked links in order to get web-page contents (for generating automatic tags/summary) and 1500+ more requests for fetching favicons. With aiohttp as backend for Vinanti, the application used only two threads for managing these 3000+ http requests aynchronously and at the same time allowed development server to remain responsive (without using gunicorn) for any incoming request. For executing pdf/png conversion tasks in the background, the task queue of Vinanti seemed sufficient for handling requests from few users at a time. 
-
-* Making 3000 http requests in the background, archiving their output as per content-type, along with generating tags/summary using NLTK and database (postgresql) write (without converting pages to png/pdf), took somewhere along 12-13 minutes with aiohttp as backend and 50 async http requests at a time. By default, Vinanti does not use aiohttp in this project. In order to use aiohttp, user should set **VINANTI_BACKEND='aiohttp'** in settings.py file. Converting pages to png/pdf will be time consuming and might take hours depending on server and number of bookmarked links.
-
-* Even though, this appraoch is working well for self-hosted application with limited number of users with limited tasks. For large number of tasks, it it better to use dedicated external task queue manager. That's why option has been provided to set up celery, if a user and his group has large number of bookmarked links which they want to convert to pdf/png format. Maybe in future, option may be provided for making http requests and postprocessing content to celery, if current setup with Vinanti won't deliver upto expectations.
-
-
-## Improving Performance
-
-* Prefer python version 3.6.5+
-
-* Replace default sqlite database with postgresql
-
-* Use headless version of wkhtmltopdf
-
-* Use celery for pdf/png conversion
-
-* Use aiohttp backend for Vinanti for fetching web-pages asynchronously
-
-* When using gunicorn, adjust workers depending on number of cpu cores of the server.
-
-    According to gunicorn docs, preferred number of workers = 2n+1, where n = number of cores
-
-* Minimum 2GB RAM
-
-
-# Future Roadmap
-
-- [x] Allow people to write custom scripts or use third party tools for their unique archival needs. 
-
-- [x] Provide an option to change headless browsers for PDF/PNG generation.
-
-- [ ] Provide token-based authentication which will help in developing browser addons or mobile applications
-
-- [ ] Monitor/archive selected links periodically
-
-- [ ] Support multi-word tagging
-
-- [ ] Support for text annotation
-
-- [ ] Provide browser addons
-
-- [ ] Document API 
-
-- [ ] Add support for WARC format
 
 # Motivation
 
