@@ -384,7 +384,15 @@ reminiscence folder contains three settings files
 
 * Once nginx config file is properly configured, start/enable nginx.service. For detailed instructions take a look at this [tutorial](https://www.digitalocean.com/community/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu-16-04) or refer this [wiki](https://wiki.archlinux.org/index.php/Nginx). There are some barebone instructions available [here](http://gunicorn.org/index.html#deployment), which users might find useful.
 
+* When using gunicorn as web server and nginx as reverse proxy, it is necessary to add static files of admin interface to the **static** folder. Otherwise, admin interface won't render properly. Users can do it manually. Or alternatively, they can modify setting.py file and add 
+    
+        STATIC_ROOT = os.path.join(BASE_DIR, "static")
+    
+to it. After that collect staticfiles using command
 
+        $ python manage.py collectstatic
+        
+Once staticfiles of admin have been collected in the **static** folder, users should remove **STATIC_ROOT** from settings.py, before running the web server.
 
 # Motivation
 
