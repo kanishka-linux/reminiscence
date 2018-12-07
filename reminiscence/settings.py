@@ -229,4 +229,10 @@ VINANTI_MAX_REQUESTS = 20
 
 DOWNLOAD_MANAGERS_ALLOWED = ['curl', 'wget']
 
+#Path to chromium executable or name of executable.
+#In some distro like ubuntu name of chromium executable is "chromium-browser".
+#So write it accordingly
+ 
+CHROMIUM_COMMAND = "chromium"
+
 CHROMIUM_SANDBOX = True
