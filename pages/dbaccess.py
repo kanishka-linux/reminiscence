@@ -332,7 +332,7 @@ class DBAccess:
         if mode == 'pdf':
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
-                'chromium', '--headless', '--disable-gpu',
+                settings.CHROMIUM_COMMAND, '--headless', '--disable-gpu',
                 '--print-to-pdf={}'.format(pdf), url_name]
             if not settings.CHROMIUM_SANDBOX:
                 cmd.insert(1, '--no-sandbox')
@@ -346,7 +346,7 @@ class DBAccess:
         elif mode == 'dom':
             htm = os.path.join(media_path_parent, str(row.id)+'.htm')
             cmd = [
-                'chromium', '--headless', '--disable-gpu',
+                settings.CHROMIUM_COMMAND, '--headless', '--disable-gpu',
                 '--dump-dom', url_name
                 ]
             if not settings.CHROMIUM_SANDBOX:
