@@ -393,9 +393,14 @@ class CustomRead:
     @staticmethod
     def custom_template(title, content, row):
         if row:
-            base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION,
-                                            row.usr.username, row.directory,
-                                            row.id)
+            if '/' in row.directory:
+                base_dir = '{}/{}/subdir/{}/{}'.format(settings.ROOT_URL_LOCATION,
+                                                        row.usr.username, row.directory,
+                                                        row.id)
+            else:
+                base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION,
+                                                row.usr.username, row.directory,
+                                                row.id)
             read_url = base_dir + '/read'
             read_pdf = base_dir + '/read-pdf'
             read_png = base_dir + '/read-png'
