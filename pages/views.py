@@ -50,7 +50,7 @@ from .custom_read import CustomRead as cread
 from .dbaccess import DBAccess as dbxs
 from .summarize import Summarizer
 from .utils import ImportBookmarks
-
+from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ def dashboard(request, username=None, directory=None):
             form.clean_and_save_data(usr)
     form = AddDir()
     usr_list = Library.objects.filter(usr=usr).only('directory').order_by('directory')
-    usr_list = [i.directory for i in usr_list if i.directory]
+    usr_list = [i.directory for i in usr_list if i.directory and '/' not in i.directory]
     usr_list = Counter(usr_list)
     nlist = []
     index = 1
@@ -339,6 +339,23 @@ def navigate_directory(request, username, directory=None, tagname=None):
                 )
     else:
         return redirect('home')
+        
+@login_required
+def navigate_subdir(request, username, directory=None):
+    ops = set([
+        "archive", "remove", "read", "read-pdf", "read-png",
+        "read-html", "read-dark", "read-light", "read-default",
+        "read-gray", "edit-bookmark", "move-bookmark"
+    ])
+    if directory:
+        link_split = directory.split('/')
+        if link_split[-1] in ops:
+            link_id = int(link_split[-2])
+            return perform_link_operation(request, username, directory, link_id)
+        else:
+            return navigate_directory(request, username, directory)
+    else:
+        return redirect('home')
 
 def get_archived_video_link(request, username, video_id):
     if video_id and '-' in video_id:
@@ -380,6 +397,7 @@ def api_points(request, username):
         req_chromium_backend = request.POST.get('chromium-backend', '')
         req_media_path = request.POST.get('get-media-path', '')
         req_media_playlist = request.POST.get('generate-media-playlist', '')
+        req_subdir = request.POST.get('create_subdir', '')
         logger.debug(req_import)
         logger.debug(request.FILES)
         if req_list and req_list == 'yes':
@@ -393,6 +411,30 @@ def api_points(request, username):
             dir_list.sort()
             dir_dict = {'dir':dir_list}
             return HttpResponse(json.dumps(dir_dict))
+        elif req_subdir and req_subdir == "yes":
+            pdir = request.POST.get('parent_dir', '')
+            subdir = request.POST.get('subdir_name', '')
+            print(pdir, subdir)
+            if pdir and subdir:
+                dirname = re.sub(r'/|:|#|\?|\\\\|\%', '-', subdir)
+                if dirname:
+                    dirname = pdir+'/'+dirname
+                    print(dirname)
+                    qdir = Library.objects.filter(usr=usr, directory=dirname)
+                    if not qdir:
+                        Library.objects.create(usr=usr, directory=dirname, timestamp=timezone.now()).save()
+                        qlist = Library.objects.filter(usr=usr, directory=pdir, url__isnull=True).first()
+                        print(qlist)
+                        if qlist:
+                            if qlist.subdir:
+                                slist = qlist.subdir.split('/')
+                                if subdir not in slist:
+                                    qlist.subdir = '/'.join(slist + [subdir])
+                                    qlist.save()
+                            else:
+                                qlist.subdir = subdir
+                                qlist.save()
+                return HttpResponse('OK')
         elif req_media_path and req_media_path == 'yes':
             url_id = request.POST.get('url_id', '')
             if url_id and url_id.isnumeric():
