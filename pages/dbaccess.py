@@ -163,7 +163,8 @@ class DBAccess:
                                          summary=summary,
                                          timestamp=timezone.now(),
                                          media_element=media_element,
-                                         reader_mode=reader_theme)
+                                         reader_mode=reader_theme,
+                                         subdir=False)
         else:
             logger.debug('row - exists')
         if not media_path:
@@ -427,6 +428,13 @@ class DBAccess:
                      tags, row.directory, row.media_path,
                      row.media_element)
                 )
+            elif row.subdir:
+                for subdir in row.subdir.split('/'):
+                    nusr_list.append(
+                        (subdir, row.url, row.id, row.timestamp,
+                         tags, row.directory+'/'+subdir, row.media_path,
+                         row.media_element)
+                    )
         return nusr_list
 
     @staticmethod
@@ -468,7 +476,15 @@ class DBAccess:
         for title, url, idd, timestamp, tag, directory, media_path, media_element in usr_list:
             title = re.sub('_|-', ' ', title)
             title = re.sub('/', ' / ', title)
-            base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory, idd)
+            is_subdir = False
+            if '/' in directory and not url:
+                base_dir = '{}/{}/subdir/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+                is_subdir = True
+                url = base_dir
+            elif '/' in directory and url:
+                base_dir = '{}/{}/subdir/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory, idd)
+            else:
+                base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory, idd)
             base_remove = base_dir + '/remove'
             base_et = base_dir + '/edit-bookmark'
             move_single = base_dir + '/move-bookmark'
@@ -484,7 +500,9 @@ class DBAccess:
                 netloc = netloc[:20]+ '..'
             timestamp = timestamp.strftime("%d %b %Y")
             final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(idd) + '.ico')
-            if os.path.exists(final_favicon_path):
+            if is_subdir:
+                fav_path = settings.STATIC_URL + 'folder.svg'
+            elif os.path.exists(final_favicon_path):
                 fav_path = settings.STATIC_URL + 'favicons/{}.ico'.format(idd)
             else:
                 fav_path = settings.STATIC_URL + 'archive.svg'
@@ -499,7 +517,7 @@ class DBAccess:
                                 'move-multi': move_multiple, 'usr':username,
                                 'archive-media':archive_media, 'directory':directory,
                                 'read-url':read_url, 'id': idd, 'fav-path': fav_path,
-                                'media-element': media_element
+                                'media-element': media_element, 'is-subdir': is_subdir
                             }
                         }
                     )
@@ -509,7 +527,7 @@ class DBAccess:
                         index, title, netloc, url, base_et, base_remove,
                         timestamp, tag, move_single, move_multiple,
                         archive_media, directory, read_url, idd, fav_path,
-                        media_element
+                        media_element, is_subdir
                     ]
                 )
             index += 1
