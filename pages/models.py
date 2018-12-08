@@ -52,7 +52,9 @@ class UserSettings(models.Model):
     media_streaming = models.BooleanField(default=False)
     reader_theme = models.PositiveSmallIntegerField(choices=READER_CHOICES, default=WHITE)
     
-
+    def __str__(self):
+        return self.usrid
+        
 class Library(models.Model):
     
     PUBLIC = 0
@@ -75,13 +77,14 @@ class Library(models.Model):
     summary = models.TextField(null=True)
     tags = models.CharField(max_length=4096, null=True)
     media_element = models.BooleanField(default=False)
+    subdir = models.CharField(max_length=8192, null=True)
     reader_mode = models.PositiveSmallIntegerField(choices=UserSettings.READER_CHOICES,
                                                    default=UserSettings.WHITE)
     
     def __str__(self):
-        return '{}. {}'.format(self.id, self.title)
+        return self.usr.username
 
-        
+
 class Tags(models.Model):
     
     tag = models.CharField(max_length=100, unique=True)
