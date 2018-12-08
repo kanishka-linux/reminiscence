@@ -318,6 +318,21 @@ function dropdown_menu_clicked(element){
             var merge = true;
         }
         move_to_bookmark(post_data, api_link, nlink, csrftoken, elpar, elar_join, merge);
+    }else if(link == 'create-subdir'){
+        var api_link = $(element).attr('api-url');
+        var dirname = $(element).attr('data-dir');
+        var csrftoken = getCookie('csrftoken');
+        console.log(api_link, dirname);
+        var subdir = prompt("Enter Sub-Directory", "");
+        if (subdir == null || subdir == "") {
+          txt = "User cancelled the prompt.";
+        } else {
+          post_data = `create_subdir=yes&parent_dir=${dirname}&subdir_name=${subdir}`;
+          var client = new postRequest();
+            client.post(api_link, post_data, csrftoken, function(response) {
+            console.log(response);
+            })
+        } 
     }else if(link == 'archive-bookmark-multiple'){
         var [elpar, elar_join] = get_selected_items();
         post_data = `link_ids=${elar_join}`;
