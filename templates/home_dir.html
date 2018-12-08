@@ -50,6 +50,8 @@
           <div class="nav-link dropdown-toggle" href="#" id="dir-menu-common" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Menu
           </div>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dir-menu-common">
+            <span class="dropdown-item" data-val="create-subdir" data-dir="{{dirname}}" api-url="{{api_url}}">Create Sub-Dir</span>
+            <div class="dropdown-divider"></div>
             <span class="dropdown-item" data-val="select-multiple" api-url="{{api_url}}">Select Multiple</span>
             <span class="dropdown-item" data-val="select-all" api-url="{{api_url}}">Select All</span>
             <div class="dropdown-divider"></div>
@@ -66,20 +68,22 @@
   </tr>
 </thead>
 <tbody id="tbody">
-  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path, media_element in usr_list %}
+  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path, media_element, is_subdir in usr_list %}
     <tr>
         <td>{% if fav_path %}<img width="24" src="{{fav_path}}" link-id="{{idd}}">{% endif %}</td>
       <td>
         <a href="{{ archive }}"><span class="text-lg-left">{{title}}</span></a></br>
-            <small>
-                <a href="{{loc}}" class="text-muted" id="netloc-muted">{{netloc}}</a>
-            </small>
-            {% if taglist %}
-                <div class="badges">
-                    {% for tag in taglist %}
-                        <a href="/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
-                    {% endfor %}
-                </div>
+            {% if not is_subdir %}
+                <small>
+                    <a href="{{loc}}" class="text-muted" id="netloc-muted">{{netloc}}</a>
+                </small>
+                {% if taglist %}
+                    <div class="badges">
+                        {% for tag in taglist %}
+                            <a href="/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             {% endif %}
         </td>
         <td>
