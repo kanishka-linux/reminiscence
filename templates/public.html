@@ -24,20 +24,22 @@
   </tr>
 </thead>
 <tbody id="tbody">
-  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path, media_element in usr_list %}
+  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path, media_element, is_subdir in usr_list %}
     <tr>
         <td>{% if fav_path %}<img width="24" src="{{fav_path}}">{% endif %}</td>
       <td>
         <a href="{{ archive }}"><span class="text-lg-left">{{title}}</span></a></br>
-            <small>
-                <a href="{{loc}}" class="text-muted" id="netloc-muted">{{netloc}}</a>
-            </small>
-            {% if taglist %}
-                <div class="badges">
-                    {% for tag in taglist %}
-                        <a href="{{root}}/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
-                    {% endfor %}
-                </div>
+            {% if not is_subdir %}
+                <small>
+                    <a href="{{loc}}" class="text-muted" id="netloc-muted">{{netloc}}</a>
+                </small>
+                {% if taglist %}
+                    <div class="badges">
+                        {% for tag in taglist %}
+                            <a href="{{root}}/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             {% endif %}
         </td>
         <td>
