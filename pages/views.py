@@ -101,7 +101,10 @@ def rename_operation(request, username, directory):
             return redirect('home')
         else:
             form = RenameDir()
-            base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+            if '/' in directory:
+                base_dir = '{}/{}/subdir/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+            else:
+                base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
             base_remove = base_dir + '/remove'
             base_rename = base_dir + '/rename'
             nlist = [[1, directory, 'N/A', base_dir, base_rename, base_remove]]
@@ -131,7 +134,10 @@ def remove_operation(request, username, directory):
             return redirect('home')
         else:
             form = RemoveDir()
-            base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+            if '/' in directory:
+                base_dir = '{}/{}/subdir/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+            else:
+                base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
             base_remove = base_dir + '/remove'
             base_rename = base_dir + '/rename'
             nlist = [[1, directory, 'N/A', base_dir, base_rename, base_remove]]
@@ -371,9 +377,17 @@ def navigate_subdir(request, username, directory=None):
     ])
     if directory:
         link_split = directory.split('/')
-        if link_split[-1] in ops:
-            link_id = int(link_split[-2])
-            return perform_link_operation(request, username, directory, link_id)
+        op = link_split[-1]
+        link_id = link_split[-2]
+        if op in ops and link_id.isnumeric():
+            return perform_link_operation(request, username, directory, int(link_id))
+        elif op == "remove":
+            dirn, _ = directory.rsplit('/', 1)
+            return remove_operation(request, username, dirn)
+        elif op == "rename":
+            dirn, _ = directory.rsplit('/', 1)
+            print(dirn, directory, '----============')
+            return rename_operation(request, username, dirn)
         else:
             return navigate_directory(request, username, directory)
     else:
