@@ -5,14 +5,11 @@
 {% load static %}
 
 {% block breadcrumb %}
-    <li class="breadcrumb-item">
-        <a href="{{root}}/{{user.username}}">
-            Home
-        </a> 
-    </li>
-    <li class="breadcrumb-item active">
-        <a href="{{base_dir}}">{{dirname}}</a>
-    </li>
+    {% for is_active, dir_name, path in dir_list %}
+        <li class="breadcrumb-item {{is_active}}">
+            <a href="{{path}}">{{dir_name}}</a> 
+        </li>
+    {% endfor %}
 {% endblock %}
 
 
