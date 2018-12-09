@@ -76,7 +76,22 @@ class RenameDir(forms.Form):
         ren_dir = self.cleaned_data.get('rename_directory')
         if ren_dir and ren_dir != directory:
             ren_dir = re.sub(r'/|:|#|\?|\\\\|\%', '-', ren_dir)
+            if '/' in directory:
+                pdir, cdir = directory.rsplit('/', 1)
+                qlist = Library.objects.filter(usr=usr, directory=pdir, url__isnull=True).first()
+                if qlist and qlist.subdir:
+                    subdir_list = qlist.subdir.split('/') 
+                    if cdir in subdir_list:
+                        subdir_list[subdir_list.index(cdir)] = ren_dir
+                        logger.debug(subdir_list)
+                        qlist.subdir = '/'.join(subdir_list)
+                        qlist.save()
+                ren_dir = pdir + '/' + ren_dir
             Library.objects.filter(usr=usr, directory=directory).update(directory=ren_dir)
+            qlist = Library.objects.filter(usr=usr, directory__istartswith=directory+'/')
+            for row in qlist:
+                row.directory = re.sub(directory, ren_dir, row.directory, 1)
+                row.save()
 
 
 class RemoveDir(forms.Form):
@@ -92,3 +107,17 @@ class RemoveDir(forms.Form):
             qlist = Library.objects.filter(usr=usr, directory=directory)
             for row in qlist:
                 dbxs.remove_url_link(usr, row=row)
+            qlist = Library.objects.filter(usr=usr, directory__istartswith=directory+'/')
+            for row in qlist:
+                dbxs.remove_url_link(usr, row=row)
+        if '/' in directory:
+            pdir, cdir = directory.rsplit('/', 1)
+            qlist = Library.objects.filter(usr=usr, directory=pdir, url__isnull=True).first()
+            if qlist and qlist.subdir:
+                subdir_list = qlist.subdir.split('/') 
+                if cdir in subdir_list:
+                    del subdir_list[subdir_list.index(cdir)]
+                    logger.debug(subdir_list)
+                    qlist.subdir = '/'.join(subdir_list)
+                    qlist.save()
+            
