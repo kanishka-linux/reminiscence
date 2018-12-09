@@ -476,8 +476,6 @@ class DBAccess:
         index = 1
         username = usr.username
         for title, url, idd, timestamp, tag, directory, media_path, media_element in usr_list:
-            title = re.sub('_|-', ' ', title)
-            title = re.sub('/', ' / ', title)
             is_subdir = False
             if '/' in directory and not url:
                 base_dir = '{}/{}/subdir/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
@@ -487,6 +485,8 @@ class DBAccess:
                 base_dir = '{}/{}/subdir/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory, idd)
             else:
                 base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory, idd)
+                title = re.sub('_|-', ' ', title)
+                title = re.sub('/', ' / ', title)
             base_remove = base_dir + '/remove'
             base_rename = base_dir + '/rename'
             base_et = base_dir + '/edit-bookmark'
