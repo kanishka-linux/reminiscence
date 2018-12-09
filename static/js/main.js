@@ -602,18 +602,19 @@ function generate_table_body(nlink, search, mode){
             var read_url = value['read-url'];
             var fav_path = value['fav-path'];
             var idd = value['id'];
+            var is_subdir = value['is-subdir'];
             
             var badges = create_badge_nodes(usr, taglist, 'div');
             if (mode == 'dir'){
                 var dir_badge = "";
             }else{
-                var dir_badge = create_directory_badge(usr, directory);
+                var dir_badge = create_directory_badge(usr, directory, is_subdir);
             }
             var table_content = create_table_rows(
                     usr, badges, index, title, netloc, loc,
                     timestamp, edit_b, ms, remove_link,
                     archive_media, directory, dir_badge,
-                    read_url, idd, fav_path, root_loc);
+                    read_url, idd, fav_path, root_loc, is_subdir);
             $("#tbody").append(table_content);
         }
     })
@@ -691,11 +692,19 @@ function create_badge_nodes(usr, taglist, mode){
     return string;
 }
 
-function create_directory_badge(usr, dirname){
-    string = `<span> | </span>
+function create_directory_badge(usr, dirname, is_subdir){
+    if (dirname && dirname.includes('/')){
+        string = `<span> | </span>
+            <small>
+            <a class="text-success" href="/${usr}/subdir/${dirname}">${dirname} </a>
+            </small>`
+    }
+    else{
+        string = `<span> | </span>
             <small>
             <a class="text-success" href="/${usr}/${dirname}">${dirname} </a>
             </small>`
+    }
     return string
 }
 
@@ -742,7 +751,7 @@ function display_upload_file_name(event){
 function create_table_rows(usr, badge_nodes, index, title, netloc,
                            loc, timestamp, edit_b, ms, remove_link,
                            archive_media, dirname, dir_badge,
-                           read_url, idd, fav_path, root){
+                           read_url, idd, fav_path, root, is_subdir){
     console.log(root);
     var string = `<tr>
         <td><img width="24" src="${fav_path}"></td>
