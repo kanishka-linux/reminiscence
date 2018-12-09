@@ -488,6 +488,7 @@ class DBAccess:
             else:
                 base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory, idd)
             base_remove = base_dir + '/remove'
+            base_rename = base_dir + '/rename'
             base_et = base_dir + '/edit-bookmark'
             move_single = base_dir + '/move-bookmark'
             move_multiple = base_dir + '/move-bookmark-multiple'
@@ -519,7 +520,8 @@ class DBAccess:
                                 'move-multi': move_multiple, 'usr':username,
                                 'archive-media':archive_media, 'directory':directory,
                                 'read-url':read_url, 'id': idd, 'fav-path': fav_path,
-                                'media-element': media_element, 'is-subdir': is_subdir
+                                'media-element': media_element, 'is-subdir': is_subdir,
+                                'base-rename': base_rename
                             }
                         }
                     )
@@ -529,7 +531,7 @@ class DBAccess:
                         index, title, netloc, url, base_et, base_remove,
                         timestamp, tag, move_single, move_multiple,
                         archive_media, directory, read_url, idd, fav_path,
-                        media_element, is_subdir
+                        media_element, is_subdir, base_rename
                     ]
                 )
             index += 1
