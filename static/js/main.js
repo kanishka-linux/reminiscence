@@ -331,6 +331,7 @@ function dropdown_menu_clicked(element){
           var client = new postRequest();
             client.post(api_link, post_data, csrftoken, function(response) {
             console.log(response);
+            window.location.reload();
             })
         } 
     }else if(link == 'archive-bookmark-multiple'){
