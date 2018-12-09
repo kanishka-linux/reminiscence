@@ -401,7 +401,7 @@ class DBAccess:
     def get_rows_by_directory(usr, directory=None, search=None, search_mode='title'):
         
         usr_list = []
-        
+        subdir_list = []
         if search and search_mode != 'dir':
             if search_mode == 'title':
                 usr_list = Library.objects.filter(usr=usr, title__icontains=search).order_by('-timestamp')
@@ -430,12 +430,14 @@ class DBAccess:
                 )
             elif row.subdir:
                 for subdir in row.subdir.split('/'):
-                    nusr_list.append(
+                    subdir_list.append(
                         (subdir, row.url, row.id, row.timestamp,
-                         tags, row.directory+'/'+subdir, row.media_path,
+                         [], row.directory+'/'+subdir, row.media_path,
                          row.media_element)
                     )
-        return nusr_list
+        if subdir_list:
+            subdir_list = subdir_list[::-1]
+        return subdir_list + nusr_list
 
     @staticmethod
     def get_rows_by_tag(usr, tagname):
