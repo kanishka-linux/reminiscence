@@ -278,7 +278,7 @@ def group_profile(request, username):
                                     'usr_list': nlist, 'form':"",
                                     'base_dir':base_dir, 'dirname':group_dir,
                                     'refresh': 'no', 'root': settings.ROOT_URL_LOCATION,
-                                    'api_url': api_url
+                                    'api_url': api_url, 'dir_list':[("active", group_dir, base_dir)]
                                 }
                             )
     return HttpResponse('No Group Profile Available')
@@ -325,16 +325,38 @@ def navigate_directory(request, username, directory=None, tagname=None):
             dirlist = paginator.page(1)
         except EmptyPage:
             dirlist = paginator.page(paginator.num_pages)
-        
-        base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
-        api_url = '{}/{}/api/request'.format(settings.ROOT_URL_LOCATION, usr.username)
+        if '/' in directory:
+            base_dir = '{}/{}/subdir/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+        else:
+            base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
+        dir_list = [("", "Home", settings.ROOT_URL_LOCATION+'/'+username)]
+        if '/' in directory:
+            dir_split = directory.split('/')
+            for i, j in enumerate(dir_split):
+                if i == 0:
+                    nbase = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, username, j)
+                elif i == 1:
+                    is_active, dn, path = dir_list[-1]
+                    last = path.split('/')[-1]
+                    nbase = '{}/{}/subdir/{}/{}'.format(settings.ROOT_URL_LOCATION, username, last, j)
+                else:
+                    is_active, dn, path = dir_list[-1]
+                    nbase = path + '/' + j
+                if i == len(dir_split) - 1:
+                    dir_list.append(("active",j, nbase))
+                else:
+                    dir_list.append(("",j, nbase))
+        else:
+            dir_list.append(("active", directory, base_dir))
+        print(dir_list)
+        api_url = '{}/{}/api/request'.format(settings.ROOT_URL_LOCATION, username)
         return render(
                     request, 'home_dir.html',
                     {
                         'usr_list': dirlist, 'form':form,
                         'base_dir':base_dir, 'dirname':directory,
                         'refresh':add_url, 'root':settings.ROOT_URL_LOCATION,
-                        'api_url': api_url
+                        'api_url': api_url, 'dir_list': dir_list
                     }
                 )
     else:
