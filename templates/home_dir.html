@@ -65,7 +65,7 @@
   </tr>
 </thead>
 <tbody id="tbody">
-  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path, media_element, is_subdir in usr_list %}
+  {% for index, title, netloc, loc, edit_b, remove_link, timestamp, taglist, ms, mm , archive, dir, rurl, idd, fav_path, media_element, is_subdir, rename_link in usr_list %}
     <tr>
         <td>{% if fav_path %}<img width="24" src="{{fav_path}}" link-id="{{idd}}">{% endif %}</td>
       <td>
@@ -87,23 +87,29 @@
         <div class="btn-group m-r-10 align-middle px-3">
             <button aria-expanded="false" data-toggle="dropdown" class="btn btn-link dropdown-toggle waves-effect waves-light" type="button"><span class="caret"><img src="{% static 'menu.svg' %}" width="20"></span></button>
             <ul role="menu" class="dropdown-menu dropdown-menu-right">
-                <span class="dropdown-item" data-link="{{ edit_b }}" title="{{title}}" data-val="url">Edit Bookmark</span>
-                <div class="dropdown-divider"></div>
-                
-                <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_summary" data-url="{{api_url}}">Summary</span>
-                <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_read" data-url="{{api_url}}">Read</span>
-                {% if media_element %}
-                <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_media_public" data-url="{{api_url}}" link-id="{{idd}}">Public Link</span>
+                {% if is_subdir %}
+                    <a class="dropdown-item" data-link="{{ rename_link }}" href="{{rename_link}}" title="{{key}}" data-val="dir">Rename</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" data-link="{{ remove_link }}" href="{{remove_link}}" title="{{key}}" data-val="dir">Remove</a>
+                {% else %}
+                    <span class="dropdown-item" data-link="{{ edit_b }}" title="{{title}}" data-val="url">Edit Bookmark</span>
+                    <div class="dropdown-divider"></div>
+                    
+                    <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_summary" data-url="{{api_url}}">Summary</span>
+                    <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_read" data-url="{{api_url}}">Read</span>
+                    {% if media_element %}
+                    <span class="dropdown-item" data-link="{{ rurl }}" title="{{title}}" data-val="url_media_public" data-url="{{api_url}}" link-id="{{idd}}">Public Link</span>
+                    {% endif %}
+                    <div class="dropdown-divider"></div>
+                    <span class="dropdown-item" data-link="{{ ms }}" title="{{title}}" data-val="url" data-url="{{api_url}}">Move To</span>
+                    
+                    <div class="dropdown-divider"></div>
+                    <span class="dropdown-item" data-link="{{ archive }}" title="{{title}}" data-val="url_archive" data-url="{{api_url}}" dir-name="{{dir}}" find-id="{{ms}}">Archive</span>
+                    <span class="dropdown-item" title="{{title}}" data-val="chromium_pdf" data-url="{{api_url}}" dir-name="{{dir}}" link-id="{{idd}}">Chromium PDF</span>
+                    <span class="dropdown-item" title="{{title}}" data-val="chromium_dom" data-url="{{api_url}}" dir-name="{{dir}}" link-id="{{idd}}">Chromium HTML</span>
+                    <div class="dropdown-divider"></div>
+                    <span class="dropdown-item" data-link="{{ remove_link }}" title="{{title}}" data-val="url">Remove</span>
                 {% endif %}
-                <div class="dropdown-divider"></div>
-                <span class="dropdown-item" data-link="{{ ms }}" title="{{title}}" data-val="url" data-url="{{api_url}}">Move To</span>
-                
-                <div class="dropdown-divider"></div>
-                <span class="dropdown-item" data-link="{{ archive }}" title="{{title}}" data-val="url_archive" data-url="{{api_url}}" dir-name="{{dir}}" find-id="{{ms}}">Archive</span>
-                <span class="dropdown-item" title="{{title}}" data-val="chromium_pdf" data-url="{{api_url}}" dir-name="{{dir}}" link-id="{{idd}}">Chromium PDF</span>
-                <span class="dropdown-item" title="{{title}}" data-val="chromium_dom" data-url="{{api_url}}" dir-name="{{dir}}" link-id="{{idd}}">Chromium HTML</span>
-                <div class="dropdown-divider"></div>
-                <span class="dropdown-item" data-link="{{ remove_link }}" title="{{title}}" data-val="url">Remove</span>
             </ul>
         </div>
         </br>
