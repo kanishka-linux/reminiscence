@@ -450,17 +450,14 @@ def api_points(request, username):
         elif req_subdir and req_subdir == "yes":
             pdir = request.POST.get('parent_dir', '')
             subdir = request.POST.get('subdir_name', '')
-            print(pdir, subdir)
             if pdir and subdir:
                 dirname = re.sub(r'/|:|#|\?|\\\\|\%', '-', subdir)
                 if dirname:
                     dirname = pdir+'/'+dirname
-                    print(dirname)
                     qdir = Library.objects.filter(usr=usr, directory=dirname)
                     if not qdir:
                         Library.objects.create(usr=usr, directory=dirname, timestamp=timezone.now()).save()
                         qlist = Library.objects.filter(usr=usr, directory=pdir, url__isnull=True).first()
-                        print(qlist)
                         if qlist:
                             if qlist.subdir:
                                 slist = qlist.subdir.split('/')
