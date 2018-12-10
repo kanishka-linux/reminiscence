@@ -291,6 +291,7 @@ function dropdown_menu_clicked(element){
         }
         el.each(function(index){
             var idd = $(this).nextAll().eq(1).find('footer').attr('link-id');
+            var folder_ico = $(this).find('img').attr('src');
             html = `<div class="form-check">
             <input class="form-check-input" type="checkbox" value="check-box" id="multiple-select-box" check-id="${idd}" ${checked}>
             </div>`
@@ -302,7 +303,11 @@ function dropdown_menu_clicked(element){
                     fm.prop('checked', false);
                 }
             }else{
-                $(this).append(html);
+                if (folder_ico && folder_ico.includes('/folder.svg')){
+                    console.log("subfolder: excluding");
+                }else{
+                    $(this).append(html);
+                }
             }
         })
     }else if(link == 'move-multiple' || link == 'merge-bookmark-with'){
@@ -637,12 +642,13 @@ function move_to_bookmark(post_data, api_link, nlink, csrftoken, el, idlist, mer
         console.log(response);
         var json = JSON.parse(response);
         console.log(json.dir);
-        msg = getcheckbox_string(json.dir);
+        msg = getselectbox_string(json.dir);
         var resp = bootbox.confirm(msg, function(resp){
             console.log(resp);
             if (resp){
-                var info = $('.form-check-inline');
-                var val = info.find("input[name=optradio]:checked").attr('value');
+                var info = $('#select-dir-form');
+                var val = info.find("#select-dir-box option:selected").text();
+                console.log(val)
                 if(val){
                     console.log(val);
                     if(merge){
@@ -924,18 +930,17 @@ function getsettings_html(autotag, auto_summary, total_tags, buddy_list,
     return html;
 }
 
-function getcheckbox_string(list){
+function getselectbox_string(list){
     var str = '';
     for(i=0;i<list.length;i++){
         dirname = list[i];
-        str = str + `<span>  </span><div class="form-check-inline">
-                        <span>  </span><input id="radio-${i}" class="form-check-input" type="radio" name="optradio" value="${dirname}"> <span>  </span>
-                        <label class="form-check-label" for="radio-${i}">${dirname}</label>
-                    </div><span>  </span>`
+        str = str + `<option value=${dirname}>${dirname}</option>`
     }
-    return `</br><div class="card"><div class="card-header">Select Directory</div>
-                </div>
-            </br><form id="radio-dir-boxes" novalidate> ${str} </form>`;
+    return `</br><div class="card"><div class="card-header">Select Directory</div></div></br>
+            <form id="select-dir-form" novalidate>
+                <select id="select-dir-box" class="form-control">${str}</select>
+                <label class="form-select-label" for="select-dir-box"></label>
+            </form>`;
 }
 
 function getstr(title, url, tags, media_element){
