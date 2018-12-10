@@ -644,14 +644,43 @@ class DBAccess:
                     elif mode == 'tags' and tags_list:
                         cls.edit_tags(usr, row.id, ','.join(tags_list), '')
         if merge_dir and merge_dir != dirname and mode == 'merge':
-            qlist = Library.objects.filter(usr=usr, directory=dirname)
-            qlistm = Library.objects.filter(usr=usr, directory=merge_dir)
-            for row in qlist:
-                if not row.url:
-                    row.delete()
-            Library.objects.filter(usr=usr, directory=dirname).update(directory=merge_dir)
+            qlist = Library.objects.filter(usr=usr, directory=dirname, url__isnull=True).first()
+            if qlist and not qlist.subdir:
+                qlist.delete()
+                Library.objects.filter(usr=usr, directory=dirname).update(directory=merge_dir)
+            elif qlist and qlist.subdir:
+                sub_list = qlist.subdir
+                qlist.delete()
+                Library.objects.filter(usr=usr, directory=dirname).update(directory=merge_dir)
+                nqlist = Library.objects.filter(usr=usr, directory__istartswith=dirname+'/')
+                for row in nqlist:
+                    row.directory = re.sub(dirname, merge_dir, row.directory, 1)
+                    row.save()
+                nqlist = Library.objects.filter(usr=usr, directory=merge_dir, url__isnull=True).first()
+                if nqlist and nqlist.subdir:
+                    subdir = nqlist.subdir + '/'+ sub_list
+                    nqlist.subdir = '/'.join(sorted(list(set(subdir.split('/')))))
+                    nqlist.save()
+                elif nqlist and not nqlist.subdir:
+                    nqlist.subdir = sub_list
+                    nqlist.save()
+                
+            if '/' in dirname:
+                cls.remove_subdirectory_link(usr, dirname)
         return msg
-
+    
+    @staticmethod
+    def remove_subdirectory_link(usr, dirname):
+        pdir, cdir = dirname.rsplit('/', 1)
+        qlist = Library.objects.filter(usr=usr, directory=pdir, url__isnull=True).first()
+        if qlist and qlist.subdir:
+            subdir_list = qlist.subdir.split('/') 
+            if cdir in subdir_list:
+                del subdir_list[subdir_list.index(cdir)]
+                logger.debug(subdir_list)
+                qlist.subdir = '/'.join(subdir_list)
+                qlist.save()
+    
     @staticmethod
     def edit_bookmarks(usr, request, url_id):
         title = request.POST.get('new_title', '')
