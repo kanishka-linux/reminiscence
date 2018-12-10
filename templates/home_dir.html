@@ -114,7 +114,9 @@
         </div>
         </br>
         <small>
+            {% if not is_subdir %}
             <footer class="text-muted px-2 py-2" link-id="{{idd}}" data-url="{{api_url}}" dir-name="{{dir}}">{{timestamp}}</footer>
+            {% endif %}
         </small>
         </td>
     </tr>
