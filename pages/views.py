@@ -386,7 +386,6 @@ def navigate_subdir(request, username, directory=None):
             return remove_operation(request, username, dirn)
         elif op == "rename":
             dirn, _ = directory.rsplit('/', 1)
-            print(dirn, directory, '----============')
             return rename_operation(request, username, dirn)
         else:
             return navigate_directory(request, username, directory)
