@@ -255,7 +255,7 @@ class CustomRead:
         if not os.path.isfile(plfile):
             with open(plfile, 'wb') as fd:
                 pickle.dump(pls_txt, fd)
-        pls_path = '{}/{}/getarchivedplaylist/{}/{}'.format(settings.ROOT_URL_LOCATION, 
+        pls_path = '{}/{}/getarchivedplaylist/{}/playlist/{}'.format(settings.ROOT_URL_LOCATION, 
                                                             usr.username, directory, uid)
         logger.debug(pls_path)
         return pls_path
