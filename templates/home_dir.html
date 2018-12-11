@@ -77,7 +77,7 @@
                 {% if taglist %}
                     <div class="badges">
                         {% for tag in taglist %}
-                            <a href="/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
+                            <a href="{{root}}/{{user.username}}/tag/{{tag}}" class="badge badge-light font-weight-normal">{{tag}}</a>
                         {% endfor %}
                     </div>
                 {% endif %}
