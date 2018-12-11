@@ -530,11 +530,11 @@ function clear_and_apply_badges(el, newtaglist, oldtaglist){
         badges.each(function(index){
             $(this).remove();
         })
-        var badge_html = create_badge_nodes(usr, newtaglist, 'nodiv');
+        var badge_html = create_badge_nodes(usr, newtaglist, 'nodiv', '');
         el.find('.badges').append(badge_html);
     }else{
         var td = el.find('td').eq(1);
-        var badge_html = create_badge_nodes(usr, newtaglist, 'div');
+        var badge_html = create_badge_nodes(usr, newtaglist, 'div', '');
         td.append(badge_html);
     }
 }
@@ -610,11 +610,11 @@ function generate_table_body(nlink, search, mode){
             var idd = value['id'];
             var is_subdir = value['is-subdir'];
             
-            var badges = create_badge_nodes(usr, taglist, 'div');
+            var badges = create_badge_nodes(usr, taglist, 'div', root_loc);
             if (mode == 'dir'){
                 var dir_badge = "";
             }else{
-                var dir_badge = create_directory_badge(usr, directory, is_subdir);
+                var dir_badge = create_directory_badge(usr, directory, is_subdir, root_loc);
             }
             var table_content = create_table_rows(
                     usr, badges, index, title, netloc, loc,
@@ -682,12 +682,12 @@ function move_to_bookmark(post_data, api_link, nlink, csrftoken, el, idlist, mer
     })
 }
 
-function create_badge_nodes(usr, taglist, mode){
+function create_badge_nodes(usr, taglist, mode, root_loc){
     var string = '';
     if (usr == null){
-        usr = '.';
+        usr = root_loc + '/' + '.';
     }else{
-        usr = '/' + usr
+        usr = root_loc + '/' + usr
     }
     for(i=0; i< taglist.length; i++){
         var tag = taglist[i].trim();
@@ -699,17 +699,17 @@ function create_badge_nodes(usr, taglist, mode){
     return string;
 }
 
-function create_directory_badge(usr, dirname, is_subdir){
+function create_directory_badge(usr, dirname, is_subdir, root_loc){
     if (dirname && dirname.includes('/')){
         string = `<span> | </span>
             <small>
-            <a class="text-success" href="/${usr}/subdir/${dirname}">${dirname} </a>
+            <a class="text-success" href="${root_loc}/${usr}/subdir/${dirname}">${dirname} </a>
             </small>`
     }
     else{
         string = `<span> | </span>
             <small>
-            <a class="text-success" href="/${usr}/${dirname}">${dirname} </a>
+            <a class="text-success" href="${root_loc}/${usr}/${dirname}">${dirname} </a>
             </small>`
     }
     return string
