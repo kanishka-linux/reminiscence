@@ -336,7 +336,7 @@ reminiscence folder contains three settings files
 
 * Instead of using **python manage.py runserver** command as mentioned in above installation instructions use following command. Users can change parameters according to need. Only make sure to keep value of **timeout** argument somewhat bigger. Larger timeout value is useful, if upload speed is slow and user want to upload relatively large body from web-interface.
 
-        $ gunicorn --max-requests 1000 --worker-class gthread --workers 2 --thread 5 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
+        $ gunicorn --max-requests 100 --worker-class gthread --workers 2 --thread 5 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi
 
 * Install **nginx** using native package manager of distro and then make adjustments to nginx config files as given below. Following is sample configuration. Adjust it according to need, but pay special attention to **proxy_read_timeout** and **client_max_body_size** variables. Incorrect value of these two variables can make upload from web-interface impractical.
 
