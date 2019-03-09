@@ -70,12 +70,14 @@ class CustomRead:
         if qset:
             row = qset[0]
             media_path = row.media_path
-            if mode in ['pdf', 'png'] and media_path:
+            if mode in ['pdf', 'png', 'html'] and media_path:
                 fln, ext = media_path.rsplit('.', 1)
                 if mode == 'pdf':
                     media_path = fln + '.pdf'
                 elif mode == 'png':
                     media_path = fln + '.png'
+                elif mode == 'html':
+                    media_path = fln + '.htm'
             elif mode == 'archive' and media_path:
                 mdir, _ = os.path.split(media_path)
                 filelist = os.listdir(mdir)
@@ -280,11 +282,15 @@ class CustomRead:
                 row.save()
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
-                
-                if mtype in cls.mtype_list:
+                if mtype in cls.mtype_list or media_path.endswith(".bin"):
+                    if media_path.endswith(".bin"):
+                        html = media_path.rsplit(".", 1)[0] + ".htm"
+                        if os.path.exists(html):
+                            media_path = html
+                            mtype = "text/html"
                     data = cls.format_html(row, media_path,
                                            custom_html=True)
-                    if mtype == 'text/plain':
+                    if mtype == 'text/plain' or media_path.endswith(".bin"):
                         mtype = 'text/html'
             elif row.url:
                 data = cls.get_content(row, url_id, media_path)
