@@ -197,11 +197,15 @@ def perform_link_operation(request, username, directory, url_id=None):
             elif request.path_info.endswith('edit-bookmark'):
                 msg = dbxs.edit_bookmarks(usr, request, url_id)
                 return HttpResponse(msg)
+            elif request.path_info.endswith('archived-note-save'):
+                return cread.save_customized_note(usr, url_id, mode='save-note', req=request)
             else:
                 return HttpResponse('Wrong command')
         elif request.method == 'GET':
             if request.path_info.endswith('archive'):
                 return cread.get_archived_file(usr, url_id, mode='archive', req=request)
+            elif request.path_info.endswith('archived-note'):
+                return cread.read_customized_note(usr, url_id, mode='read-note', req=request)
             elif request.path_info.endswith('read'):
                 return cread.read_customized(usr, url_id, mode='read', req=request)
             elif request.path_info.endswith('read-dark'):
@@ -214,7 +218,6 @@ def perform_link_operation(request, username, directory, url_id=None):
                 return cread.read_customized(usr, url_id, mode='read-default', req=request)
             elif request.path_info.endswith('read-pdf'):
                 return cread.get_archived_file(usr, url_id, mode='pdf', req=request)
-            
             elif request.path_info.endswith('read-png'):
                 return cread.get_archived_file(usr, url_id, mode='png', req=request)
             elif request.path_info.endswith('read-html'):
@@ -302,7 +305,8 @@ def navigate_directory(request, username, directory=None, tagname=None):
         if request.method == 'POST' and directory:
             form = AddURL(request.POST)
             url_name = request.POST.get('add_url', '')
-            if form.is_valid() or (url_name and url_name.startswith('md:')):
+            if (form.is_valid() or (url_name and url_name.startswith('md:'))
+                    or (url_name and url_name.startswith('note:'))):
                 row = UserSettings.objects.filter(usrid=usr)
                 dbxs.add_new_url(usr, request, directory, row)
                 add_url = 'yes'
@@ -373,7 +377,8 @@ def navigate_subdir(request, username, directory=None):
     ops = set([
         "archive", "remove", "read", "read-pdf", "read-png",
         "read-html", "read-dark", "read-light", "read-default",
-        "read-gray", "edit-bookmark", "move-bookmark"
+        "read-gray", "edit-bookmark", "move-bookmark",
+        "archived-note", "archived-note-save"
     ])
     if directory:
         link_split = directory.split('/')
@@ -413,6 +418,98 @@ def get_archived_playlist(request, username, directory, playlist_id):
     response['Content-Disposition'] = 'attachment; filename={}.m3u'.format(directory)
     response.write(bytes(pls_txt, 'utf-8'))
     return response
+
+def create_annotations(request):
+    req_body = json.loads(request.body)
+    uri = req_body.get("uri")
+    logger.debug(uri)
+    annot_file = get_annot_file(uri, request.user)
+    id_created = "0"
+    if os.path.isfile(annot_file):
+        with open(annot_file) as fl:
+            data = json.load(fl)
+        total = data.get("total")
+        index = data.get("index")
+        rows = data.get("rows")
+        id_created = str(index + 1)
+        req_body.update({"id": id_created})
+        rows.append(req_body.copy())
+        js = {"total": len(rows), "index": int(id_created), "rows":rows}
+    else:
+        req_body.update({"id": id_created})
+        js = {"total": 1, "index": int(id_created), "rows":[req_body.copy()]}
+    with open(annot_file, "w") as fl:
+        fl.write(json.dumps(js, ensure_ascii=False))
+    return HttpResponse(json.dumps(req_body))
+
+def annotation_root(request):
+    b = json.loads(request.body)
+    return HttpResponse(status=200)
+
+def get_annot_file(uri, usr):
+    url_id = uri.split('/')[-2]
+    logger.debug(url_id)
+    row = Library.objects.filter(usr=usr, id=int(url_id)).first()
+    media_path = row.media_path
+    logger.debug(media_path)
+    media_path_dir, _ = os.path.split(media_path)
+    logger.debug(media_path_dir)
+    annot_file = os.path.join(media_path_dir, "annot.json")
+    return annot_file
+
+def search_annotations(request):
+    uri = request.GET["uri"]
+    annot_file = get_annot_file(uri, request.user)
+    if not os.path.exists(annot_file):
+        return HttpResponse(json.dumps({"total":0, "index": -1}))
+    else:
+        with open(annot_file, "rb") as fl:
+            data = fl.read()
+        return HttpResponse(data)
+
+def modify_annotations(request, annot_id):
+    req_body = json.loads(request.body)
+    uri = req_body.get("uri")
+    logger.debug(uri)
+    annot_file = get_annot_file(uri, request.user)
+    if request.method == "PUT":
+        if os.path.isfile(annot_file):
+            with open(annot_file) as fl:
+                data = json.load(fl)
+            rows = data.get("rows")
+            req_index = get_annot_index(annot_id, rows)
+            if req_index is not None:
+                rows[req_index] = req_body
+            js = {"total": data.get("total"), "index": data.get("index"), "rows":rows}
+            with open(annot_file, "w") as fl:
+                fl.write(json.dumps(js, ensure_ascii=False))
+        return HttpResponse(json.dumps(req_body))
+    elif request.method == "DELETE":
+        if os.path.isfile(annot_file):
+            with open(annot_file) as fl:
+                data = json.load(fl)
+            rows = data.get("rows")
+            index = data.get("index")
+            total = data.get("total")
+            req_index = get_annot_index(annot_id, rows)
+            if req_index is not None:
+                del rows[req_index]
+            logger.info(rows)
+            js = {"total": len(rows), "index": data.get("index"), "rows":rows}
+            with open(annot_file, "w") as fl:
+                fl.write(json.dumps(js, ensure_ascii=False))
+            return HttpResponse(status=204)
+            
+
+def get_annot_index(annot_id, rows):
+    del_index = str(annot_id)
+    req_index = None
+    for counter, row in enumerate(rows):
+        if row.get("id") == del_index:
+            req_index = counter
+            logger.info("--deleting---{}".format(row))
+            break
+    return req_index
 
 @login_required
 def api_points(request, username):

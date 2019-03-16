@@ -82,7 +82,7 @@ class CustomRead:
                 mdir, _ = os.path.split(media_path)
                 filelist = os.listdir(mdir)
                 mlist = []
-                extset = set(['pdf', 'png', 'htm', 'html'])
+                extset = set(['pdf', 'png', 'htm', 'html', 'json'])
                 for fl in filelist:
                     ext = fl.rsplit('.', 1)
                     if ext and ext[-1] not in extset:
@@ -282,7 +282,7 @@ class CustomRead:
                 row.save()
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
-                if mtype in cls.mtype_list or media_path.endswith(".bin"):
+                if mtype in cls.mtype_list or media_path.endswith(".bin") or media_path.endswith(".note"):
                     if media_path.endswith(".bin"):
                         html = media_path.rsplit(".", 1)[0] + ".htm"
                         if os.path.exists(html):
@@ -290,7 +290,7 @@ class CustomRead:
                             mtype = "text/html"
                     data = cls.format_html(row, media_path,
                                            custom_html=True)
-                    if mtype == 'text/plain' or media_path.endswith(".bin"):
+                    if mtype == 'text/plain' or media_path.endswith(".bin") or media_path.endswith(".note"):
                         mtype = 'text/html'
             elif row.url:
                 data = cls.get_content(row, url_id, media_path)
@@ -299,6 +299,140 @@ class CustomRead:
         response['content-type'] = mtype
         response.write(data)
         return response
+
+    @classmethod
+    def read_customized_note(cls, usr, url_id, mode='read-note', req=None):
+        qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
+        data = b"<html>Not Available</html>"
+        mtype = 'text/html'
+        if qlist:
+            row = qlist[0]
+            media_path = row.media_path
+            if media_path and os.path.exists(media_path):
+                data = cls.format_note(row, media_path)
+                mtype = 'text/html'
+        response = HttpResponse()
+        response['mimetype'] = mtype
+        response['content-type'] = mtype
+        response.write(data)
+        return response
+
+    @classmethod
+    def save_customized_note(cls, usr, url_id, mode='read-note', req=None):
+        text = req.POST.get('edited_note', '')
+        print(text)
+        qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
+        data = b"<html>Not Available</html>"
+        mtype = 'text/html'
+        if qlist:
+            row = qlist[0]
+            media_path = row.media_path
+            if media_path and os.path.exists(media_path):
+                with open(media_path, "w") as f:
+                    f.write(text)
+                mtype = 'text/html'
+        response = HttpResponse()
+        response['mimetype'] = mtype
+        response['content-type'] = mtype
+        response.write(bytes("Saved", "utf-8"))
+        return response
+
+    @staticmethod
+    def format_note(row, media_path):
+        content = open(media_path, "r").read()
+        if row:
+            if '/' in row.directory:
+                base_dir = '{}/{}/subdir/{}/{}'.format(settings.ROOT_URL_LOCATION,
+                                                       row.usr.username, row.directory,
+                                                       row.id)
+            else:
+                base_dir = '{}/{}/{}/{}'.format(settings.ROOT_URL_LOCATION,
+                                                row.usr.username, row.directory,
+                                                row.id)
+            read_url = base_dir + '/read'
+            read_pdf = base_dir + '/read-pdf'
+            read_png = base_dir + '/read-png'
+            read_html = base_dir + '/read-html'
+        else:
+            read_url = read_pdf = read_png = read_html = '#'
+        card_bg = ''
+        card_tab = ''
+        if row.reader_mode == UserSettings.DARK:
+            card_bg = 'text-white bg-dark'
+            card_tab = 'bg-dark border-dark text-white'
+        elif row.reader_mode == UserSettings.LIGHT:
+            card_bg = 'bg-light'
+        elif row.reader_mode == UserSettings.GRAY:
+            card_bg = 'text-white bg-secondary'
+            card_tab = 'bg-secondary border-secondary text-white'
+        template = """
+        <html>
+            <head>
+                <meta charset="utf-8">
+                <title>{title}</title>
+                <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+                <link rel="stylesheet" href="/static/css/bootstrap.min.css.map">
+                <script src="/static/js/jquery-3.3.1.min.js"></script>
+                <script src="/static/js/popper.min.js"></script>
+                <script src="/static/js/bootstrap.min.js"></script>
+                <link rel="stylesheet" href="/static/css/summernote-bs4.css">
+                <script src="/static/js/summernote-bs4.js"></script>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <meta name="referrer" content="no-referrer">
+            </head>
+        <body>
+            <div class="row px-4" id="summernote"></div>
+            <div class="row px-4 py-4">
+                <button id="save" class="btn btn-primary" onclick="save()" type="button"> Save </button>
+            </div>
+            <script> $('#summernote').summernote({{placeholder: "Text..", tabsize: 10, height: 500}});
+            $("#summernote").summernote("code", `{content}`);
+            var save = function() {{
+              var markup = $('#summernote').summernote('code');
+              var formdata = new FormData;
+                formdata.append('edited_note', markup);
+                var csrftoken = getCookie('csrftoken');
+                var client = new postRequestUpload();
+                var api_link = window.location.href + '-save';
+                client.post(api_link, formdata, csrftoken, function(response) {{
+                    console.log(response);
+                }})
+            }};
+
+            function getCookie(name) {{
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {{
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {{
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {{
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }}
+                    }}
+                }}
+                return cookieValue;
+            }};
+
+            var postRequestUpload = function() {{
+                this.post = function(url, params, token, callbak) {{
+                    var http_req = new XMLHttpRequest();
+                    http_req.onreadystatechange = function() {{ 
+                        if (http_req.readyState == 4 && http_req.status == 200)
+                            {{callbak(http_req.responseText);}}
+                    }}
+                    http_req.open( "POST", url, true );
+                    http_req.setRequestHeader("X-CSRFToken", token);
+                    http_req.send(params);
+                }}
+            }};
+             </script>
+            
+        </body>
+        </html>
+        """.format(title="Notes", content=content)
+        return template
     
     @classmethod
     def get_content(cls, row, url_id, media_path):
@@ -462,6 +596,43 @@ class CustomRead:
                     </div>
                 </div>
             </div>
+        <script src="/static/js/jquery-3.3.1.min.js"></script>
+        <script src="/static/js/annotator.min.js"></script>
+        <script>
+                var pageUri = function () {{
+            return {{
+            beforeAnnotationCreated: function (ann) {{
+                ann.uri = window.location.href;
+            }}
+            }};
+            }};
+            
+                var app = new annotator.App();
+                var loc = '/annotate'
+                var csrftoken = getCookie('csrftoken');
+                app.include(annotator.ui.main, {{element: document.body}});
+                app.include(annotator.storage.http, {{prefix: loc, headers: {{"X-CSRFToken": csrftoken}} }});
+                app.include(pageUri);
+                app.start().then(function () {{
+                app.annotations.load({{uri: window.location.pathname}});
+                }});
+
+            function getCookie(name) {{
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {{
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {{
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {{
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }}
+                    }}
+                }}
+                return cookieValue;
+            }};
+        </script>
         </body>
         </html>
         """.format(title=title, content=content,

@@ -57,10 +57,16 @@ class DBAccess:
     def add_new_url(cls, usr, request, directory, row):
         url_name = request.POST.get('add_url', '')
         if url_name:
+            add_note = False
             if url_name.startswith('md:'):
                 url_name = url_name[3:].strip()
                 archive_html = True
                 media_element = True
+            elif url_name.startswith('note:'):
+                url_name = url_name[5:].strip()
+                archive_html = False
+                media_element = False
+                add_note = True
             else:
                 archive_html = False
                 media_element = False
@@ -68,16 +74,66 @@ class DBAccess:
                 settings_row = row[0]
             else:
                 settings_row = None
-            cls.process_add_url(usr, url_name,
-                                directory, archive_html, 
-                                settings_row=settings_row,
-                                media_element=media_element)
-                                
+            if add_note:
+                cls.process_add_note(usr, url_name,
+                                     directory, archive_html, 
+                                     settings_row=settings_row,
+                                     media_element=media_element,
+                                     add_note=add_note)
+            else:
+                cls.process_add_url(usr, url_name,
+                                    directory, archive_html, 
+                                    settings_row=settings_row,
+                                    media_element=media_element,
+                                    add_note=add_note)
+
+    @classmethod
+    def process_add_note(cls, usr, url_name, directory,
+                         archive_html, row=None,
+                         settings_row=None, media_path=None,
+                         media_element=False, add_note=False):
+        if row is None:
+            if settings_row and settings_row.reader_theme:
+                reader_theme = settings_row.reader_theme
+            else:
+                reader_theme = UserSettings.WHITE
+            row = Library.objects.create(usr=usr,
+                                         directory=directory,
+                                         url=None, title=url_name,
+                                         summary="Add Summary",
+                                         timestamp=timezone.now(),
+                                         media_element=media_element,
+                                         reader_mode=reader_theme,
+                                         subdir=False)
+            if '/' in directory:
+                url_ar = '{}/{}/subdir/{}/{}/archived-note'.format(settings.ROOT_URL_LOCATION,
+                                                                     usr.username, directory, row.id)
+            else:
+                url_ar = '{}/{}/{}/{}/archived-note'.format(settings.ROOT_URL_LOCATION,
+                                                            usr.username, directory, row.id)
+            row.url = url_ar
+            out_title = str(row.id) + ".note"
+            media_dir = os.path.join(settings.ARCHIVE_LOCATION, "NOTES")
+            if not os.path.exists(media_dir):
+                os.makedirs(media_dir)
+            media_path_parent = os.path.join(media_dir, str(row.id))
+            if not os.path.exists(media_path_parent):
+                os.makedirs(media_path_parent)
+            media_path = os.path.join(media_path_parent, out_title)
+            if not os.path.isfile(media_path):
+                with open(media_path, "w") as f:
+                    f.write("{}..Take notes".format(url_name))
+            row.media_path = media_path
+            row.save()
+        else:
+            logger.debug('row - exists')
+        return row.id
+    
     @classmethod
     def process_add_url(cls, usr, url_name, directory,
                         archive_html, row=None,
                         settings_row=None, media_path=None,
-                        media_element=False):
+                        media_element=False, add_note=False):
         part = partial(cls.url_fetch_completed, usr, url_name,
                        directory, archive_html, row, settings_row,
                        media_path, media_element)
@@ -495,7 +551,10 @@ class DBAccess:
             base_eu = base_dir + '/edit-url'
             read_url = base_dir + '/read'
             if media_path and os.path.exists(media_path):
-                archive_media = base_dir + '/archive'
+                if url and url.endswith("archived-note"):
+                    archive_media = url
+                else:
+                    archive_media = base_dir + '/archive'
             else:
                 archive_media = url
             netloc = urlparse(url).netloc
