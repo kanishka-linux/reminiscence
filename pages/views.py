@@ -443,7 +443,6 @@ def create_annotations(request):
     return HttpResponse(json.dumps(req_body))
 
 def annotation_root(request):
-    b = json.loads(request.body)
     return HttpResponse(status=200)
 
 def get_annot_file(uri, usr):
@@ -454,7 +453,11 @@ def get_annot_file(uri, usr):
     logger.debug(media_path)
     media_path_dir, _ = os.path.split(media_path)
     logger.debug(media_path_dir)
-    annot_file = os.path.join(media_path_dir, "annot.json")
+    mode = uri.rsplit('/', 1)[-1]
+    if mode in ["read", "read-dark", "read-light", "read-default","read-gray"]:
+        annot_file = os.path.join(media_path_dir, "annot_custom.json")
+    else:
+        annot_file = os.path.join(media_path_dir, "annot_original.json")
     return annot_file
 
 def search_annotations(request):
