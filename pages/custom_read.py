@@ -60,6 +60,41 @@ class CustomRead:
     fav_path = settings.FAVICONS_STATIC
     VIDEO_ID_DICT = OrderedDict()
     CACHE_FILE = os.path.join(settings.TMP_LOCATION, 'cache')
+    ANNOTATION_SCRIPT = """
+                var pageUri = function () {
+            return {
+            beforeAnnotationCreated: function (ann) {
+                ann.uri = window.location.href;
+            }
+            };
+            };
+            
+                var app = new annotator.App();
+                var loc = '/annotate'
+                var csrftoken = getCookie('csrftoken');
+                app.include(annotator.ui.main, {element: document.body});
+                app.include(annotator.storage.http, {prefix: loc, headers: {"X-CSRFToken": csrftoken} });
+                app.include(pageUri);
+                app.start().then(function () {
+                app.annotations.load({uri: window.location.pathname});
+                });
+
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            };
+    """
     
     @classmethod
     def get_archived_file(cls, usr, url_id, mode='html', req=None, return_path=False):
@@ -457,7 +492,7 @@ class CustomRead:
                     cls.get_favicon_link(req.html, row.url,
                                          final_favicon_path)
         return data
-                    
+    
     @classmethod
     def format_html(cls, row, media_path, content=None, custom_html=False):
         media_dir, file_path = os.path.split(media_path)
@@ -527,11 +562,19 @@ class CustomRead:
             else:
                 data = cls.custom_soup(ndata, title, row)
         else:
+            new_tag = soup.new_tag("script", src="/static/js/jquery-3.3.1.min.js")
+            soup.find("body").append(new_tag)
+            new_tag = soup.new_tag("script", src="/static/js/annotator.min.js")
+            soup.find("body").append(new_tag)
+            new_tag = soup.new_tag("script")
+            new_tag.append(cls.ANNOTATION_SCRIPT)
+            soup.find("body").append(new_tag)
             data = soup.prettify()
         return bytes(data, 'utf-8')
         
-    @staticmethod
-    def custom_template(title, content, row):
+    
+    @classmethod
+    def custom_template(cls, title, content, row):
         if row:
             if '/' in row.directory:
                 base_dir = '{}/{}/subdir/{}/{}'.format(settings.ROOT_URL_LOCATION,
@@ -598,47 +641,14 @@ class CustomRead:
             </div>
         <script src="/static/js/jquery-3.3.1.min.js"></script>
         <script src="/static/js/annotator.min.js"></script>
-        <script>
-                var pageUri = function () {{
-            return {{
-            beforeAnnotationCreated: function (ann) {{
-                ann.uri = window.location.href;
-            }}
-            }};
-            }};
-            
-                var app = new annotator.App();
-                var loc = '/annotate'
-                var csrftoken = getCookie('csrftoken');
-                app.include(annotator.ui.main, {{element: document.body}});
-                app.include(annotator.storage.http, {{prefix: loc, headers: {{"X-CSRFToken": csrftoken}} }});
-                app.include(pageUri);
-                app.start().then(function () {{
-                app.annotations.load({{uri: window.location.pathname}});
-                }});
-
-            function getCookie(name) {{
-                var cookieValue = null;
-                if (document.cookie && document.cookie !== '') {{
-                    var cookies = document.cookie.split(';');
-                    for (var i = 0; i < cookies.length; i++) {{
-                        var cookie = jQuery.trim(cookies[i]);
-                        // Does this cookie string begin with the name we want?
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {{
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }}
-                    }}
-                }}
-                return cookieValue;
-            }};
-        </script>
+        <script>{annot_script}</script>
         </body>
         </html>
         """.format(title=title, content=content,
                    read_url=read_url, read_pdf=read_pdf,
                    read_png=read_png, read_html=read_html,
-                   card_bg=card_bg, card_tab=card_tab)
+                   card_bg=card_bg, card_tab=card_tab,
+                   annot_script=cls.ANNOTATION_SCRIPT)
         return template
 
     @classmethod
