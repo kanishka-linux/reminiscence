@@ -98,7 +98,7 @@ def rename_operation(request, username, directory):
                 form.clean_and_rename(usr, directory)
             else:
                 logger.debug('invalid values {}'.format(request.POST))
-            return redirect('home')
+            return redirect(request.path_info.rsplit("/", 2)[0])
         else:
             form = RenameDir()
             if '/' in directory:
@@ -131,7 +131,7 @@ def remove_operation(request, username, directory):
                 form.check_and_remove_dir(usr, directory)
             else:
                 logger.debug('invalid values {}'.format(request.POST))
-            return redirect('home')
+            return redirect(request.path_info.rsplit("/", 2)[0])
         else:
             form = RemoveDir()
             if '/' in directory:
@@ -383,8 +383,11 @@ def navigate_subdir(request, username, directory=None):
     if directory:
         link_split = directory.split('/')
         op = link_split[-1]
-        link_id = link_split[-2]
-        if op in ops and link_id.isnumeric():
+        if len(link_split) >= 2:
+            link_id = link_split[-2]
+        else:
+            link_id = None
+        if op in ops and link_id and link_id.isnumeric():
             return perform_link_operation(request, username, directory, int(link_id))
         elif op == "remove":
             dirn, _ = directory.rsplit('/', 1)

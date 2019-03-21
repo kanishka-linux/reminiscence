@@ -77,7 +77,7 @@ class RenameDir(forms.Form):
         if ren_dir and ren_dir != directory:
             ren_dir = re.sub(r'/|:|#|\?|\\\\|\%', '-', ren_dir)
             if '/' in directory:
-                dbxs.remove_subdirectory_link(usr, directory)
+                dbxs.remove_subdirectory_link(usr, directory, ren_dir)
                 pdir, _ = directory.rsplit('/', 1)
                 ren_dir = pdir + '/' + ren_dir
             Library.objects.filter(usr=usr, directory=directory).update(directory=ren_dir)

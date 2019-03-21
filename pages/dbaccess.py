@@ -729,13 +729,16 @@ class DBAccess:
         return msg
     
     @staticmethod
-    def remove_subdirectory_link(usr, dirname):
+    def remove_subdirectory_link(usr, dirname, ren_dir=None):
         pdir, cdir = dirname.rsplit('/', 1)
         qlist = Library.objects.filter(usr=usr, directory=pdir, url__isnull=True).first()
         if qlist and qlist.subdir:
             subdir_list = qlist.subdir.split('/') 
             if cdir in subdir_list:
-                del subdir_list[subdir_list.index(cdir)]
+                if ren_dir is not None:
+                    subdir_list[subdir_list.index(cdir)] = ren_dir
+                else:
+                    del subdir_list[subdir_list.index(cdir)]
                 logger.debug(subdir_list)
                 qlist.subdir = '/'.join(subdir_list)
                 qlist.save()
