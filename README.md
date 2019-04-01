@@ -24,6 +24,8 @@ Table of Contents
     * [Generating PDF and Full-Page Screenshot](#generating-pdf-and-png)
 
     * [Archiving Media Elements](#archiving-media-elements)
+
+    * [Annotation feature](#annotation-feature)
     
     * [Public, Private and Group Directories](#public-private-group-directories)
     
@@ -71,13 +73,17 @@ Table of Contents
 
 * Supports public and group directory for every user.
 
-* Upload any file from web-interface for archieving.
+* Upload any file from web-interface for archiving.
 
 * Easy to use admin interface for managing multiple users.
 
 * Import bookmarks from Netscape Bookmark HTML file format.
 
 * Supports streaming of archived media elements.
+
+* Annotation support for both HTML and its readable version.
+
+* Rudimentary support for adding custom note.
 
 
 # Installation
@@ -255,7 +261,7 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
 
 **Note:** This feature is available from v0.2+ onwards
 
-1. In settings.py file add your favourite download manager to DOWNLOAD_MANAGERS_ALLOWED list. Default are curl and wget. In case of docker based method users have to make corresponding changes in dockersettings.py file.
+1. In settings.py file add your favourite download manager to DOWNLOAD_MANAGERS_ALLOWED list. Default are curl and wget. In case of docker based method users have to make corresponding changes in dockersettings.py file. For large arbitrary files with direct download links, curl and wget are good enough. For complex use cases users will need something like youtube-dl, which they have to install and manage on their own and needs to be added to the DOWNLOAD_MANAGERS_ALLOWED list.  
 
 2. open web-interface settings box and add command to Download Manager Field:
     
@@ -263,6 +269,10 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
     
         iurl -> input url
         output -> output path
+
+        OR
+
+        ex: youtube-dl {iurl} -o {output}
     
 3. Users should not substitute anything for {iurl} and {output} field, they should be kept as it is. In short, users should just write regular command with parameters and leave the {iurl} and {output} field untouched. (Note: do not even remove curly brackets).
     
@@ -282,13 +292,31 @@ In future, I'll try to provide a way to choose between different backends (i.e. 
 
         ex=> md:https://some-website-with-media-link.org/media-link
 
-        Every entry added by this way will be treated as containing media.
+        Every entry added by this way will be treated as containing media
+
+        or single arbitrary file with direct download link.
 
 9. Archived files are normally saved in **archive** folder. Users can change location of this folder via settings.py file. Users should note that in order to archive media files, the **archive** location should not contain any space.
 e.g. archive location '/home/user/my downloads/archive' is not allowed. However location without space '/home/user/my_downloads/archive' is allowed.
 
-10. By default, archived media links are not shared with anyone. However, users can create public links for some fixed time. Once a public link has been created, it will remain valid for 24 hours. Users can change this value by changing value of VIDEO_ID_EXPIRY_LIMIT in settings.py. These public links are also useful for playing non-HTML5 compliant archived media on regular media players like mpv/mplayer/vlc etc..It is also possible to generate a playlist in m3u format for a directory containing media links, which can be played by any popular media player. 
+10. By default, archived media links are not shared with anyone. However, users can create public links for some fixed time. Once a public link has been created, it will remain valid for 24 hours. Users can change this value by changing value of VIDEO_ID_EXPIRY_LIMIT in settings.py. These public links are also useful for playing non-HTML5 compliant archived media on regular media players like mpv/mplayer/vlc etc..It is also possible to generate a playlist in m3u format for a directory containing media links, which can be played by any popular media player.
 
+## Annotation Feature
+
+This is the latest feature and available from v0.3+ onwards. Users can annotate archived HTML page as it is as well as its readable version.
+This feature allows addition, deletion and modification of annotation.
+
+## Note Taking
+
+From v0.3 onwards, users can add arbitrary note to their collection. Support for note taking is rudimentary and provides note taking using simple WYSIWYG editor.
+
+For adding note use following command in the input url box:
+
+        note:New note
+
+        above command will create *New note* in the current folder
+
+        
 ## Public-Private-Group directories
 
 By default, all directories and all links are private and are not shared with anyone. However, users can select one public directory and one group directory from all available directories for sharing links. User can set public and group directory via settings. Links placed in public directory will be available for public viewing and links placed in group directory will be available for pre-determined list of users selected by account holder.
