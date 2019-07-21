@@ -391,6 +391,7 @@ class CustomRead:
                     back_url = req.path_info.rsplit("/", 2)[0]
                     mtype = "text/html"
                     data = bytes("hello world", "utf-8")
+                    row_url = req.path_info.rsplit('/', 1)[0] + '/archive'
                     html = """
                     <!DOCTYPE html>
                     <html>
@@ -592,7 +593,7 @@ class CustomRead:
                             
                       </script>
                     </body>
-                    </html>""".format(back_url=back_url, row_url=row.url, url_id=url_id, epub_cfi=epub_cfi)
+                    </html>""".format(back_url=back_url, row_url=row_url, url_id=url_id, epub_cfi=epub_cfi)
                     data = bytes(html, "utf-8")
             elif row.url:
                 data = cls.get_content(row, url_id, media_path)

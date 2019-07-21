@@ -42,6 +42,7 @@ urlpatterns = [
     url(r'^(?P<username>[\w\d.@+-]+)/?$', dashboard, name='home_page'),
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/epub-bookmark/(?P<epub_loc>[\d]+\/(epubcfi)(.?)*)', navigate_directory, name='navigate_directory_epub'),
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_directory'),
+    url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<opt>(META-INF|OEBPS))/(?P<meta_path>(.?)*)', perform_epub_operation, name='nav_subdir_epub'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/epub-bookmark/(?P<epub_loc>[\d]+\/(epubcfi)(.?)*)', navigate_subdir, name='navigate_subdir_epub'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)$', navigate_subdir, name='navigate_subdir'),
     url(r'^(?P<username>[\w\d.@+-]+)/tag/(?P<tagname>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_tag'),
@@ -66,6 +67,7 @@ urlpatterns = [
     path('<username>/<str:directory>/<int:url_id>/read-html', perform_link_operation, name='read_html'),
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources'),
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/(?P<url_id>[\d]+)/(?P<opt>(META-INF|OEBPS))/(?P<meta_path>(.?)*)', perform_epub_operation, name='epub_meta'),
+    
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources_subdir'),
     path('<username>/<str:directory>/<int:url_id>/edit-bookmark', perform_link_operation, name='edit_bookmark'),
     path('<username>/<str:directory>/<int:url_id>/move-bookmark', perform_link_operation, name='move_bookmark'),
