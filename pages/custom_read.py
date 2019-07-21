@@ -24,6 +24,8 @@ import hashlib
 import time
 import uuid
 import pickle
+import subprocess
+from zipfile import ZipFile
 from urllib.parse import urlparse, quote
 from mimetypes import guess_type
 from collections import OrderedDict
@@ -296,6 +298,34 @@ class CustomRead:
                                                             usr.username, directory, uid)
         logger.debug(pls_path)
         return pls_path
+
+    @classmethod
+    def read_epub(cls, usr, url_id, mode, req, rel_path):
+        qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
+        data = b"<html>Not Available</html>"
+        mtype = 'text/html'
+        if qlist:
+            row = qlist[0]
+            media_path = row.media_path
+            media_dir, media_file_with_ext = os.path.split(media_path)
+            media_file_without_ext = media_file_with_ext.rsplit('.', 1)[0]
+            media_epub = "{}/EPUBDIR/{}".format(media_dir, rel_path)
+            if os.path.exists(media_epub):
+                mtype = guess_type(media_epub)[0]
+                if mtype in cls.mtype_list:
+                    content = open(media_epub, "r").read()
+                    data = bytes(content, "utf-8")
+                    response = HttpResponse()
+                    response['mimetype'] = mtype
+                    response['content-type'] = mtype
+                    response.write(data)
+                else:
+                    response = FileResponse(open(media_epub, 'rb'))
+                    response['content-type'] = mtype
+                    response['content-length'] = os.stat(media_epub).st_size
+            else:
+                response = HttpResponse("Something is wrong with the EPUB")
+        return response
         
     @classmethod
     def read_customized(cls, usr, url_id, mode='read', req=None):
@@ -327,6 +357,243 @@ class CustomRead:
                                            custom_html=True)
                     if mtype == 'text/plain' or media_path.endswith(".bin") or media_path.endswith(".note"):
                         mtype = 'text/html'
+                elif media_path.endswith(".pdf"):
+                    media_dir, media_file_with_ext = os.path.split(media_path)
+                    media_file_without_ext = media_file_with_ext.rsplit('.', 1)[0]
+                    media_html = "{}/{}.html".format(media_dir, media_file_without_ext)
+                    if not os.path.exists(media_html):
+                        if os.name == "posix":
+                            subprocess.call(["pdf2htmlEX", "--dest-dir", media_dir, "--zoom", "1.5", media_path])
+                        else:
+                            subprocess.call(["pdf2htmlEX", "--dest-dir", media_dir, "--zoom", "1.5", media_path], shell=True)
+                    if os.path.exists(media_html):
+                        mtype = "text/html"
+                        with open(media_html, encoding='utf-8', mode='r') as fd:
+                            content = fd.read()
+                        src = '<script src="/static/js/jquery-3.3.1.min.js"></script></body>'
+                        content = re.sub("</body>", src, content)
+                        src = '<script src="/static/js/annotator.min.js"></script></body>'
+                        content = re.sub("</body>", src, content)
+                        src = '<script>{}</script></body>'.format(cls.ANNOTATION_SCRIPT)
+                        content = re.sub("</body>", src, content)
+                        data = bytes(content, "utf-8")
+                elif media_path.endswith(".epub"):
+                    media_dir, media_file_with_ext = os.path.split(media_path)
+                    media_file_without_ext = media_file_with_ext.rsplit('.', 1)[0]
+                    media_epub = "{}/EPUBDIR".format(media_dir)
+                    epub_loc = os.path.join(media_dir, "epub_loc.txt")
+                    epub_cfi = ""
+                    if os.path.exists(epub_loc):
+                        epub_cfi = open(epub_loc, "r").read()
+                    if not os.path.exists(media_epub):
+                        with ZipFile(media_path, "r") as zp:
+                            zp.extractall(media_epub)
+                    back_url = req.path_info.rsplit("/", 2)[0]
+                    mtype = "text/html"
+                    data = bytes("hello world", "utf-8")
+                    html = """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1">
+                      <script src="/static/js/epub.min.js"></script>
+                      <script src="/static/js/jquery-3.3.1.min.js"></script>
+                      <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+                    </head>
+                    <body>
+                      <div class="container">
+                          <div class="row">
+                            <select id="toc" class="browser-default custom-select col-sm-4"></select>
+                          </div>
+                      </div>
+                      <div id="viewer" class="spreads"></div>
+                      <div class="container">
+                          <div class="row">
+                            <button id="next" class="col-sm-1 btn btn-sm">Next</button>
+                            <button id="pages" class="col-sm-1 btn btn-sm"></button>
+                            <button id="prev" class="col-sm-1 btn btn-sm">Prev</button>
+                            <a href="{back_url}" id="backlink" class="btn btn-info btn-sm col-sm-1" role="button">Back</a>
+                            
+                          </div>
+                      </div>
+                      <script>
+                        var book = ePub("{row_url}");
+                        var rendition = book.renderTo("viewer", {{
+                          width: "100%",
+                          height: "100%",
+                          method: "default",
+                          flow: "paginated"
+                        }});
+                        var epub_cfi = "{epub_cfi}";
+                        if (epub_cfi == ""){{
+                            var displayed = rendition.display().then(function(){{
+                                window.location.href = generateURL(rendition);
+                                }});
+                        }}else {{
+                            var displayed = rendition.display(epub_cfi).then(function(){{
+                                window.location.href = generateURL(rendition);
+                            }});
+                        }}
+                            var next = document.getElementById("next");
+                            next.addEventListener("click", function(){{
+                              navigate("next");
+                            }}, false);
+                            var prev = document.getElementById("prev");
+                            var toc_elem = document.getElementById("toc");
+                            var bak_link = document.getElementById("backlink");
+                            prev.addEventListener("click", function(){{
+                              navigate("prev");
+                            }}, false);
+                            var keyListener = function(e){{
+                              // Left Key
+                              if ((e.keyCode || e.which) == 37) {{
+                                navigate("prev");
+                              }}
+                              // Right Key
+                              if ((e.keyCode || e.which) == 39) {{
+                                navigate("next");
+                              }}
+                            }};
+                            rendition.on("keyup", keyListener);
+                            document.addEventListener("keyup", keyListener, false);
+
+                            function navigate(val){{
+                                if(val == "prev"){{
+                                    rendition.prev().then(function(){{
+                                    let x = rendition.currentLocation()
+                                    hd = window.location.href.split("#")[0];
+                                    cfi = x.start.href;
+                                    elem = document.getElementById("pages");
+                                    elem.innerHTML = x.start.displayed.page + "/" + x.start.displayed.total;
+                                    window.location.href = hd + "#" + cfi;
+                                    document.documentElement.scrollTop = 0;
+                                    bak_link.href = bak_link.href.split("/epub-bookmark/")[0];
+                                    bak_link.href = bak_link.href + "/epub-bookmark/{url_id}" + "/" + x.start.cfi; 
+                                    }});
+                                }}else if(val == "next"){{
+                                    rendition.next().then(function(){{;
+                                    let x = rendition.currentLocation();
+                                    cfi = x.start.href;
+                                    hd = window.location.href.split("#")[0];
+                                    elem = document.getElementById("pages");
+                                    elem.innerHTML = x.start.displayed.page + "/" + x.start.displayed.total;
+                                    window.location.href = hd + "#" + cfi;
+                                    document.documentElement.scrollTop = 0;
+                                    selectIndex(cfi);
+                                    bak_link.href = bak_link.href.split("/epub-bookmark/")[0];
+                                    bak_link.href = bak_link.href + "/epub-bookmark/{url_id}" + "/" + x.start.cfi; 
+                                    }})
+                                }};
+                            }};
+
+                            function generateURL(rendition){{
+                                let x = rendition.currentLocation()
+                                hd = window.location.href.split("#")[0];
+                                cfi = x.start.href;
+                                url = hd + "#" + cfi;
+                                return url;
+                            }}
+
+                            function selectIndex(cfi){{
+                                index = toc_elem.selectedIndex;
+                                if (index != undefined){{
+                                    let url = toc_elem.options[index].ref.split("#")[0];
+                                    if(url != cfi){{
+                                        let elems  = toc_elem.options;
+                                        for(var i=0; i<elems.length; i++){{
+                                            let u = elems[i].ref.split("#")[0];
+                                            if(cfi == u){{
+                                                toc_elem.selectedIndex = i;
+                                                break;
+                                            }}
+                                        }}
+                                    }}
+                                }}
+                            }}
+                            
+                            book.loaded.navigation.then(function(toc){{
+                                console.log(toc);
+                                var $select = document.getElementById("toc"),
+                                        docfrag = document.createDocumentFragment();
+                                toc.forEach(function(chapter) {{
+                                    console.log(chapter);
+                                    var option = document.createElement("option");
+                                    option.textContent = chapter.label;
+                                    option.ref = chapter.href;
+                                    docfrag.appendChild(option);
+                                }});
+                                $select.appendChild(docfrag);
+                                $select.onchange = function(){{
+                                        var index = $select.selectedIndex,
+                                        url = $select.options[index].ref;
+                                        rendition.display(url);
+                                        return false;
+                                }};
+                            }});
+                            
+                            
+                            rendition.hooks.content.register(function (view) {{
+                                      var adder = [
+                                        ['.annotator-adder, .annotator-outer', ['position', 'fixed']]
+                                        ];
+                                          view.addScript("/static/js/annotator.min.js").
+                                            then(function (){{
+                                                        var pageUri = function () {{
+                                                return {{
+                                                beforeAnnotationCreated: function (ann) {{
+                                                    //ann.uri = window.location.href;
+                                                    z = window.location.href.split("#");
+                                                    final_url = window.location.pathname;
+                                                    
+                                                    if (z.length == 2){{
+                                                        final_url = final_url + "#" + z[1];
+                                                        }}
+                                                    ann.uri = final_url;
+                                                }}
+                                                }};
+                                                }};
+                                                
+                                                    var app = new view.window.annotator.App();
+                                                    var loc = '/annotate'
+                                                    var csrftoken = getCookie('csrftoken');
+                                                    app.include(view.window.annotator.ui.main, {{element: view.document.body}});
+                                                    app.include(view.window.annotator.storage.http, {{prefix: loc, headers: {{"X-CSRFToken": csrftoken}} }});
+                                                    app.include(pageUri);
+                                                    app.start().then(function () {{
+                                                    z = window.location.href.split("#");
+                                                    final_url = window.location.pathname;
+                                                    
+                                                    if (z.length == 2){{
+                                                        final_url = final_url + "#" + z[1];
+                                                        }}
+                                                    app.annotations.load({{uri: final_url}});
+                                                    }});
+
+                                                function getCookie(name) {{
+                                                    var cookieValue = null;
+                                                    if (document.cookie && document.cookie !== '') {{
+                                                        var cookies = document.cookie.split(';');
+                                                        for (var i = 0; i < cookies.length; i++) {{
+                                                            var cookie = jQuery.trim(cookies[i]);
+                                                            // Does this cookie string begin with the name we want?
+                                                            if (cookie.substring(0, name.length + 1) === (name + '=')) {{
+                                                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                                                break;
+                                                            }}
+                                                        }}
+                                                    }}
+                                                    return cookieValue;
+                                                }};
+
+                                                          
+                                            }})
+                            }})
+                            
+                      </script>
+                    </body>
+                    </html>""".format(back_url=back_url, row_url=row.url, url_id=url_id, epub_cfi=epub_cfi)
+                    data = bytes(html, "utf-8")
             elif row.url:
                 data = cls.get_content(row, url_id, media_path)
         response = HttpResponse()
@@ -355,7 +622,6 @@ class CustomRead:
     @classmethod
     def save_customized_note(cls, usr, url_id, mode='read-note', req=None):
         text = req.POST.get('edited_note', '')
-        print(text)
         qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
         data = b"<html>Not Available</html>"
         mtype = 'text/html'

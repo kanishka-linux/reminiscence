@@ -31,6 +31,7 @@ from datetime import datetime, timedelta
 from mimetypes import guess_extension, guess_type
 from collections import Counter
 from django.utils import timezone
+from django.utils.text import slugify
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, FileResponse, StreamingHttpResponse
 from django.views import View
@@ -178,6 +179,15 @@ def get_resources(request, username, directory, url_id):
     return HttpResponse('Not Found')
 
 @login_required
+def perform_epub_operation(request, username, directory, url_id=None, opt=None, meta_path=None):
+    usr = request.user
+    logger.info(request.path_info)
+    if username and usr.username != username:
+        return HttpResponse('Not Allowed')
+    elif directory and url_id:
+        return cread.read_epub(usr, url_id, mode='read-epub-meta', req=request, rel_path=opt+"/"+meta_path)
+
+@login_required
 def perform_link_operation(request, username, directory, url_id=None):
     usr = request.user
     logger.info(request.path_info)
@@ -291,9 +301,22 @@ def group_profile(request, username):
                                 }
                             )
     return HttpResponse('No Group Profile Available')
+
+def record_epub_loc(request, epub_loc):
+    path_info, epub_url_cfi = request.path_info.split("/epub-bookmark/", 1)
+    url_id, cfi = epub_loc.split("/", 1)
+    row = Library.objects.filter(usr=request.user, id=int(url_id)).first()
+    media_path = row.media_path
+    logger.debug(media_path)
+    media_path_dir, _ = os.path.split(media_path)
+    epub_loc = os.path.join(media_path_dir, "epub_loc.txt")
+    with open(epub_loc, 'w') as f:
+        f.write(cfi)
+    return redirect(path_info)
     
 @login_required
-def navigate_directory(request, username, directory=None, tagname=None):
+def navigate_directory(request, username, directory=None, tagname=None, epub_loc=None):
+    
     usr = request.user
     base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
     usr_list = []
@@ -301,6 +324,9 @@ def navigate_directory(request, username, directory=None, tagname=None):
         return redirect(settings.ROOT_URL_LOCATION+'/'+usr.username)
     add_url = 'no'
     if directory or tagname:
+        if epub_loc:
+            return record_epub_loc(request, epub_loc)
+            
         place_holder = 'Enter URL'
         if request.method == 'POST' and directory:
             form = AddURL(request.POST)
@@ -358,7 +384,6 @@ def navigate_directory(request, username, directory=None, tagname=None):
                     dir_list.append(("",j, nbase))
         else:
             dir_list.append(("active", directory, base_dir))
-        print(dir_list)
         api_url = '{}/{}/api/request'.format(settings.ROOT_URL_LOCATION, username)
         return render(
                     request, 'home_dir.html',
@@ -373,7 +398,7 @@ def navigate_directory(request, username, directory=None, tagname=None):
         return redirect('home')
         
 @login_required
-def navigate_subdir(request, username, directory=None):
+def navigate_subdir(request, username, directory=None, epub_loc=None):
     ops = set([
         "archive", "remove", "read", "read-pdf", "read-png",
         "read-html", "read-dark", "read-light", "read-default",
@@ -381,6 +406,8 @@ def navigate_subdir(request, username, directory=None):
         "archived-note", "archived-note-save"
     ])
     if directory:
+        if epub_loc:
+            return record_epub_loc(request, epub_loc)
         link_split = directory.split('/')
         op = link_split[-1]
         if len(link_split) >= 2:
@@ -449,6 +476,10 @@ def annotation_root(request):
     return HttpResponse(status=200)
 
 def get_annot_file(uri, usr):
+    url = uri
+    offset = None
+    if "#" in uri:
+        uri, offset = uri.split("#")
     url_id = uri.split('/')[-2]
     logger.debug(url_id)
     row = Library.objects.filter(usr=usr, id=int(url_id)).first()
@@ -457,10 +488,17 @@ def get_annot_file(uri, usr):
     media_path_dir, _ = os.path.split(media_path)
     logger.debug(media_path_dir)
     mode = uri.rsplit('/', 1)[-1]
-    if mode in ["read", "read-dark", "read-light", "read-default","read-gray"]:
-        annot_file = os.path.join(media_path_dir, "annot_custom.json")
+    slug = None
+    if offset:
+        slug = slugify(offset, allow_unicode=True)
+        slug = slug.replace("-", "_")
+    if slug:
+        annot_file = os.path.join(media_path_dir, "annot_custom_{}.json".format(slug))
     else:
-        annot_file = os.path.join(media_path_dir, "annot_original.json")
+        if mode in ["read", "read-dark", "read-light", "read-default","read-gray"]:
+            annot_file = os.path.join(media_path_dir, "annot_custom.json")
+        else:
+            annot_file = os.path.join(media_path_dir, "annot_original.json")
     return annot_file
 
 def search_annotations(request):
