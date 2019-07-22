@@ -122,7 +122,7 @@ class CustomRead:
                 extset = set(['pdf', 'png', 'htm', 'html', 'json'])
                 for fl in filelist:
                     ext = fl.rsplit('.', 1)
-                    if ext and ext[-1] not in extset:
+                    if ext and ext[-1] not in extset and not fl.startswith("."):
                         mlist.append(os.path.join(mdir, fl))
                 for mfile in mlist:
                     if os.path.isfile(mfile) and os.stat(mfile).st_size:
@@ -326,6 +326,23 @@ class CustomRead:
             else:
                 response = HttpResponse("Something is wrong with the EPUB")
         return response
+
+    @staticmethod
+    def read_content(media_html):
+        content = bytes("Empty", "utf-8")
+        try:
+            with open(media_html, encoding='utf-8', mode='r') as fd:
+                content = fd.read()
+        except Exception as err:
+            logger.error(err)
+            try:
+                with open(media_html, encoding='ISO-8859-1', mode='r') as fd:
+                    content = fd.read()
+            except Exception as err:
+                logger.error(err)
+                with open(media_html, encoding='utf-8', mode='r', errors='ignore') as fd:
+                    content = fd.read()
+        return content
         
     @classmethod
     def read_customized(cls, usr, url_id, mode='read', req=None):
@@ -362,16 +379,26 @@ class CustomRead:
                     media_file_without_ext = media_file_with_ext.rsplit('.', 1)[0]
                     media_html = "{}/{}.html".format(media_dir, media_file_without_ext)
                     if not os.path.exists(media_html):
-                        if os.name == "posix":
-                            subprocess.call(["pdf2htmlEX", "--dest-dir", media_dir, "--zoom", "1.5", media_path])
+                        if hasattr(settings, "PDF_TO_HTML_CONVERTER"):
+                            converter = settings.PDF_TO_HTML_CONVERTER
                         else:
-                            subprocess.call(["pdf2htmlEX", "--dest-dir", media_dir, "--zoom", "1.5", media_path], shell=True)
-                    if os.path.exists(media_html):
+                            converter = "pdftohtml"
+                        if converter == "pdf2htmlEX":
+                            cmd = ["pdf2htmlEX", "--dest-dir", media_dir, "--zoom", "1.5", media_path]
+                        elif converter == "pdftohtml":
+                            cmd = ["pdftohtml", "-p", "-c", "-noframes", "-zoom", "1.5", media_path, media_html]
+                        if os.name == "posix":
+                            subprocess.Popen(cmd)
+                        else:
+                            subprocess.Popen(cmd, shell=True)
                         mtype = "text/html"
-                        with open(media_html, encoding='utf-8', mode='r') as fd:
-                            content = fd.read()
+                        data = bytes("<html>Wait for few seconds, pdf is being processed. Refresh page after 5-10 seconds</html>", "utf-8")
+                    else:
+                        mtype = "text/html"
+                        content = cls.read_content(media_html)
                         src = '<script src="/static/js/jquery-3.3.1.min.js"></script></body>'
-                        content = re.sub("</body>", src, content)
+                        content = re.sub("&#160;|[ ]+", " ", content)
+                        content = re.sub("</body>|</BODY>", src, content)
                         src = '<script src="/static/js/annotator.min.js"></script></body>'
                         content = re.sub("</body>", src, content)
                         src = '<script>{}</script></body>'.format(cls.ANNOTATION_SCRIPT)
