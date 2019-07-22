@@ -430,19 +430,17 @@ class CustomRead:
                       <link rel="stylesheet" href="/static/css/bootstrap.min.css">
                     </head>
                     <body>
-                      <div class="container">
+                    <div id="viewer" class="spreads"></div>
+                      <div id="reader" class="container">
+                        
                           <div class="row">
-                            <select id="toc" class="browser-default custom-select col-sm-4"></select>
+                            <button id="prev" class="col-sm-3 btn btn-sm">Prev</button>
+                            <button id="pages" class="col-sm-3 btn btn-sm"></button>
+                            <button id="next" class="col-sm-3 btn btn-sm">Next</button>
+                            <a href="{back_url}" id="backlink" class="btn btn-info btn-sm col-sm-3" role="button">Back</a>
                           </div>
-                      </div>
-                      <div id="viewer" class="spreads"></div>
-                      <div class="container">
                           <div class="row">
-                            <button id="next" class="col-sm-1 btn btn-sm">Next</button>
-                            <button id="pages" class="col-sm-1 btn btn-sm"></button>
-                            <button id="prev" class="col-sm-1 btn btn-sm">Prev</button>
-                            <a href="{back_url}" id="backlink" class="btn btn-info btn-sm col-sm-1" role="button">Back</a>
-                            
+                          <select id="toc" class="browser-default custom-select col-sm-12 text-center">TOC</select>
                           </div>
                       </div>
                       <script>
@@ -485,7 +483,7 @@ class CustomRead:
                             }};
                             rendition.on("keyup", keyListener);
                             document.addEventListener("keyup", keyListener, false);
-
+                            
                             function navigate(val){{
                                 if(val == "prev"){{
                                     rendition.prev().then(function(){{
@@ -561,6 +559,7 @@ class CustomRead:
                             }});
                             
                             
+                            
                             rendition.hooks.content.register(function (view) {{
                                       var adder = [
                                         ['.annotator-adder, .annotator-outer', ['position', 'fixed']]
@@ -596,6 +595,50 @@ class CustomRead:
                                                         final_url = final_url + "#" + z[1];
                                                         }}
                                                     app.annotations.load({{uri: final_url}});
+                                                    
+                                                    //https://stackoverflow.com/questions/2264072/detect-a-finger-swipe-through-javascript-on-the-iphone-and-android
+                                                    
+                                                    view.document.body.addEventListener('touchstart', handleTouchStart, false);        
+                                                    view.document.body.addEventListener('touchmove', handleTouchMove, false);
+
+                                                    var xDown = null;                                                        
+                                                    var yDown = null;                                                        
+
+                                                    function handleTouchStart(evt) {{                                         
+                                                        xDown = evt.touches[0].clientX;                                      
+                                                        yDown = evt.touches[0].clientY;   
+                                                    }};                                                
+
+                                                    function handleTouchMove(evt) {{
+                                                        if ( ! xDown || ! yDown ) {{
+                                                            return;
+                                                        }}
+
+                                                        var xUp = evt.touches[0].clientX;                                    
+                                                        var yUp = evt.touches[0].clientY;
+
+                                                        var xDiff = xDown - xUp;
+                                                        var yDiff = yDown - yUp;
+
+                                                        if ( Math.abs( xDiff ) > Math.abs( yDiff ) ) {{/*most significant*/
+                                                            if ( xDiff > 0 ) {{
+                                                                next.click();
+                                                            }} else {{
+                                                                prev.click(); 
+                                                            }}                       
+                                                        }} else {{
+                                                            if ( yDiff > 0 ) {{
+                                                                /* up swipe */ 
+                                                            }} else {{ 
+                                                                /* down swipe */
+                                                            }}                                                                 
+                                                        }}
+                                                        /* reset values */
+                                                        xDown = null;
+                                                        yDown = null;                                             
+                                                    }};
+                                                    
+                                                    
                                                     }});
 
                                                 function getCookie(name) {{
