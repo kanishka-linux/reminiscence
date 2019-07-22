@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_directory'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<opt>(META-INF|OEBPS))/(?P<meta_path>(.?)*)', perform_epub_operation, name='nav_subdir_epub'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/epub-bookmark/(?P<epub_loc>[\d]+\/(epubcfi)(.?)*)', navigate_subdir, name='navigate_subdir_epub'),
+    url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<rel_path>(.?)*\.(png|jpeg|jpg))', get_relative_resources, name='nav_subdir_resources'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)$', navigate_subdir, name='navigate_subdir'),
     url(r'^(?P<username>[\w\d.@+-]+)/tag/(?P<tagname>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_tag'),
     path('<username>/api/request', api_points, name='api_points'),
@@ -74,7 +75,8 @@ urlpatterns = [
     url('^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/move-bookmark-multiple$', perform_link_operation, name='move_bookmark_multiple'),
     url('^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/archive-bookmark-multiple$', perform_link_operation, name='archive_bookmark_multiple'),
     url('^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/merge-bookmark-with$', perform_link_operation, name='merge_bookmark_with'),
-    url('^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/edit-tags-multiple$', perform_link_operation, name='edit_tags_multiple')
+    url('^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/edit-tags-multiple$', perform_link_operation, name='edit_tags_multiple'),
+    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<rel_path>(.?)*)', get_relative_resources, name='navigate_url_resources')
 ]
 
 #url(r'^.*$', default_dest, name='catch_all')
