@@ -179,6 +179,29 @@ def get_resources(request, username, directory, url_id):
     return HttpResponse('Not Found')
 
 @login_required
+def get_relative_resources(request, username, directory, url_id, rel_path):
+    usr = request.user
+    logger.info(request.path_info)
+    if directory and url_id:
+        if request.method == 'GET':
+            resource_loc = os.path.join(settings.ARCHIVE_LOCATION, 'PDF', str(url_id), rel_path)
+            if resource_loc.endswith('.css'):
+                content_type = 'text/css'
+            elif resource_loc.endswith("png"):
+                content_type = 'image/png'
+            else:
+                content_type = 'image/jpeg'
+            logger.debug('resource-loc: {}'.format(resource_loc))
+            if os.path.exists(resource_loc):
+                response = FileResponse(open(resource_loc, 'rb'))
+                response['content-type'] = content_type
+                response['content-length'] = os.stat(resource_loc).st_size
+                return response
+            else:
+                logger.debug('resource: {} not available'.format(resource_loc))
+    return HttpResponse('Not Found')
+
+@login_required
 def perform_epub_operation(request, username, directory, url_id=None, opt=None, meta_path=None):
     usr = request.user
     logger.info(request.path_info)
