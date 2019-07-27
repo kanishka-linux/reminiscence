@@ -419,7 +419,20 @@ def navigate_directory(request, username, directory=None, tagname=None, epub_loc
                 )
     else:
         return redirect('home')
-        
+
+@login_required
+def navigate_pdfdir(request, username, directory=None, url_id=None, pdf_pos=None):
+    prev_loc, url_id, _ = request.path_info.rsplit('/', 2)
+    if directory and pdf_pos:
+        row = Library.objects.filter(usr=request.user, id=int(url_id)).first()
+        media_path = row.media_path
+        logger.debug(media_path)
+        media_path_dir, _ = os.path.split(media_path)
+        epub_loc = os.path.join(media_path_dir, "pdf_loc.txt")
+        with open(epub_loc, 'w') as f:
+            f.write(pdf_pos)
+    return redirect(prev_loc)
+
 @login_required
 def navigate_subdir(request, username, directory=None, epub_loc=None):
     ops = set([

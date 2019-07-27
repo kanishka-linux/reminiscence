@@ -125,7 +125,7 @@ class CustomRead:
                 mdir, _ = os.path.split(media_path)
                 filelist = os.listdir(mdir)
                 mlist = []
-                extset = set(['pdf', 'png', 'htm', 'html', 'json'])
+                extset = set(['pdf', 'png', 'htm', 'html', 'json', 'txt'])
                 for fl in filelist:
                     ext = fl.rsplit('.', 1)
                     if ext and ext[-1] not in extset and not fl.startswith("."):
@@ -394,46 +394,18 @@ class CustomRead:
                     mtype = "text/html"
                     data = bytes("hello world", "utf-8")
                     row_url = req.path_info.rsplit('/', 1)[0] + '/archive'
-                    """
-                    if hasattr(settings, "PDF_TO_HTML_CONVERTER"):
-                        converter = settings.PDF_TO_HTML_CONVERTER
-                    else:
-                        converter = "pdftohtml"
-                    if not os.path.exists(media_html):
-                        if converter == "pdf2htmlEX":
-                            cmd = ["pdf2htmlEX", "--dest-dir", media_dir, "--zoom", "1.5", media_path]
-                        elif converter == "pdftohtml":
-                            cmd = ["pdftohtml", "-p", "-c", "-noframes", "-zoom", "1.5", media_path, media_html]
-                        if os.name == "posix":
-                            subprocess.Popen(cmd)
-                        else:
-                            subprocess.Popen(cmd, shell=True)
-                        mtype = "text/html"
-                        data = bytes("<html>Wait for few seconds, pdf is being processed. Refresh page after 5-10 seconds</html>", "utf-8")
-                    else:
-                        mtype = "text/html"
-                        content = cls.read_content(media_html)
-                        if converter == "pdftohtml":
-                            src = '</title><link rel="stylesheet" href="/static/css/bootstrap.min.css">'
-                            content = re.sub("</title>", src, content)
-                            content = re.sub("&#160;|[ ]+", " ", content)
-                            content = re.sub('<div id="page1-div"', '<div class="container"><div id="page1-div"', content)
-                        src = '<script src="/static/js/jquery-3.3.1.min.js"></script></body>'
-                        content = re.sub("</body>|</BODY>", src, content)
-                        src = '<script src="/static/js/annotator.min.js"></script></body>'
-                        content = re.sub("</body>", src, content)
-                        src = '<script>{}</script></body>'.format(cls.ANNOTATION_SCRIPT)
-                        content = re.sub("</body>", src, content)
-                        if converter == "pdftohtml":
-                            content = re.sub("</body>", "</div></body>", content)
+                    pdf_loc = os.path.join(media_dir, "pdf_loc.txt")
+                    pdf_pos_y = 0
+                    if os.path.exists(pdf_loc):
+                        pdf_pos = open(pdf_loc, "r").read()
+                        pdf_pos_y = int(pdf_pos.rsplit('-', 1)[-1])
                     
-                        data = bytes(content, "utf-8")
-                    """
                     pdf_template = """
                         <!DOCTYPE html>
                     <html>
                       <head>
                         <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1">
                         <title>{title}</title>
                         <script type="text/javascript" src="/static/js/pdf.min.js"></script>
                         <script type="text/javascript" src="/static/js/pdf.worker.min.js"></script>
@@ -443,14 +415,19 @@ class CustomRead:
                         <link rel="stylesheet" href="/static/css/bootstrap.min.css">
                       </head>
                       <body>
-                        <div id="viewer" class="container">
+                          <div class="sticky-top">
+                            <button id="back-link" class="btn btn-sm">Back</button>
+                          </div>
                           <div id="container"></div>
+
                         </div>
                         <script>
                         </script>
                         <script>
+                            
                             // URL of PDF document
                             var pdfURL = '{pdf_url}';
+                            var back = document.getElementById("back-link");
                             var dpr = window.devicePixelRatio || 1
                             var promise_render = (pdf) => new Promise(
 
@@ -509,11 +486,13 @@ class CustomRead:
                                             resolve(arr);
                                     }} else {{
                                         console.log(i, pdf.numPages, arr.length);
+                                        back.innerHTML = "Wait.."+arr.length.toString() +"/"+ pdf.numPages.toString();
                                     }};
                                     }}) }}) }}
                             }})
 
                             window.onload = () => {{
+                                
                                 let currentPageIndex = 0;
                                 let pdfInstance = null;
                                 let totalPagesCount = 0;
@@ -523,21 +502,34 @@ class CustomRead:
                                   
                                   pdfjsLib.getDocument(pdfURL).promise.then(pdf =>
                                    {{ var dis = function(){{
-                                                promise_render(pdf).then(function(){{ {annot_script} }})
+                                                promise_render(pdf).then(function(){{
+                                                        {annot_script}
+                                                        window.scrollBy(0, {pdf_pos_y});
+                                                        back.innerHTML = "Back";
+                                                        back.addEventListener("click", function(){{
+                                                          let pos = Math.floor(window.pageXOffset.toString()) + "-" + Math.floor(window.pageYOffset).toString();
+                                                          let url = window.location.href + "pdf-" + pos;
+                                                          console.log(url);
+                                                          window.location.href = url;
+                                                        }}, false);
+                                                    }})
                                                 }}
                                         dis();
                                     }});
                                  
                             
                             }};
+                            back.innerHTML = "Wait..";
                             initPDFViewer(pdfURL);
+                            
                         }}
 
 
                         </script>
                       </body>
                     </html>
-                    """.format(pdf_url=row_url, annot_script=cls.ANNOTATION_SCRIPT, title=row.title)
+                    """.format(pdf_url=row_url, annot_script=cls.ANNOTATION_SCRIPT,
+                               title=row.title, pdf_pos_y=pdf_pos_y)
                     data = bytes(pdf_template, "utf-8")
                 elif media_path.endswith(".epub"):
                     media_dir, media_file_with_ext = os.path.split(media_path)
@@ -731,7 +723,7 @@ class CustomRead:
                                                         }}
                                                     app.annotations.load({{uri: final_url}});
                                                     
-                                                    //https://stackoverflow.com/questions/2264072/detect-a-finger-swipe-through-javascript-on-the-iphone-and-android
+                                                    //reference-https://stackoverflow.com/questions/2264072/detect-a-finger-swipe-through-javascript-on-the-iphone-and-android
                                                     
                                                     view.document.body.addEventListener('touchstart', handleTouchStart, false);        
                                                     view.document.body.addEventListener('touchmove', handleTouchMove, false);
