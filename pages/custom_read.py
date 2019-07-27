@@ -55,6 +55,12 @@ class CustomRead:
     mtype_list = [
         'text/htm', 'text/html', 'text/plain'
     ]
+
+    mtype_show_in_browser = set([
+        "application/pdf", "image/jpg", "image/jpeg",
+        "image/png", "text/plain", "text/html",
+        "text/htm"])
+        
     vnt_noblock = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
                   backend=settings.VINANTI_BACKEND,
                   max_requests=settings.VINANTI_MAX_REQUESTS)
@@ -186,7 +192,13 @@ class CustomRead:
                     response['content-length'] = os.stat(media_path).st_size
                     filename = filename.replace(' ', '.')
                     logger.info('{} , {}'.format(filename, mtype))
-                    if not cls.is_human_readable(mtype) and not streaming_mode:
+                    path_end = "read"
+                    if req:
+                        path_end = req.path_info.rsplit('/', 1)[-1]
+                    if (not cls.is_human_readable(mtype)
+                            and not streaming_mode
+                            and path_end not in ["read-pdf", "read-png"]
+                            and mtype not in cls.mtype_show_in_browser):
                         response['Content-Disposition'] = 'attachment; filename="{}"'.format(quote(filename))
                     return response
             else:
@@ -378,11 +390,16 @@ class CustomRead:
                     media_dir, media_file_with_ext = os.path.split(media_path)
                     media_file_without_ext = media_file_with_ext.rsplit('.', 1)[0]
                     media_html = "{}/{}.html".format(media_dir, media_file_without_ext)
+                    back_url = req.path_info.rsplit("/", 2)[0]
+                    mtype = "text/html"
+                    data = bytes("hello world", "utf-8")
+                    row_url = req.path_info.rsplit('/', 1)[0] + '/archive'
+                    """
+                    if hasattr(settings, "PDF_TO_HTML_CONVERTER"):
+                        converter = settings.PDF_TO_HTML_CONVERTER
+                    else:
+                        converter = "pdftohtml"
                     if not os.path.exists(media_html):
-                        if hasattr(settings, "PDF_TO_HTML_CONVERTER"):
-                            converter = settings.PDF_TO_HTML_CONVERTER
-                        else:
-                            converter = "pdftohtml"
                         if converter == "pdf2htmlEX":
                             cmd = ["pdf2htmlEX", "--dest-dir", media_dir, "--zoom", "1.5", media_path]
                         elif converter == "pdftohtml":
@@ -396,14 +413,132 @@ class CustomRead:
                     else:
                         mtype = "text/html"
                         content = cls.read_content(media_html)
+                        if converter == "pdftohtml":
+                            src = '</title><link rel="stylesheet" href="/static/css/bootstrap.min.css">'
+                            content = re.sub("</title>", src, content)
+                            content = re.sub("&#160;|[ ]+", " ", content)
+                            content = re.sub('<div id="page1-div"', '<div class="container"><div id="page1-div"', content)
                         src = '<script src="/static/js/jquery-3.3.1.min.js"></script></body>'
-                        content = re.sub("&#160;|[ ]+", " ", content)
                         content = re.sub("</body>|</BODY>", src, content)
                         src = '<script src="/static/js/annotator.min.js"></script></body>'
                         content = re.sub("</body>", src, content)
                         src = '<script>{}</script></body>'.format(cls.ANNOTATION_SCRIPT)
                         content = re.sub("</body>", src, content)
+                        if converter == "pdftohtml":
+                            content = re.sub("</body>", "</div></body>", content)
+                    
                         data = bytes(content, "utf-8")
+                    """
+                    pdf_template = """
+                        <!DOCTYPE html>
+                    <html>
+                      <head>
+                        <meta charset="UTF-8">
+                        <title>{title}</title>
+                        <script type="text/javascript" src="/static/js/pdf.min.js"></script>
+                        <script type="text/javascript" src="/static/js/pdf.worker.min.js"></script>
+                        <link type="text/css" href="/static/css/text_layer_builder.css" rel="stylesheet">
+                        <script type="text/javascript" src="/static/js/annotator.min.js"></script>
+                        <script src="/static/js/jquery-3.3.1.min.js"></script>
+                        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+                      </head>
+                      <body>
+                        <div id="viewer" class="container">
+                          <div id="container"></div>
+                        </div>
+                        <script>
+                        </script>
+                        <script>
+                            // URL of PDF document
+                            var pdfURL = '{pdf_url}';
+                            var dpr = window.devicePixelRatio || 1
+                            var promise_render = (pdf) => new Promise(
+
+                                function(resolve, reject){{
+                                var arr = [];
+                                for (var i=0; i< pdf.numPages; i++){{
+                                    pdfInstance = pdf;
+                                    totalPagesCount = pdf.numPages;
+                                    console.log(totalPagesCount)
+                                    pdf.getPage(i).then(function(page){{
+                                      var scale = 1;
+                                    var viewport = page.getViewport({{scale: scale}});
+
+                                    var div = document.createElement("div");
+
+                                    div.setAttribute("id", "page-" + (page.pageIndex + 1));
+
+                                    div.setAttribute("style", "position: relative");
+
+                                    container.appendChild(div);
+
+                                    var canvas = document.createElement("canvas");
+
+                                    div.appendChild(canvas);
+                                    var context = canvas.getContext('2d');
+                                    canvas.height = viewport.height * dpr;
+                                    canvas.width = viewport.width * dpr;
+                                    context.scale(dpr, dpr);
+                                    
+                                    var renderContext = {{
+                                        canvasContext: context,
+                                        viewport: viewport
+                                    }};
+
+                                    page.render(renderContext).promise.then(function() {{
+                                    return page.getTextContent();
+                                    }}).then(function(textContent) {{
+                                        var textLayerDiv = document.createElement("div");
+
+                                        textLayerDiv.setAttribute("class", "textLayer");
+                        
+                                        div.appendChild(textLayerDiv);
+
+                                    var textLayer = pdfjsLib.renderTextLayer({{
+                                        textContent: textContent,
+                                        textLayerDiv: textLayerDiv, 
+                                        pageIndex: page.pageIndex,
+                                        viewport: page.getViewport({{scale: dpr}}),
+                                        container: textLayerDiv,
+                                        canvasContext: context,
+                                        textDivs: []
+                                    }});
+                                    arr.push(textLayer);
+                                    
+                                    if (arr.length >= pdf.numPages - 1){{
+                                            resolve(arr);
+                                    }} else {{
+                                        console.log(i, pdf.numPages, arr.length);
+                                    }};
+                                    }}) }}) }}
+                            }})
+
+                            window.onload = () => {{
+                                let currentPageIndex = 0;
+                                let pdfInstance = null;
+                                let totalPagesCount = 0;
+
+                                window.initPDFViewer = function(pdfURL) {{
+                                    
+                                  
+                                  pdfjsLib.getDocument(pdfURL).promise.then(pdf =>
+                                   {{ var dis = function(){{
+                                                promise_render(pdf).then(function(){{ {annot_script} }})
+                                                }}
+                                        dis();
+                                    }});
+                                 
+                            
+                            }};
+                            initPDFViewer(pdfURL);
+                        }}
+
+
+                        </script>
+                      </body>
+                    </html>
+                    """.format(pdf_url=row_url, annot_script=cls.ANNOTATION_SCRIPT, title=row.title)
+                    data = bytes(pdf_template, "utf-8")
                 elif media_path.endswith(".epub"):
                     media_dir, media_file_with_ext = os.path.split(media_path)
                     media_file_without_ext = media_file_with_ext.rsplit('.', 1)[0]
