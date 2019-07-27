@@ -418,7 +418,7 @@ class CustomRead:
                           <div class="sticky-top">
                             <button id="back-link" class="btn btn-sm">Back</button>
                           </div>
-                          <div id="container"></div>
+                          <div id="container" class="container"></div>
 
                         </div>
                         <script>
