@@ -1044,7 +1044,7 @@ class CustomRead:
         new_tag = Tag(builder=soup.builder, 
                           name='button', 
                           attrs={"id": "##back@@##@@link##",
-                                "style": "color:black;position:fixed;bottom:0;right:0;min-height: 24px;"}
+                                "style": "color:black;position:fixed;bottom:2px;right:2px;min-height: 24px;"}
                          )
         new_tag.string = "<-"
         for script in soup.find_all('script'):
@@ -1215,7 +1215,7 @@ class CustomRead:
                             </div>
                             
                             <div class='card-body'>
-                                <button id="##back@@##@@link##" class="btn btn-sm position-fixed" style="bottom:0;right:0;">&lt-</button>
+                                <button id="##back@@##@@link##" class="btn btn-primary btn-sm position-fixed" style="bottom:2px;right:2px;">&lt-</button>
                                 <h5 class="card-title">{title}</h5>
                                 {content}
                             </div>
