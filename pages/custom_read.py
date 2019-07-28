@@ -36,7 +36,7 @@ from django.urls import reverse
 from django.shortcuts import redirect, render
 from django.utils.text import slugify
 from vinanti import Vinanti
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from readability import Document
 from .models import Library, UserSettings
 from .dbaccess import DBAccess as dbxs
@@ -68,6 +68,39 @@ class CustomRead:
     fav_path = settings.FAVICONS_STATIC
     VIDEO_ID_DICT = OrderedDict()
     CACHE_FILE = os.path.join(settings.TMP_LOCATION, 'cache')
+    JS_POST = """
+        var postRequest = function() {
+        this.post = function(url, params, token, callbak) {
+            var http_req = new XMLHttpRequest();
+            http_req.onreadystatechange = function() { 
+                if (http_req.readyState == 4 && http_req.status == 200)
+                    {callbak(http_req.responseText);}
+            }
+            http_req.open( "POST", url, true );
+            http_req.setRequestHeader("X-CSRFToken", token);
+            http_req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+            //http_req.send(JSON.stringify(params));
+            http_req.send(params);
+        }
+    };
+    """
+    GET_COOKIES = """
+        function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = jQuery.trim(cookies[i]);
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            };
+    """
     ANNOTATION_SCRIPT = """
                 var pageUri = function () {
             return {
@@ -503,6 +536,7 @@ class CustomRead:
                                   pdfjsLib.getDocument(pdfURL).promise.then(pdf =>
                                    {{ var dis = function(){{
                                                 promise_render(pdf).then(function(){{
+                                                        {js_post}
                                                         {annot_script}
                                                         window.scrollBy(0, {pdf_pos_y});
                                                         back.innerHTML = "Back";
@@ -510,7 +544,16 @@ class CustomRead:
                                                           let pos = Math.floor(window.pageXOffset.toString()) + "-" + Math.floor(window.pageYOffset).toString();
                                                           let url = window.location.href + "pdf-" + pos;
                                                           console.log(url);
-                                                          window.location.href = url;
+
+                                                          var csrftoken = getCookie('csrftoken');
+
+                                                          var client = new postRequest();
+                                                          client.post(url, "mode=readhtml", csrftoken, function(response) {{
+                                                            console.log(response);
+                                                            window.history.back();
+                                                          }})
+
+                                                          
                                                         }}, false);
                                                     }})
                                                 }}
@@ -529,7 +572,7 @@ class CustomRead:
                       </body>
                     </html>
                     """.format(pdf_url=row_url, annot_script=cls.ANNOTATION_SCRIPT,
-                               title=row.title, pdf_pos_y=pdf_pos_y)
+                               title=row.title, pdf_pos_y=pdf_pos_y, js_post=cls.JS_POST)
                     data = bytes(pdf_template, "utf-8")
                 elif media_path.endswith(".epub"):
                     media_dir, media_file_with_ext = os.path.split(media_path)
@@ -555,6 +598,7 @@ class CustomRead:
                       <script src="/static/js/epub.min.js"></script>
                       <script src="/static/js/jquery-3.3.1.min.js"></script>
                       <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+                      <link rel="stylesheet" href="/static/css/themes.css">
                     </head>
                     <body>
                     <div id="viewer" class="spreads"></div>
@@ -610,6 +654,8 @@ class CustomRead:
                             }};
                             rendition.on("keyup", keyListener);
                             document.addEventListener("keyup", keyListener, false);
+
+                            
                             
                             function navigate(val){{
                                 if(val == "prev"){{
@@ -683,6 +729,30 @@ class CustomRead:
                                         rendition.display(url);
                                         return false;
                                 }};
+
+                                
+                            rendition.themes.default({{
+                              h2: {{
+                                'font-size': '180%'
+                              }},
+                              p: {{
+                                "margin": '10px',
+                                "text-indent": "1em"
+                              }},
+                              
+                              body: {{
+                                color: "#000",
+                                background: "#fff",
+                                  'line-height': '1.5',
+                                  'font-size': '110%',
+                                  margin: '0px',
+                                  padding: '0px',
+                                  widows: '2',
+                                  orphans: '2'
+                                
+                              }}
+                            }});
+                                
                             }});
                             
                             
@@ -971,6 +1041,12 @@ class CustomRead:
             with open(media_path, encoding='utf-8', mode='r') as fd:
                 content = fd.read()
         soup = BeautifulSoup(content, 'lxml')
+        new_tag = Tag(builder=soup.builder, 
+                          name='button', 
+                          attrs={"id": "##back@@##@@link##",
+                                "style": "color:black;position:fixed;bottom:0;right:0;min-height: 24px;"}
+                         )
+        new_tag.string = "<-"
         for script in soup.find_all('script'):
             script.decompose()
         url_path = row.url
@@ -1009,6 +1085,7 @@ class CustomRead:
                             link['class'] = 'img-thumbnail'
                     else:
                         link['href'] = nlnk
+        
         if custom_html:
             ndata = soup.prettify()
             if soup.title:
@@ -1026,6 +1103,12 @@ class CustomRead:
             else:
                 data = cls.custom_soup(ndata, title, row)
         else:
+            html_loc = os.path.join(media_dir, "html_original_loc.txt")
+            html_pos_y = 0
+            if os.path.exists(html_loc):
+                html_pos = open(html_loc, "r").read()
+                html_pos_y = int(html_pos.rsplit('-', 1)[-1])
+            soup.find("body").insert(0, new_tag)
             new_tag = soup.new_tag("script", src="/static/js/jquery-3.3.1.min.js")
             soup.find("body").append(new_tag)
             new_tag = soup.new_tag("script", src="/static/js/annotator.min.js")
@@ -1033,12 +1116,40 @@ class CustomRead:
             new_tag = soup.new_tag("script")
             new_tag.append(cls.ANNOTATION_SCRIPT)
             soup.find("body").append(new_tag)
+            new_tag = soup.new_tag("script")
+            new_tag.string = """
+                            {js_post}
+                            {get_cookies}
+                            
+                            back = document.getElementById("##back@@##@@link##");
+                            window.scrollBy(0, {html_pos_y});
+                            back.addEventListener("click", function(){{
+                              let pos = Math.floor(window.pageXOffset.toString()) + "-" + Math.floor(window.pageYOffset).toString();
+                              let url_arr = window.location.href.split('/');
+                              url_arr.pop();
+                              let url = url_arr.join("/");
+                              url = url + "/readhtml-"+pos;
+                              console.log(url);
+
+                              var csrftoken = getCookie('csrftoken');
+
+                              var client = new postRequest();
+                              client.post(url, "mode=readhtml", csrftoken, function(response) {{
+                                console.log(response);
+                                window.history.back();
+                              }})
+                              
+                            }}, false)
+                        """.format(html_pos_y=html_pos_y, js_post=cls.JS_POST, get_cookies=cls.GET_COOKIES)
+            soup.find("body").append(new_tag)
+            
             data = soup.prettify()
         return bytes(data, 'utf-8')
         
     
     @classmethod
     def custom_template(cls, title, content, row):
+        html_pos_y = 0
         if row:
             if '/' in row.directory:
                 base_dir = '{}/{}/subdir/{}/{}'.format(settings.ROOT_URL_LOCATION,
@@ -1052,6 +1163,11 @@ class CustomRead:
             read_pdf = base_dir + '/read-pdf'
             read_png = base_dir + '/read-png'
             read_html = base_dir + '/read-html'
+            media_dir, media_file_with_ext = os.path.split(row.media_path)
+            html_loc = os.path.join(media_dir, "html_custom_loc.txt")
+            if os.path.exists(html_loc):
+                html_pos = open(html_loc, "r").read()
+                html_pos_y = int(html_pos.rsplit('-', 1)[-1])
         else:
             read_url = read_pdf = read_png = read_html = '#'
         card_bg = ''
@@ -1074,8 +1190,11 @@ class CustomRead:
                 <meta name="referrer" content="no-referrer">
             </head>
         <body>
+            
             <div class="container-fluid">
+               
                 <div class="row">
+                    
                     <div class="col-sm {card_bg}">
                         <div class='card text-left {card_bg} mb-3'>
                             <div class='card-header'>
@@ -1096,6 +1215,7 @@ class CustomRead:
                             </div>
                             
                             <div class='card-body'>
+                                <button id="##back@@##@@link##" class="btn btn-sm position-fixed" style="bottom:0;right:0;">&lt-</button>
                                 <h5 class="card-title">{title}</h5>
                                 {content}
                             </div>
@@ -1105,14 +1225,36 @@ class CustomRead:
             </div>
         <script src="/static/js/jquery-3.3.1.min.js"></script>
         <script src="/static/js/annotator.min.js"></script>
-        <script>{annot_script}</script>
+        <script>
+                {annot_script}
+                {js_post}
+                back = document.getElementById("##back@@##@@link##");
+                window.scrollBy(0, {html_pos_y});
+                back.addEventListener("click", function(){{
+                  let pos = Math.floor(window.pageXOffset.toString()) + "-" + Math.floor(window.pageYOffset).toString();
+                  let url_arr = window.location.href.split('/');
+                  url_arr.pop();
+                  let url = url_arr.join("/");
+                  url = url + "/readcustom-"+pos;
+                  console.log(url);
+
+                  var csrftoken = getCookie('csrftoken');
+
+                  var client = new postRequest();
+                  client.post(url, "mode=readcustom", csrftoken, function(response) {{
+                    console.log(response);
+                    window.history.back();
+                  }})
+                }}, false)
+        </script>
         </body>
         </html>
         """.format(title=title, content=content,
                    read_url=read_url, read_pdf=read_pdf,
                    read_png=read_png, read_html=read_html,
                    card_bg=card_bg, card_tab=card_tab,
-                   annot_script=cls.ANNOTATION_SCRIPT)
+                   annot_script=cls.ANNOTATION_SCRIPT,
+                   js_post=cls.JS_POST, html_pos_y=html_pos_y)
         return template
 
     @classmethod

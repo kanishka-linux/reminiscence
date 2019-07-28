@@ -421,17 +421,27 @@ def navigate_directory(request, username, directory=None, tagname=None, epub_loc
         return redirect('home')
 
 @login_required
-def navigate_pdfdir(request, username, directory=None, url_id=None, pdf_pos=None):
-    prev_loc, url_id, _ = request.path_info.rsplit('/', 2)
-    if directory and pdf_pos:
+def navigate_htmldir(request, username, directory=None, url_id=None, html_pos=None, mode=None):
+    prev_loc, url_id, read_type = request.path_info.rsplit('/', 2)
+    usr = request.user
+    if username and usr.username != username:
+        HttpResponse(status=401)
+    if request.method == 'POST' and directory and html_pos and mode:
         row = Library.objects.filter(usr=request.user, id=int(url_id)).first()
         media_path = row.media_path
         logger.debug(media_path)
         media_path_dir, _ = os.path.split(media_path)
-        epub_loc = os.path.join(media_path_dir, "pdf_loc.txt")
-        with open(epub_loc, 'w') as f:
-            f.write(pdf_pos)
-    return redirect(prev_loc)
+        if mode == "readhtml":
+            loc = os.path.join(media_path_dir, "html_original_loc.txt")
+        elif mode == "readcustom":
+            loc = os.path.join(media_path_dir, "html_custom_loc.txt")
+        elif mode == "readpdf":
+            loc = os.path.join(media_path_dir, "pdf_loc.txt")
+        with open(loc, 'w') as f:
+            f.write(html_pos)
+        return HttpResponse('OK')
+    else:
+        HttpResponse(status=404)
 
 @login_required
 def navigate_subdir(request, username, directory=None, epub_loc=None):
