@@ -449,7 +449,7 @@ class CustomRead:
                       </head>
                       <body>
                           <div class="sticky-top">
-                            <button id="back-link" class="btn btn-sm">Back</button>
+                            <button id="back-link" class="btn btn-primary btn-sm position-fixed" style="bottom:2px;right:2px;">&lt-</button>
                           </div>
                           <div id="container" class="container"></div>
 
@@ -462,29 +462,23 @@ class CustomRead:
                             var pdfURL = '{pdf_url}';
                             var back = document.getElementById("back-link");
                             var dpr = window.devicePixelRatio || 1
+                            var scale = 1;
                             var promise_render = (pdf) => new Promise(
 
                                 function(resolve, reject){{
                                 var arr = [];
-                                for (var i=0; i< pdf.numPages; i++){{
-                                    pdfInstance = pdf;
-                                    totalPagesCount = pdf.numPages;
-                                    console.log(totalPagesCount)
-                                    pdf.getPage(i).then(function(page){{
-                                      var scale = 1;
-                                    var viewport = page.getViewport({{scale: scale}});
-
+                                for (var i=0; i<pdf.numPages+1; i++){{
                                     var div = document.createElement("div");
-
-                                    div.setAttribute("id", "page-" + (page.pageIndex + 1));
-
+                                    div.setAttribute("id", "pageId-"+i.toString());
                                     div.setAttribute("style", "position: relative");
-
                                     container.appendChild(div);
-
+                                }}
+                                for (var i=0; i< pdf.numPages+1; i++){{
+                                    pdf.getPage(i).then(function(page){{
+                                    var viewport = page.getViewport({{scale: scale}});
+                                    var pageDiv = document.getElementById("pageId-"+page.pageIndex.toString());
                                     var canvas = document.createElement("canvas");
-
-                                    div.appendChild(canvas);
+                                    pageDiv.appendChild(canvas);
                                     var context = canvas.getContext('2d');
                                     canvas.height = viewport.height * dpr;
                                     canvas.width = viewport.width * dpr;
@@ -499,11 +493,9 @@ class CustomRead:
                                     return page.getTextContent();
                                     }}).then(function(textContent) {{
                                         var textLayerDiv = document.createElement("div");
-
                                         textLayerDiv.setAttribute("class", "textLayer");
-                        
-                                        div.appendChild(textLayerDiv);
-
+                                        pageDiv.appendChild(textLayerDiv);
+                                        
                                     var textLayer = pdfjsLib.renderTextLayer({{
                                         textContent: textContent,
                                         textLayerDiv: textLayerDiv, 
@@ -511,11 +503,9 @@ class CustomRead:
                                         viewport: page.getViewport({{scale: dpr}}),
                                         container: textLayerDiv,
                                         canvasContext: context,
-                                        textDivs: []
                                     }});
                                     arr.push(textLayer);
-                                    
-                                    if (arr.length >= pdf.numPages - 1){{
+                                    if (arr.length == pdf.numPages){{
                                             resolve(arr);
                                     }} else {{
                                         console.log(i, pdf.numPages, arr.length);
@@ -526,9 +516,6 @@ class CustomRead:
 
                             window.onload = () => {{
                                 
-                                let currentPageIndex = 0;
-                                let pdfInstance = null;
-                                let totalPagesCount = 0;
 
                                 window.initPDFViewer = function(pdfURL) {{
                                     
@@ -539,7 +526,7 @@ class CustomRead:
                                                         {js_post}
                                                         {annot_script}
                                                         window.scrollBy(0, {pdf_pos_y});
-                                                        back.innerHTML = "Back";
+                                                        back.innerHTML = "<-";
                                                         back.addEventListener("click", function(){{
                                                           let pos = Math.floor(window.pageXOffset.toString()) + "-" + Math.floor(window.pageYOffset).toString();
                                                           let url = window.location.href + "pdf-" + pos;
