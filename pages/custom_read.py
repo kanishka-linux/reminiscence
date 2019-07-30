@@ -462,56 +462,62 @@ class CustomRead:
                             var pdfURL = '{pdf_url}';
                             var back = document.getElementById("back-link");
                             var dpr = window.devicePixelRatio || 1
-                            var scale = 1;
-                            var promise_render = (pdf) => new Promise(
-
+                            if (dpr == 1){{
+                                var scale = 0.5;
+                                var scale_page = dpr/scale;
+                                var scale_text_layer = dpr/scale;
+                            }}else{{
+                                var scale = dpr;
+                                var scale_page = dpr/scale;
+                                var scale_text_layer = dpr;
+                            }}
+                            var page_render = (pdf, i) => new Promise(
                                 function(resolve, reject){{
-                                var arr = [];
-                                for (var i=0; i<pdf.numPages+1; i++){{
-                                    var div = document.createElement("div");
-                                    div.setAttribute("id", "pageId-"+i.toString());
-                                    div.setAttribute("style", "position: relative");
-                                    container.appendChild(div);
-                                }}
-                                for (var i=0; i< pdf.numPages+1; i++){{
-                                    pdf.getPage(i).then(function(page){{
-                                    var viewport = page.getViewport({{scale: scale}});
-                                    var pageDiv = document.getElementById("pageId-"+page.pageIndex.toString());
-                                    var canvas = document.createElement("canvas");
-                                    pageDiv.appendChild(canvas);
-                                    var context = canvas.getContext('2d');
-                                    canvas.height = viewport.height * dpr;
-                                    canvas.width = viewport.width * dpr;
-                                    context.scale(dpr, dpr);
                                     
-                                    var renderContext = {{
-                                        canvasContext: context,
-                                        viewport: viewport
-                                    }};
-
-                                    page.render(renderContext).promise.then(function() {{
-                                    return page.getTextContent();
-                                    }}).then(function(textContent) {{
-                                        var textLayerDiv = document.createElement("div");
-                                        textLayerDiv.setAttribute("class", "textLayer");
-                                        pageDiv.appendChild(textLayerDiv);
+                                    pdf.getPage(i).then(function(page){{
+                                        var div = document.createElement("div");
+                                        div.setAttribute("id", "pageId-"+i.toString());
+                                        div.setAttribute("style", "position: relative");
+                                        container.appendChild(div);
+                                        var viewport = page.getViewport({{scale: scale_page}});
+                                        var pageDiv = document.getElementById("pageId-"+i.toString());
+                                        var canvas = document.createElement("canvas");
+                                        pageDiv.appendChild(canvas);
+                                        var context = canvas.getContext('2d');
+                                        canvas.height = viewport.height * dpr;
+                                        canvas.width = viewport.width * dpr;
+                                        context.scale(dpr, dpr);
+                                        var renderContext = {{
+                                            canvasContext: context,
+                                            viewport: viewport
+                                        }};
                                         
-                                    var textLayer = pdfjsLib.renderTextLayer({{
-                                        textContent: textContent,
-                                        textLayerDiv: textLayerDiv, 
-                                        pageIndex: page.pageIndex,
-                                        viewport: page.getViewport({{scale: dpr}}),
-                                        container: textLayerDiv,
-                                        canvasContext: context,
+                                        page.render(renderContext).promise.then(function() {{
+                                        return page.getTextContent();
+                                        }}).then(function(textContent) {{
+                                            var textLayerDiv = document.createElement("div");
+                                            textLayerDiv.setAttribute("class", "textLayer");
+                                            pageDiv.appendChild(textLayerDiv);
+                                            textLayerDiv.style.width = `${{viewport.width*dpr}}px`;
+                                            textLayerDiv.style.height = `${{viewport.height*dpr}}px`;
+                                            var textLayer = pdfjsLib.renderTextLayer({{
+                                                textContent: textContent,
+                                                pageIndex: page.pageIndex,
+                                                viewport: page.getViewport({{scale: scale_text_layer}}),
+                                                container: textLayerDiv,
+                                                textDivs: [],
+                                            }});
+                                            
+                                            console.log(scale, dpr)
+                                            back.innerHTML = "Wait.."+i.toString() +"/"+ pdf.numPages.toString();
+                                            if (i == pdf.numPages){{
+                                                resolve(pdf);
+                                            }}else{{
+                                                console.log(i+1);
+                                                page_render(pdf, i+1).then(function(){{resolve(pdf)}});
+                                            }};
+                                        }});
                                     }});
-                                    arr.push(textLayer);
-                                    if (arr.length == pdf.numPages){{
-                                            resolve(arr);
-                                    }} else {{
-                                        console.log(i, pdf.numPages, arr.length);
-                                        back.innerHTML = "Wait.."+arr.length.toString() +"/"+ pdf.numPages.toString();
-                                    }};
-                                    }}) }}) }}
                             }})
 
                             window.onload = () => {{
@@ -522,7 +528,7 @@ class CustomRead:
                                   
                                   pdfjsLib.getDocument(pdfURL).promise.then(pdf =>
                                    {{ var dis = function(){{
-                                                promise_render(pdf).then(function(){{
+                                                page_render(pdf, 1).then(function(){{
                                                         {js_post}
                                                         {annot_script}
                                                         window.scrollBy(0, {pdf_pos_y});
@@ -535,7 +541,7 @@ class CustomRead:
                                                           var csrftoken = getCookie('csrftoken');
 
                                                           var client = new postRequest();
-                                                          client.post(url, "mode=readhtml", csrftoken, function(response) {{
+                                                          client.post(url, "mode=readpdf", csrftoken, function(response) {{
                                                             console.log(response);
                                                             window.history.back();
                                                           }})
