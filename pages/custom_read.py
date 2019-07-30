@@ -409,7 +409,7 @@ class CustomRead:
                 row.save()
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
-                if mtype in cls.mtype_list or media_path.endswith(".bin") or media_path.endswith(".note"):
+                if (mtype in cls.mtype_list or media_path.endswith(".bin") or media_path.endswith(".note")) and mode != "pdf-annot":
                     if media_path.endswith(".bin"):
                         html = media_path.rsplit(".", 1)[0] + ".htm"
                         if os.path.exists(html):
@@ -419,14 +419,17 @@ class CustomRead:
                                            custom_html=True)
                     if mtype == 'text/plain' or media_path.endswith(".bin") or media_path.endswith(".note"):
                         mtype = 'text/html'
-                elif media_path.endswith(".pdf"):
+                elif media_path.endswith(".pdf") or mode == "pdf-annot":
                     media_dir, media_file_with_ext = os.path.split(media_path)
                     media_file_without_ext = media_file_with_ext.rsplit('.', 1)[0]
                     media_html = "{}/{}.html".format(media_dir, media_file_without_ext)
                     back_url = req.path_info.rsplit("/", 2)[0]
                     mtype = "text/html"
                     data = bytes("hello world", "utf-8")
-                    row_url = req.path_info.rsplit('/', 1)[0] + '/archive'
+                    if mode == "pdf-annot":
+                        row_url = req.path_info.rsplit('/', 1)[0] + '/read-pdf'
+                    else:
+                        row_url = req.path_info.rsplit('/', 1)[0] + '/archive'
                     pdf_loc = os.path.join(media_dir, "pdf_loc.txt")
                     pdf_pos_y = 0
                     if os.path.exists(pdf_loc):
@@ -1156,6 +1159,7 @@ class CustomRead:
             read_pdf = base_dir + '/read-pdf'
             read_png = base_dir + '/read-png'
             read_html = base_dir + '/read-html'
+            pdf_annot = base_dir + '/pdf-annot'
             media_dir, media_file_with_ext = os.path.split(row.media_path)
             html_loc = os.path.join(media_dir, "html_custom_loc.txt")
             if os.path.exists(html_loc):
@@ -1204,6 +1208,9 @@ class CustomRead:
                                     <li class="nav-item">
                                         <a class="nav-link" href="{read_png}">PNG</a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{pdf_annot}">PDF-Annot</a>
+                                    </li>
                                 </ul>
                             </div>
                             
@@ -1247,7 +1254,8 @@ class CustomRead:
                    read_png=read_png, read_html=read_html,
                    card_bg=card_bg, card_tab=card_tab,
                    annot_script=cls.ANNOTATION_SCRIPT,
-                   js_post=cls.JS_POST, html_pos_y=html_pos_y)
+                   js_post=cls.JS_POST, html_pos_y=html_pos_y,
+                   pdf_annot=pdf_annot)
         return template
 
     @classmethod

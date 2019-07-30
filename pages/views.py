@@ -241,6 +241,8 @@ def perform_link_operation(request, username, directory, url_id=None):
                 return cread.read_customized_note(usr, url_id, mode='read-note', req=request)
             elif request.path_info.endswith('read'):
                 return cread.read_customized(usr, url_id, mode='read', req=request)
+            elif request.path_info.endswith('pdf-annot'):
+                return cread.read_customized(usr, url_id, mode='pdf-annot', req=request)
             elif request.path_info.endswith('read-dark'):
                 return cread.read_customized(usr, url_id, mode='read-dark', req=request)
             elif request.path_info.endswith('read-light'):
@@ -435,7 +437,7 @@ def navigate_htmldir(request, username, directory=None, url_id=None, html_pos=No
             loc = os.path.join(media_path_dir, "html_original_loc.txt")
         elif mode == "readcustom":
             loc = os.path.join(media_path_dir, "html_custom_loc.txt")
-        elif mode == "readpdf":
+        elif mode in ["readpdf", "pdf-annotpdf"]:
             loc = os.path.join(media_path_dir, "pdf_loc.txt")
         with open(loc, 'w') as f:
             f.write(html_pos)
@@ -449,7 +451,7 @@ def navigate_subdir(request, username, directory=None, epub_loc=None):
         "archive", "remove", "read", "read-pdf", "read-png",
         "read-html", "read-dark", "read-light", "read-default",
         "read-gray", "edit-bookmark", "move-bookmark",
-        "archived-note", "archived-note-save"
+        "archived-note", "archived-note-save", "pdf-annot"
     ])
     if directory:
         if epub_loc:
