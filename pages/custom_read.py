@@ -466,13 +466,9 @@ class CustomRead:
                             var back = document.getElementById("back-link");
                             var dpr = window.devicePixelRatio || 1
                             if (dpr == 1){{
-                                var scale = 0.5;
-                                var scale_page = dpr/scale;
-                                var scale_text_layer = dpr/scale;
+                                var scale = 2;
                             }}else{{
                                 var scale = dpr;
-                                var scale_page = dpr/scale;
-                                var scale_text_layer = dpr;
                             }}
                             var page_render = (pdf, i) => new Promise(
                                 function(resolve, reject){{
@@ -482,13 +478,15 @@ class CustomRead:
                                         div.setAttribute("id", "pageId-"+i.toString());
                                         div.setAttribute("style", "position: relative");
                                         container.appendChild(div);
-                                        var viewport = page.getViewport({{scale: scale_page}});
+                                        var viewport = page.getViewport({{scale: scale}});
                                         var pageDiv = document.getElementById("pageId-"+i.toString());
                                         var canvas = document.createElement("canvas");
                                         pageDiv.appendChild(canvas);
                                         var context = canvas.getContext('2d');
                                         canvas.height = viewport.height * dpr;
                                         canvas.width = viewport.width * dpr;
+                                        canvas.style.width = viewport.width + 'px';
+                                        canvas.style.height = viewport.height + 'px';
                                         context.scale(dpr, dpr);
                                         var renderContext = {{
                                             canvasContext: context,
@@ -501,12 +499,12 @@ class CustomRead:
                                             var textLayerDiv = document.createElement("div");
                                             textLayerDiv.setAttribute("class", "textLayer");
                                             pageDiv.appendChild(textLayerDiv);
-                                            textLayerDiv.style.width = `${{viewport.width*dpr}}px`;
-                                            textLayerDiv.style.height = `${{viewport.height*dpr}}px`;
+                                            textLayerDiv.style.width = viewport.width + 'px';
+                                            textLayerDiv.style.height = viewport.height + 'px';
                                             var textLayer = pdfjsLib.renderTextLayer({{
                                                 textContent: textContent,
                                                 pageIndex: page.pageIndex,
-                                                viewport: page.getViewport({{scale: scale_text_layer}}),
+                                                viewport: viewport,
                                                 container: textLayerDiv,
                                                 textDivs: [],
                                             }});
