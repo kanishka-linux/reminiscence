@@ -25,7 +25,7 @@ Table of Contents
 
     * [Archiving Media Elements](#archiving-media-elements)
 
-    * [Annotation feature](#annotation-feature)
+    * [Annotation and Read-it-later feature](#annotation-and-read-it-later-feature)
     
     * [Public, Private and Group Directories](#public-private-group-directories)
     
@@ -81,7 +81,11 @@ Table of Contents
 
 * Supports streaming of archived media elements.
 
-* Annotation support for both HTML and its readable version.
+* Annotation support for both HTML, its readable version.
+
+* Annotation support for both archived and uploaded pdf/epub files.
+
+* Remembers last read position of html (and its readable version), pdf and epub.
 
 * Rudimentary support for adding custom note.
 
@@ -301,10 +305,39 @@ e.g. archive location '/home/user/my downloads/archive' is not allowed. However 
 
 10. By default, archived media links are not shared with anyone. However, users can create public links for some fixed time. Once a public link has been created, it will remain valid for 24 hours. Users can change this value by changing value of VIDEO_ID_EXPIRY_LIMIT in settings.py. These public links are also useful for playing non-HTML5 compliant archived media on regular media players like mpv/mplayer/vlc etc..It is also possible to generate a playlist in m3u format for a directory containing media links, which can be played by any popular media player.
 
-## Annotation Feature
+## Annotation And Read-it-later Feature
 
-This is the latest feature and available from v0.3+ onwards. Users can annotate archived HTML page as it is as well as its readable version.
-This feature allows addition, deletion and modification of annotation.
+This is the latest feature and available from v0.3+ onwards. This feature allows addition, deletion and modification of annotation.
+
+* Users can annotate archived HTML page, its readable version and also pdf version.
+
+* Users can also annotate archived or uploaded pdf/epub files.
+
+* The application will remember last read position of html, pdf and epub.
+
+Annotation support works well on desktop browsers. On mobile, this feature works mostly on firefox (for annotating html/pdf/epub).
+
+#### How to use this feature on desktop browsers?
+
+* Higlight text -> an annotation baloon will popup -> click on it -> add/save comment.
+
+* Click on the `back` button, at the bottom right corner to save last read position and go back to previous page.
+
+#### How to use this feature on mobile firefox?
+
+* `Double tap` on starting word from where you want to highlight -> Selection markers will appear (and annotation baloon too but don't tap on it) -> Drag the end of selection marker to the desired end point -> now `single tap` at the last word -> an annotation baloon will popup -> tap on the baloon -> add/save comment.
+
+* Click on the `back` button, at the bottom right corner to save last read position and go back to previous page.
+
+How these featues have been implemented?
+
+* for annotation [annotator.js](http://annotatorjs.org/) has been used at the client side.
+
+* PDFs are displayed using [pdf.js](https://github.com/mozilla/pdf.js/) within browser, on which annotation layer is applied using `annotator.js`.
+
+* EPUBs are displayed using [epub.js](https://github.com/futurepress/epub.js/) within browser, on which annotation layer is applied using `annotator.js`
+
+* annotation data for each file and the last read position is saved at the backend.
 
 ## Note Taking
 
