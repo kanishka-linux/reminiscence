@@ -319,13 +319,13 @@ Annotation support works well on desktop browsers. On mobile, this feature works
 
 #### How to use this feature on desktop browsers?
 
-* Higlight text -> an annotation baloon will popup -> click on it -> add/save comment.
+* Higlight text -> an annotation balloon will popup -> click on it -> add/save comment.
 
 * Click on the `back` button, at the bottom right corner to save last read position and go back to previous page.
 
 #### How to use this feature on mobile firefox?
 
-* `Double tap` on starting word from where you want to highlight -> Selection markers will appear (and annotation baloon too but don't tap on it) -> Drag the end of selection marker to the desired end point -> now `single tap` at the last word -> an annotation baloon will popup -> tap on the baloon -> add/save comment.
+* `Double tap` on starting word from where you want to highlight -> Selection markers will appear (and annotation balloon too but don't tap on it) -> Drag the end of selection marker to the desired end point -> now `single tap` at the last word -> an annotation balloon will popup -> tap on the balloon -> add/save comment.
 
 * Click on the `back` button, at the bottom right corner to save last read position and go back to previous page.
 
