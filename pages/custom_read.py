@@ -436,7 +436,10 @@ class CustomRead:
                     pagination_value = 2
                     if os.path.exists(pdf_loc):
                         pdf_pos = open(pdf_loc, "r").read()
-                        pdfstart, pdf_pos_y = pdf_pos.rsplit('-')
+                        try:
+                            pdfstart, pdf_pos_y, pagination_value = pdf_pos.rsplit('-')
+                        except Exception as err:
+                            logger.error(err)
                     
                     pdf_template = """
                         <!DOCTYPE html>
@@ -461,9 +464,9 @@ class CustomRead:
                           <div class="container">
                           <div class="row">
                                 <button id="prev" class="col-sm-3 btn btn-sm">Prev</button>
-                                <input id="pages" placeholder="" class="col-sm-3 text-center">
+                                <input id="pages" placeholder="" class="col-sm-3 text-center" title="Jump to page number">
                                 <button id="next" class="col-sm-3 btn btn-sm">Next</button>
-                                <input id="pagination" placeholder="Pages-{pagination_value}" class="col-sm-3 text-center">
+                                <input id="pagination" placeholder="Pages-{pagination_value}" class="col-sm-3 text-center" title="Edit total pages to display at a time, default: 2">
                             </div>
                               <div class="row">
                               <select id="toc" class="browser-default custom-select col-sm-12 text-center">TOC</select>
@@ -640,7 +643,7 @@ class CustomRead:
 
                             function goBackLastPage(){{
                                   let pos = pdfstart + "-" + Math.floor(window.pageYOffset).toString();
-                                  let url = window.location.href + "pdf-" + pos;
+                                  let url = window.location.href + "pdf-" + pos + "-" + page_display;
                                   console.log(url);
 
                                   var csrftoken = getCookie('csrftoken');
