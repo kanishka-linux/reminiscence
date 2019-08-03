@@ -208,7 +208,11 @@ def perform_epub_operation(request, username, directory, url_id=None, opt=None, 
     if username and usr.username != username:
         return HttpResponse('Not Allowed')
     elif directory and url_id:
-        return cread.read_epub(usr, url_id, mode='read-epub-meta', req=request, rel_path=opt+"/"+meta_path)
+        if meta_path:
+            return cread.read_epub(usr, url_id, mode='read-epub-meta', req=request, rel_path=meta_path)
+        else:
+            url = request.path_info.rsplit("/", 2)[0]
+            return redirect(url)
 
 @login_required
 def perform_link_operation(request, username, directory, url_id=None):

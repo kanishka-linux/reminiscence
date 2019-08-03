@@ -42,8 +42,17 @@ urlpatterns = [
     url(r'^(?P<username>[\w\d.@+-]+)/?$', dashboard, name='home_page'),
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/epub-bookmark/(?P<epub_loc>[\d]+\/(epubcfi)(.?)*)', navigate_directory, name='navigate_directory_epub'),
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_directory'),
-    url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<opt>(META-INF|OEBPS))/(?P<meta_path>(.?)*)', perform_epub_operation, name='nav_subdir_epub'),
+    
+    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/(?P<url_id>[\d]+)/archive/EPUBDIR/(?P<meta_path>(.?)*)', perform_epub_operation, name='epub_meta'),
+    
+    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/(?P<url_id>[\d]+)/archive/EPUBDIR/read-epub$', perform_epub_operation, name='epub_read_file'),
+    
+    url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/archive/EPUBDIR/(?P<meta_path>(.?)*)', perform_epub_operation, name='subdir_epub_meta'),
+    
+    url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/archive/EPUBDIR/read-epub', perform_epub_operation, name='subdir_epub_read_file'),
+    
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/epub-bookmark/(?P<epub_loc>[\d]+\/(epubcfi)(.?)*)', navigate_subdir, name='navigate_subdir_epub'),
+    
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<rel_path>(.?)*\.(png|jpeg|jpg))', get_relative_resources, name='nav_subdir_resources'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<mode>(readhtml|readcustom|readpdf))-(?P<html_pos>[\d]+\-[\d]+)$', navigate_htmldir, name='navigate_subdirhtml'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)$', navigate_subdir, name='navigate_subdir'),
@@ -70,7 +79,6 @@ urlpatterns = [
     path('<username>/<str:directory>/<int:url_id>/read-png', perform_link_operation, name='read_png'),
     path('<username>/<str:directory>/<int:url_id>/read-html', perform_link_operation, name='read_html'),
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources'),
-    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-]+)/(?P<url_id>[\d]+)/(?P<opt>(META-INF|OEBPS))/(?P<meta_path>(.?)*)', perform_epub_operation, name='epub_meta'),
     
     url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/resources/', get_resources, name='navigate_resources_subdir'),
     path('<username>/<str:directory>/<int:url_id>/edit-bookmark', perform_link_operation, name='edit_bookmark'),
