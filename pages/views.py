@@ -427,7 +427,7 @@ def navigate_directory(request, username, directory=None, tagname=None, epub_loc
         return redirect('home')
 
 @login_required
-def navigate_htmldir(request, username, directory=None, url_id=None, html_pos=None, mode=None):
+def record_reading_position(request, username, directory=None, url_id=None, html_pos=None, mode=None):
     prev_loc, url_id, read_type = request.path_info.rsplit('/', 2)
     usr = request.user
     if username and usr.username != username:
@@ -443,6 +443,8 @@ def navigate_htmldir(request, username, directory=None, url_id=None, html_pos=No
             loc = os.path.join(media_path_dir, "html_custom_loc.txt")
         elif mode in ["readpdf", "pdf-annotpdf"]:
             loc = os.path.join(media_path_dir, "pdf_loc.txt")
+        if html_pos.startswith("-"):
+            html_pos = html_pos[1:]
         with open(loc, 'w') as f:
             f.write(html_pos)
         return HttpResponse('OK')

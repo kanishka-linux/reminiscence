@@ -54,7 +54,7 @@ urlpatterns = [
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/epub-bookmark/(?P<epub_loc>[\d]+\/(epubcfi)(.?)*)', navigate_subdir, name='navigate_subdir_epub'),
     
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<rel_path>(.?)*\.(png|jpeg|jpg))', get_relative_resources, name='nav_subdir_resources'),
-    url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<mode>(readhtml|readcustom|readpdf))-(?P<html_pos>[\d]+\-[\d]+)$', navigate_htmldir, name='navigate_subdirhtml'),
+    url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<mode>(readhtml|readcustom|readpdf))(?P<html_pos>(-[\d]+)+)$', record_reading_position, name='record_subdir_pos'),
     url(r'^(?P<username>[\w\d.@+-]+)/subdir/(?P<directory>[\w\d\s.&@+-\/]+)$', navigate_subdir, name='navigate_subdir'),
     url(r'^(?P<username>[\w\d.@+-]+)/tag/(?P<tagname>[\w\d\s.&@+-]+)/?$', navigate_directory, name='navigate_tag'),
     path('<username>/api/request', api_points, name='api_points'),
@@ -68,7 +68,7 @@ urlpatterns = [
     path('<username>/<str:directory>/<int:url_id>/archived-note', perform_link_operation, name='archive_note_request'),
     path('<username>/<str:directory>/<int:url_id>/archived-note-save', perform_link_operation, name='archive_note_request_save'),
     path('<username>/<str:directory>/<int:url_id>/remove', perform_link_operation, name='remove_operation_link'),
-    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<mode>(readpdf|readcustom|readhtmtl|pdf-annotpdf))-(?P<html_pos>[\d]+\-[\d]+)$', navigate_htmldir, name='navigate_dirhtml'),
+    url(r'^(?P<username>[\w\d.@+-]+)/(?P<directory>[\w\d\s.&@+-\/]+)/(?P<url_id>[\d]+)/(?P<mode>(readpdf|readcustom|readhtmtl|pdf-annotpdf))(?P<html_pos>(\-[\d]+)+)$', record_reading_position, name='record_pos'),
     path('<username>/<str:directory>/<int:url_id>/read', perform_link_operation, name='read_link'),
     path('<username>/<str:directory>/<int:url_id>/read-dark', perform_link_operation, name='read_dark'),
     path('<username>/<str:directory>/<int:url_id>/read-light', perform_link_operation, name='read_light'),
