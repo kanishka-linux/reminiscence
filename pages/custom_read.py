@@ -432,9 +432,11 @@ class CustomRead:
                         row_url = req.path_info.rsplit('/', 1)[0] + '/archive'
                     pdf_loc = os.path.join(media_dir, "pdf_loc.txt")
                     pdf_pos_y = 0
+                    pdfstart = 1
+                    pagination_value = 2
                     if os.path.exists(pdf_loc):
                         pdf_pos = open(pdf_loc, "r").read()
-                        pdf_pos_y = int(pdf_pos.rsplit('-', 1)[-1])
+                        pdfstart, pdf_pos_y = pdf_pos.rsplit('-')
                     
                     pdf_template = """
                         <!DOCTYPE html>
@@ -454,30 +456,61 @@ class CustomRead:
                           <div class="sticky-top">
                             <button id="back-link" class="btn btn-primary btn-sm position-fixed" style="bottom:2px;right:2px;">&lt-</button>
                           </div>
-                          <div id="container" class="container"></div>
-
+                          <div id="container" class="container">
+                          </div>
+                          <div class="container">
+                          <div class="row">
+                                <button id="prev" class="col-sm-3 btn btn-sm">Prev</button>
+                                <input id="pages" placeholder="" class="col-sm-3 text-center">
+                                <button id="next" class="col-sm-3 btn btn-sm">Next</button>
+                                <input id="pagination" placeholder="Pages-{pagination_value}" class="col-sm-3 text-center">
+                            </div>
+                              <div class="row">
+                              <select id="toc" class="browser-default custom-select col-sm-12 text-center">TOC</select>
+                              </div>
+                          </div>
                         </div>
                         <script>
                         </script>
                         <script>
                             
                             // URL of PDF document
+                            var pdfObject = null;
                             var pdfURL = '{pdf_url}';
-                            var back = document.getElementById("back-link");
+                            var back_link = document.getElementById("back-link");
                             var dpr = window.devicePixelRatio || 1
                             if (dpr == 1){{
                                 var scale = 2;
                             }}else{{
                                 var scale = dpr;
                             }}
-                            var page_render = (pdf, i) => new Promise(
+                            var page_display = {pagination_value};
+                            var page_marker = 1;
+                            var app = null;
+                            var next = document.getElementById("next");
+                            var page_status = document.getElementById("pages");
+                            var prev = document.getElementById("prev");
+                            var toc_elem = document.getElementById("toc");
+                            var pagination_elem = document.getElementById("pagination");
+                            var pdfstart = {pdf_start};
+                            if (pdfstart <= 0) {{
+                                pdfstart = 1;
+                            }}
+                            var container = document.getElementById("container");
+                            
+                            var page_render = (pdf, i, page_count) => new Promise(
                                 function(resolve, reject){{
                                     
                                     pdf.getPage(i).then(function(page){{
-                                        var div = document.createElement("div");
-                                        div.setAttribute("id", "pageId-"+i.toString());
-                                        div.setAttribute("style", "position: relative");
-                                        container.appendChild(div);
+                                        
+                                        var checkId = document.getElementById("pageId-"+i.toString());
+                                        if (checkId == null || checkId == undefined){{
+                                            var div = document.createElement("div");
+                                            div.setAttribute("id", "pageId-"+i.toString());
+                                            div.setAttribute("style", "position: relative");
+                                            div.setAttribute("class", "page-class");
+                                            container.appendChild(div);
+                                        }}
                                         var viewport = page.getViewport({{scale: scale}});
                                         var pageDiv = document.getElementById("pageId-"+i.toString());
                                         var canvas = document.createElement("canvas");
@@ -510,63 +543,172 @@ class CustomRead:
                                             }});
                                             
                                             console.log(scale, dpr)
-                                            back.innerHTML = "Wait.."+i.toString() +"/"+ pdf.numPages.toString();
-                                            if (i == pdf.numPages){{
+                                            back_link.innerHTML = "Wait.."+i.toString() +"/"+ pdf.numPages.toString();
+                                            if (i == pdf.numPages || page_count == page_display){{
+                                                page_marker = i;
+                                                back_link.innerHTML = "<-";
+                                                page_status.placeholder = pdfstart + "-"+ i + "/" + pdf.numPages;
                                                 resolve(pdf);
                                             }}else{{
                                                 console.log(i+1);
-                                                page_render(pdf, i+1).then(function(){{resolve(pdf)}});
+                                                page_render(pdf, i+1, page_count+1).then(function(){{resolve(pdf)}});
                                             }};
                                         }});
                                     }});
                             }})
 
-                            window.onload = () => {{
-                                
-
-                                window.initPDFViewer = function(pdfURL) {{
+                            {get_cookies}
+                            {js_post}
+                            
+                            function getAnnotations(){{
+                                var pageUri = function () {{
+                                    return {{
+                                    beforeAnnotationCreated: function (ann) {{
+                                        ann.uri = window.location.href;
+                                    }}
+                                    }};
+                                }};
+                                app = new annotator.App();
+                                var loc = '/annotate'
+                                var csrftoken = getCookie('csrftoken');
+                                app.include(annotator.ui.main, {{element: document.body}});
+                                app.include(annotator.storage.http, {{prefix: loc, headers: {{"X-CSRFToken": csrftoken}} }});
+                                app.include(pageUri);
+                                window.scrollBy(0, {pdf_pos_y});
+                                app.start().then(function () {{
+                                app.annotations.load({{uri: window.location.pathname}});
+                                }});
                                     
-                                  
+                            }}
+
+                            function getNextPage(){{
+                                console.log(page_marker+1, pdfObject);
+                                //document.getElementById("container").innerHTML = "";
+                                [...document.getElementsByClassName("page-class")].map(n => n.innerHTML = "");
+                                [...document.getElementsByClassName("textLayer")].map(n => n.innerHTML = "");
+                                pdfstart = page_marker+1;
+                                if (pdfstart > pdfObject.numPages){{
+                                    pdfstart = 1;
+                                }}
+                                page_render(pdfObject, pdfstart, 1).then(function(){{
+                                        //getAnnotations();
+                                        document.documentElement.scrollTop = 0;
+                                        app.annotations.load({{uri: window.location.pathname}});
+                                    }});
+                            }}
+
+                            function getPrevPage(){{
+                                //document.getElementById("container").innerHTML = "";
+                                [...document.getElementsByClassName("page-class")].map(n => n.innerHTML = "");
+                                [...document.getElementsByClassName("textLayer")].map(n => n.innerHTML = "");
+                                pdfstart = page_marker-2*page_display+1;
+                                console.log(pdfstart, pdfObject);
+                                if (pdfstart <= 0){{
+                                    pdfstart = pdfObject.numPages;
+                                }}
+                                page_render(pdfObject, pdfstart, 1).then(function(){{
+                                        window.scrollBy(0, 0);
+                                        app.annotations.load({{uri: window.location.pathname}});
+                                        document.documentElement.scrollTop = document.body.scrollHeight;
+                                    }});
+                            }}
+                            
+                            window.onload = () => {{
+                                window.initPDFViewer = function(pdfURL) {{
                                   pdfjsLib.getDocument(pdfURL).promise.then(pdf =>
                                    {{ var dis = function(){{
-                                                page_render(pdf, 1).then(function(){{
-                                                        {js_post}
-                                                        {annot_script}
-                                                        window.scrollBy(0, {pdf_pos_y});
-                                                        back.innerHTML = "<-";
-                                                        back.addEventListener("click", function(){{
-                                                          let pos = Math.floor(window.pageXOffset.toString()) + "-" + Math.floor(window.pageYOffset).toString();
-                                                          let url = window.location.href + "pdf-" + pos;
-                                                          console.log(url);
+                                                pdfObject = pdf;
 
-                                                          var csrftoken = getCookie('csrftoken');
-
-                                                          var client = new postRequest();
-                                                          client.post(url, "mode=readpdf", csrftoken, function(response) {{
-                                                            console.log(response);
-                                                            window.history.back();
-                                                          }})
-
-                                                          
-                                                        }}, false);
+                                                if (pdfstart != 1){{
+                                                    for(var i=1; i<pdfstart; i++){{
+                                                        var div = document.createElement("div");
+                                                        div.setAttribute("id", "pageId-"+i.toString());
+                                                        div.setAttribute("style", "position: relative");
+                                                        div.setAttribute("class", "page-class");
+                                                        container.appendChild(div);
+                                                    }}
+                                                }}
+                                                page_render(pdf, pdfstart, 1).then(function(){{
+                                                        getAnnotations();
                                                     }})
                                                 }}
                                         dis();
                                     }});
-                                 
-                            
                             }};
-                            back.innerHTML = "Wait..";
+                            back_link.innerHTML = "Wait..";
                             initPDFViewer(pdfURL);
+
+                            function goBackLastPage(){{
+                                  let pos = pdfstart + "-" + Math.floor(window.pageYOffset).toString();
+                                  let url = window.location.href + "pdf-" + pos;
+                                  console.log(url);
+
+                                  var csrftoken = getCookie('csrftoken');
+
+                                  var client = new postRequest();
+                                  client.post(url, "mode=readpdf", csrftoken, function(response) {{
+                                    console.log(response);
+                                    window.history.back();
+                                  }})
+                            }}
+
+                            page_status.addEventListener("keyup", function(event) {{
+                              if (event.keyCode === 13) {{
+                                console.log(page_status.value);
+                                if (page_status.value > 0 && page_status.value < pdfObject.numPages){{
+                                    page_marker = page_status.value - 1;
+                                    page_status.value = "";
+                                    getNextPage();
+                                }}
+                                
+                              }}
+                            }});
+
+                            pagination_elem.addEventListener("keyup", function(event) {{
+                              if (event.keyCode === 13) {{
+                                console.log(page_status.value);
+                                if (pagination_elem.value > 0 && pagination_elem.value < pdfObject.numPages){{
+                                    page_marker = page_marker-page_display;;
+                                    page_display = pagination_elem.value;
+                                    pagination_elem.placeholder = "pages-" + pagination_elem.value;
+                                    pagination_elem.value = "";
+                                    getNextPage();
+                                }}
+                                
+                              }}
+                            }}); 
+                            
+                            back_link.addEventListener("click", goBackLastPage, false);
+
+                            var keyListener = function(e){{
+                              // Left Key
+                              if ((e.keyCode || e.which) == 37) {{
+                                getPrevPage();
+                              }}
+                              // Right Key
+                              if ((e.keyCode || e.which) == 39) {{
+                                getNextPage();
+                              }}
+                            }};
+                            document.addEventListener("keyup", keyListener, false);
+
+                            
+                            next.addEventListener("click", function(){{
+                              getNextPage();
+                            }}, false);
+                            
+                            prev.addEventListener("click", function(){{
+                              getPrevPage();
+                            }}, false);
                             
                         }}
-
-
                         </script>
                       </body>
                     </html>
                     """.format(pdf_url=row_url, annot_script=cls.ANNOTATION_SCRIPT,
-                               title=row.title, pdf_pos_y=pdf_pos_y, js_post=cls.JS_POST)
+                               title=row.title, pdf_pos_y=pdf_pos_y, js_post=cls.JS_POST,
+                               get_cookies=cls.GET_COOKIES, pdf_start=pdfstart,
+                               pagination_value=pagination_value)
                     data = bytes(pdf_template, "utf-8")
                 elif media_path.endswith(".epub"):
                     media_dir, media_file_with_ext = os.path.split(media_path)
@@ -582,7 +724,7 @@ class CustomRead:
                     back_url = req.path_info.rsplit("/", 2)[0]
                     mtype = "text/html"
                     data = bytes("hello world", "utf-8")
-                    row_url = req.path_info.rsplit('/', 1)[0] + '/archive'
+                    row_url = req.path_info.rsplit('/', 1)[0] + '/archive/EPUBDIR/read-epub'
                     html = """
                     <!DOCTYPE html>
                     <html>
