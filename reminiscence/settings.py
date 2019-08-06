@@ -85,8 +85,17 @@ INSTALLED_APPS = [
     'pages',
     'accounts',
     'widget_tweaks',
-    'vinanti'
+    'vinanti',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'restapi'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication'
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
