@@ -54,12 +54,14 @@ class DBAccess:
                        max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS)
     
     @classmethod
-    def add_new_url(cls, usr, request, directory, row):
-        url_name = request.POST.get('add_url', '')
+    def add_new_url(cls, usr, request, directory, row, is_media_link=False, url_name=None):
+        if not url_name:
+            url_name = request.POST.get('add_url', '')
         if url_name:
             add_note = False
-            if url_name.startswith('md:'):
-                url_name = url_name[3:].strip()
+            if url_name.startswith('md:') or is_media_link:
+                if url_name.startswith('md:'):
+                    url_name = url_name[3:].strip()
                 archive_html = True
                 media_element = True
             elif url_name.startswith('note:'):
@@ -524,7 +526,7 @@ class DBAccess:
             return None
 
     @staticmethod
-    def populate_usr_list(usr, usr_list, create_dict=False):
+    def populate_usr_list(usr, usr_list, create_dict=False, short_dict=False):
         if create_dict:
             nlist = {}
         else:
@@ -568,7 +570,19 @@ class DBAccess:
                 fav_path = settings.STATIC_URL + 'favicons/{}.ico'.format(idd)
             else:
                 fav_path = settings.STATIC_URL + 'archive.svg'
-            if create_dict:
+            if create_dict and short_dict:
+                nlist.update(
+                        {
+                            index:{
+                                'title':title, 'url':url,
+                                'timestamp': timestamp, 'tag':tag,
+                                'archive-media':archive_media,
+                                'read-url':read_url, 'id': idd, 'fav-path': fav_path,
+                                'media-element': media_element, 'is-subdir': is_subdir
+                            }
+                        }
+                    )
+            elif create_dict and not short_dict:
                 nlist.update(
                         {
                             index:{
