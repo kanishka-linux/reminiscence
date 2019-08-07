@@ -54,7 +54,9 @@ class DBAccess:
                        max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS)
     
     @classmethod
-    def add_new_url(cls, usr, request, directory, row, is_media_link=False, url_name=None):
+    def add_new_url(cls, usr, request, directory, row,
+                    is_media_link=False, url_name=None,
+                    save_favicon=True):
         if not url_name:
             url_name = request.POST.get('add_url', '')
         if url_name:
@@ -87,7 +89,7 @@ class DBAccess:
                                     directory, archive_html, 
                                     settings_row=settings_row,
                                     media_element=media_element,
-                                    add_note=add_note)
+                                    add_note=add_note, save_favicon=save_favicon)
 
     @classmethod
     def process_add_note(cls, usr, url_name, directory,
@@ -135,10 +137,11 @@ class DBAccess:
     def process_add_url(cls, usr, url_name, directory,
                         archive_html, row=None,
                         settings_row=None, media_path=None,
-                        media_element=False, add_note=False):
+                        media_element=False, add_note=False,
+                        save_favicon=True):
         part = partial(cls.url_fetch_completed, usr, url_name,
                        directory, archive_html, row, settings_row,
-                       media_path, media_element)
+                       media_path, media_element, save_favicon)
         if row:
             cls.vntbook.get(url_name, onfinished=part)
         else:
@@ -147,7 +150,8 @@ class DBAccess:
     @classmethod
     def url_fetch_completed(cls, usr, url_name, directory,
                             archive_html, row, settings_row,
-                            media_path, media_element, *args):
+                            media_path, media_element, save_favicon,
+                            *args):
         ext = None
         save = False
         save_text = False
@@ -244,10 +248,10 @@ class DBAccess:
             media_path = os.path.join(media_path_parent, out_title)
             row.media_path = media_path
             row.save()
-            if favicon_link and favicon_link.startswith('http'):
+            if favicon_link and favicon_link.startswith('http') and save_favicon:
                 cls.vnt.get(favicon_link, out=final_favicon_path)
-            logger.debug(final_og_link)
-            if final_og_link and final_og_link.startswith('http'):
+            logger.debug((final_og_link, final_favicon_path))
+            if final_og_link and final_og_link.startswith('http') and save_favicon:
                 cls.vnt.get(final_og_link, out=final_og_image_path)
         elif media_path and row:
             final_favicon_path = os.path.join(settings.FAVICONS_STATIC, str(row.id) + '.ico')
@@ -260,11 +264,14 @@ class DBAccess:
             else:
                 save_summary = True
             if (not os.path.exists(final_favicon_path)
-                    and favicon_link and favicon_link.startswith('http')):
+                    and favicon_link and favicon_link.startswith('http')
+                    and save_favicon):
                 cls.vnt.get(favicon_link, out=final_favicon_path)
             if (not os.path.exists(final_og_image_path)
-                    and final_og_link and final_og_link.startswith('http')):
+                    and final_og_link and final_og_link.startswith('http')
+                    and save_favicon):
                 cls.vnt.get(final_og_link, out=final_og_image_path)
+        logger.debug((save, save_text, 274))
         if save or save_text:
             if not os.path.exists(media_path_parent):
                 os.makedirs(media_path_parent)
