@@ -24,6 +24,11 @@ class AddURL(APIView):
         directory = request.POST.get("directory")
         if directory and directory.startswith("/"):
             directory = directory[1:]
+        save_favicon = request.POST.get("save_favicon")
+        if save_favicon and save_favicon == "no":
+            save_favicon = False
+        else:
+            save_favicon = True
         row = UserSettings.objects.filter(usrid=request.user)
         if url:
             http = re.match(r'^(?:http)s?://', url)
@@ -32,7 +37,8 @@ class AddURL(APIView):
         
         if http and directory:
             if self.check_dir_and_subdir(usr, directory):
-                dbxs.add_new_url(usr, request, directory, row, is_media_link=is_media_link, url_name=url)
+                dbxs.add_new_url(usr, request, directory, row, is_media_link=is_media_link,
+                                 url_name=url, save_favicon=save_favicon)
                 content = {"url": url, "is_media_link": is_media_link, "directory": directory, "status": "added"}
             else:
                 content = {"msg": "Maybe required directory not found. So please create directories before adding url"}
