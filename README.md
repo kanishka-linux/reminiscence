@@ -349,26 +349,25 @@ Following are few examples of API usage using cURL
 
 1. Login and get auth token (POST) `/restapi/login/`
 
-        curl -d username=mypy -d password=foobarbaz http://127.0.0.1:8000/restapi/login/
+        $ curl -d username=mypy -d password=foobarbaz http://127.0.0.1:8000/restapi/login/
 
-        Token obtained with above request needs to be passed to every subsequent request header.
-        We'll call the token as AUTHTOKEN for rest of the examples.
+Token obtained with above request needs to be passed to every subsequent request header. We'll call the token as **AUTHTOKEN** for rest of the examples.
 
 2. Add url to Reminiscence instance in a specific directory (POST) `/restapi/add-url/`
 
-        curl -H "Authorization: Token AUTHTOKEN" -d url="https://mr.wikipedia.org" -d media_link=no -d directory="/Wiki/Marathi" http://127.0.0.1:8000/restapi/add-url/
+        $ curl -H "Authorization: Token AUTHTOKEN" -d url="https://mr.wikipedia.org" -d media_link=no -d directory="/Wiki/Marathi" http://127.0.0.1:8000/restapi/add-url/
 
 3. List all urls added to a specific directory (POST) `/restapi/list-added-urls/`
 
-        curl -H "Authorization: Token AUTHTOKEN" -d directory="/Wiki" http://127.0.0.1:8000/restapi/list-added-urls/
+        $ curl -H "Authorization: Token AUTHTOKEN" -d directory="/Wiki" http://127.0.0.1:8000/restapi/list-added-urls/
 
 4. List all directories (GET) `/restapi/list-directories/`
 
-        curl -H "Authorization: Token AUTHTOKEN" http://127.0.0.1:8000/restapi/list-directories/
+        $ curl -H "Authorization: Token AUTHTOKEN" http://127.0.0.1:8000/restapi/list-directories/
 
 5. Logout and remove token (GET) `/restapi/logout/`
 
-        curl -H "Authorization: Token AUTHTOKEN" http://127.0.0.1:8000/restapi/logout/
+        $ curl -H "Authorization: Token AUTHTOKEN" http://127.0.0.1:8000/restapi/logout/
 
 ## Note Taking
 
