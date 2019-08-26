@@ -351,7 +351,8 @@ Following are few examples of API usage using cURL
 
         curl -d username=mypy -d password=foobarbaz http://127.0.0.1:8000/restapi/login/
 
-        Token obtained with above request needs to be passed to every subsequent request header. We'll call the token as **AUTHTOKEN**.
+        Token obtained with above request needs to be passed to every subsequent request header.
+        We'll call the token as AUTHTOKEN for rest of the examples.
 
 2. Add url to Reminiscence instance in a specific directory (POST) `/restapi/add-url/`
 
