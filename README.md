@@ -26,6 +26,8 @@ Table of Contents
     * [Archiving Media Elements](#archiving-media-elements)
 
     * [Annotation and Read-it-later feature](#annotation-and-read-it-later-feature)
+
+    * [REST API](#rest-api)
     
     * [Public, Private and Group Directories](#public-private-group-directories)
     
@@ -338,6 +340,34 @@ How these featues have been implemented?
 * EPUBs are displayed using [epub.js](https://github.com/futurepress/epub.js/) within browser, on which annotation layer is applied using `annotator.js`
 
 * annotation data for each file and the last read position is saved at the backend.
+
+## REST API
+
+Reminiscence uses Django Rest Framework for exposing few functionalities via REST endpoints (available from v0.3+ onwards).
+
+Following are few examples of API usage using cURL
+
+1. Login and get auth token (POST) `/restapi/login/`
+
+        curl -d username=mypy -d password=foobarbaz http://127.0.0.1:8000/restapi/login/
+
+        Token obtained with above request needs to be passed to every subsequent request header. We'll call the token as **AUTHTOKEN**.
+
+2. Add url to Reminiscence instance in a specific directory (POST) `/restapi/add-url/`
+
+        curl -H "Authorization: Token AUTHTOKEN" -d url="https://mr.wikipedia.org" -d media_link=no -d directory="/Wiki/Marathi" http://127.0.0.1:8000/restapi/add-url/
+
+3. List all urls added to a specific directory (POST) `/restapi/list-added-urls/`
+
+        curl -H "Authorization: Token AUTHTOKEN" -d directory="/Wiki" http://127.0.0.1:8000/restapi/list-added-urls/
+
+4. List all directories (GET) `/restapi/list-directories/`
+
+        curl -H "Authorization: Token AUTHTOKEN" http://127.0.0.1:8000/restapi/list-directories/
+
+5. Logout and remove token (GET) `/restapi/logout/`
+
+        curl -H "Authorization: Token AUTHTOKEN" http://127.0.0.1:8000/restapi/logout/
 
 ## Note Taking
 
