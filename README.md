@@ -28,6 +28,8 @@ Table of Contents
     * [Annotation and Read-it-later feature](#annotation-and-read-it-later-feature)
 
     * [REST API](#rest-api)
+
+    * [Running Tests](#running-tests)
     
     * [Public, Private and Group Directories](#public-private-group-directories)
     
@@ -369,6 +371,16 @@ Token obtained with above request needs to be passed to every subsequent request
 
         $ curl -H "Authorization: Token AUTHTOKEN" http://127.0.0.1:8000/restapi/logout/
 
+## Running Tests
+
+* When running all tests exlude async tests. Async tests need to run separately.
+
+        $ python manage.py test --exclude-tag=async
+
+* Only **tests_drf.py** file contains async test, so run it separately.
+
+        $ python manage.py test tests.tests_drf
+        
 ## Note Taking
 
 From v0.3 onwards, users can add arbitrary note to their collection. Support for note taking is rudimentary and provides note taking using simple WYSIWYG editor.
