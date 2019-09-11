@@ -25,6 +25,6 @@ services:
       - db
 
   db:
-    image: postgres:latest
+    image: postgres:11
     volumes:
       - ./db:/var/lib/postgresql/data/
