@@ -1,39 +1,30 @@
 version: '3'
 
 services:
-
   nginx:
     build:
-        context: .
-        dockerfile: Dockerfile.nginx
-    container_name: ng01
+      context: .
+      dockerfile: Dockerfile.nginx
     volumes:
-        - .:/usr/src/reminiscence
+      - .:/usr/src/reminiscence
     ports:
-        - "80:80"
+      - "80:80"
     depends_on:
-        - web
+      - web
   
   web:
-    
     build: .
-    container_name: dg01
-
     command: bash -c "while ! nc -w 1 -z db 5432; do sleep 0.1; done; python manage.py migrate; python manage.py createdefaultsu; python manage.py collectstatic --no-input; if [ ! -d '/usr/src/reminiscence/static/nltk_data' ]; then echo 'wait..downloading..nltk_data'; python manage.py nltkdownload; fi; gunicorn --max-requests 1000 --worker-class gthread --workers 4 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi"
-        
     ports:
       - "8000:8000"
     volumes:
-        - ./static:/usr/src/reminiscence/static/
-        - ./archive:/usr/src/reminiscence/archive/
-        - ./logs:/usr/src/reminiscence/logs/
+      - ./static:/usr/src/reminiscence/static/
+      - ./archive:/usr/src/reminiscence/archive/
+      - ./logs:/usr/src/reminiscence/logs/
     depends_on:
-        - db
-        
+      - db
 
   db:
-    container_name: pg01
-    image: postgres:latest
+    image: postgres:11
     volumes:
-        - ./db:/var/lib/postgresql/data/
-    
+      - ./db:/var/lib/postgresql/data/
