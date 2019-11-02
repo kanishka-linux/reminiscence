@@ -16,7 +16,7 @@ idna==2.7
 kombu==4.2.1
 lxml==4.2.4
 multidict==4.3.1
-nltk==3.3
+nltk==3.4.5
 psycopg2==2.7.5
 pytz==2018.5
 readability-lxml==0.7
