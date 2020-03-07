@@ -66,6 +66,7 @@ class CustomRead:
                   max_requests=settings.VINANTI_MAX_REQUESTS)
     vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
     fav_path = settings.FAVICONS_STATIC
+    ROOT_URL_LOCATION = settings.ROOT_URL_LOCATION
     VIDEO_ID_DICT = OrderedDict()
     CACHE_FILE = os.path.join(settings.TMP_LOCATION, 'cache')
     JS_POST = """
@@ -102,40 +103,40 @@ class CustomRead:
             };
     """
     ANNOTATION_SCRIPT = """
-                var pageUri = function () {
-            return {
-            beforeAnnotationCreated: function (ann) {
+                var pageUri = function () {{
+            return {{
+            beforeAnnotationCreated: function (ann) {{
                 ann.uri = window.location.href;
-            }
-            };
-            };
+            }}
+            }};
+            }};
             
                 var app = new annotator.App();
-                var loc = '/annotate'
+                var loc = '{root_url_loc}/annotate'
                 var csrftoken = getCookie('csrftoken');
-                app.include(annotator.ui.main, {element: document.body});
-                app.include(annotator.storage.http, {prefix: loc, headers: {"X-CSRFToken": csrftoken} });
+                app.include(annotator.ui.main, {{element: document.body}});
+                app.include(annotator.storage.http, {{prefix: loc, headers: {{"X-CSRFToken": csrftoken}} }});
                 app.include(pageUri);
-                app.start().then(function () {
-                app.annotations.load({uri: window.location.pathname});
-                });
+                app.start().then(function () {{
+                app.annotations.load({{uri: window.location.pathname}});
+                }});
 
-            function getCookie(name) {
+            function getCookie(name) {{
                 var cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
+                if (document.cookie && document.cookie !== '') {{
                     var cookies = document.cookie.split(';');
-                    for (var i = 0; i < cookies.length; i++) {
+                    for (var i = 0; i < cookies.length; i++) {{
                         var cookie = jQuery.trim(cookies[i]);
                         // Does this cookie string begin with the name we want?
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {{
                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                             break;
-                        }
-                    }
-                }
+                        }}
+                    }}
+                }}
                 return cookieValue;
-            };
-    """
+            }};
+    """.format(root_url_loc=ROOT_URL_LOCATION)
     
     @classmethod
     def get_archived_file(cls, usr, url_id, mode='html', req=None, return_path=False):
@@ -572,7 +573,7 @@ class CustomRead:
                                     }};
                                 }};
                                 app = new annotator.App();
-                                var loc = '/annotate'
+                                var loc = '{root_url_loc}/annotate'
                                 var csrftoken = getCookie('csrftoken');
                                 app.include(annotator.ui.main, {{element: document.body}});
                                 app.include(annotator.storage.http, {{prefix: loc, headers: {{"X-CSRFToken": csrftoken}} }});
@@ -711,7 +712,7 @@ class CustomRead:
                     """.format(pdf_url=row_url, annot_script=cls.ANNOTATION_SCRIPT,
                                title=row.title, pdf_pos_y=pdf_pos_y, js_post=cls.JS_POST,
                                get_cookies=cls.GET_COOKIES, pdf_start=pdfstart,
-                               pagination_value=pagination_value)
+                               pagination_value=pagination_value, root_url_loc=cls.ROOT_URL_LOCATION)
                     data = bytes(pdf_template, "utf-8")
                 elif media_path.endswith(".epub"):
                     media_dir, media_file_with_ext = os.path.split(media_path)
