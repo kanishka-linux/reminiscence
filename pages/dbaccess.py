@@ -303,7 +303,9 @@ class DBAccess:
             content = value.read()
             ext = None
             content_type = guess_type(title)[0]
-            if content_type and content_type == 'text/plain':
+            if not content_type and title and title.endswith(".epub"):
+                ext = ".epub"
+            elif content_type and content_type == 'text/plain':
                 ext = '.txt'
             elif content_type:
                 ext = guess_extension(content_type)

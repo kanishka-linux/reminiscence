@@ -919,7 +919,7 @@ class CustomRead:
                                                 }};
                                                 
                                                     var app = new view.window.annotator.App();
-                                                    var loc = '/annotate'
+                                                    var loc = '{root_url_loc}/annotate'
                                                     var csrftoken = getCookie('csrftoken');
                                                     app.include(view.window.annotator.ui.main, {{element: view.document.body}});
                                                     app.include(view.window.annotator.storage.http, {{prefix: loc, headers: {{"X-CSRFToken": csrftoken}} }});
@@ -1000,7 +1000,10 @@ class CustomRead:
                             
                       </script>
                     </body>
-                    </html>""".format(back_url=back_url, row_url=row_url, url_id=url_id, epub_cfi=epub_cfi)
+                    </html>""".format(
+                            back_url=back_url, row_url=row_url, url_id=url_id, 
+                            epub_cfi=epub_cfi, root_url_loc=cls.ROOT_URL_LOCATION
+                            )
                     data = bytes(html, "utf-8")
             elif row.url:
                 data = cls.get_content(row, url_id, media_path)
