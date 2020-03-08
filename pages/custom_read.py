@@ -1090,12 +1090,27 @@ class CustomRead:
                 <meta name="referrer" content="no-referrer">
             </head>
         <body>
-            <div class="row px-4" id="summernote"></div>
-            <div class="row px-4 py-4">
-                <button id="save" class="btn btn-primary" onclick="save()" type="button"> Save </button>
+            <div class="row px-4">
+            <div id="summernote"></div>
             </div>
-            <script> $('#summernote').summernote({{placeholder: "Text..", tabsize: 10, height: 500}});
+            <div  class="row">
+            <div class="col-sm-1 px-4 py-2 tex-center">
+                <button id="save" class="btn btn-primary btn-block" onclick="save()" type="button"> Save </button>
+            </div>
+            <div id="success-box" class="col-sm-10 alert alert-success text-center">
+            Start Writing!
+            </div>
+            <div class="col-sm-1 px-4 py-2 text-center">
+                <button id="back" class="btn btn-primary btn-block" onclick="history.back()" type="button"> Back </button>
+            </div>
+            </div>
+
+            
+            <script> $('#summernote').summernote({{placeholder: "Text..", tabsize: 10, height: 700, width: "100%"}});
             $("#summernote").summernote("code", `{content}`);
+            var save_btn = document.getElementById('save');
+            var success_alert = document.getElementById('success-box');
+
             var save = function() {{
               var markup = $('#summernote').summernote('code');
               var formdata = new FormData;
@@ -1105,9 +1120,13 @@ class CustomRead:
                 var api_link = window.location.href + '-save';
                 client.post(api_link, formdata, csrftoken, function(response) {{
                     console.log(response);
+                    success_alert.innerHTML = "Saved Successfully at the backend!",
+                    setTimeout(revertButton, 1000);
                 }})
             }};
-
+            function revertButton() {{
+               success_alert.innerHTML = "Start Writing!";
+            }}
             function getCookie(name) {{
                 var cookieValue = null;
                 if (document.cookie && document.cookie !== '') {{
