@@ -11,10 +11,12 @@ services:
       - "80:80"
     depends_on:
       - web
-  
+
   web:
     build: .
     command: bash -c "while ! nc -w 1 -z db 5432; do sleep 0.1; done; python manage.py migrate; python manage.py createdefaultsu; python manage.py collectstatic --no-input; if [ ! -d '/usr/src/reminiscence/static/nltk_data' ]; then echo 'wait..downloading..nltk_data'; python manage.py nltkdownload; fi; gunicorn --max-requests 1000 --worker-class gthread --workers 4 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi"
+    env_file:
+      - ./docker.env
     ports:
       - "8000:8000"
     volumes:
@@ -28,5 +30,12 @@ services:
     environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
     image: postgres:11
+    env_file:
+      - ./docker.env
+    # instead of using the env_file above for providing db-user-credentials 
+    # you also could use the following insecure setting (not recommended)  
+    # may come handy if you're experiencing db-connection problems after upgrade.
+    #environment:
+    #  - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./db:/var/lib/postgresql/data/
