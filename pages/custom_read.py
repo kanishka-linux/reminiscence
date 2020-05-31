@@ -449,12 +449,12 @@ class CustomRead:
                         <meta charset="UTF-8">
                         <meta name="viewport" content="width=device-width, initial-scale=1">
                         <title>{title}</title>
-                        <script type="text/javascript" src="/static/js/pdf.min.js"></script>
-                        <script type="text/javascript" src="/static/js/pdf.worker.min.js"></script>
-                        <link type="text/css" href="/static/css/text_layer_builder.css" rel="stylesheet">
-                        <script type="text/javascript" src="/static/js/annotator.min.js"></script>
-                        <script src="/static/js/jquery-3.3.1.min.js"></script>
-                        <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+                        <script type="text/javascript" src="{static_url}js/pdf.min.js"></script>
+                        <script type="text/javascript" src="{static_url}js/pdf.worker.min.js"></script>
+                        <link type="text/css" href="{static_url}css/text_layer_builder.css" rel="stylesheet">
+                        <script type="text/javascript" src="{static_url}js/annotator.min.js"></script>
+                        <script src="{static_url}js/jquery-3.3.1.min.js"></script>
+                        <link rel="stylesheet" href="{static_url}css/bootstrap.min.css">
                       </head>
                       <body>
                           <div class="sticky-top">
@@ -712,7 +712,7 @@ class CustomRead:
                     """.format(pdf_url=row_url, annot_script=cls.ANNOTATION_SCRIPT,
                                title=row.title, pdf_pos_y=pdf_pos_y, js_post=cls.JS_POST,
                                get_cookies=cls.GET_COOKIES, pdf_start=pdfstart,
-                               pagination_value=pagination_value, root_url_loc=cls.ROOT_URL_LOCATION)
+                               pagination_value=pagination_value, root_url_loc=cls.ROOT_URL_LOCATION, static_url=settings.STATIC_URL)
                     data = bytes(pdf_template, "utf-8")
                 elif media_path.endswith(".epub"):
                     media_dir, media_file_with_ext = os.path.split(media_path)
@@ -735,10 +735,10 @@ class CustomRead:
                     <head>
                       <meta charset="utf-8">
                       <meta name="viewport" content="width=device-width, initial-scale=1">
-                      <script src="/static/js/epub.min.js"></script>
-                      <script src="/static/js/jquery-3.3.1.min.js"></script>
-                      <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-                      <link rel="stylesheet" href="/static/css/themes.css">
+                      <script src="{static_url}js/epub.min.js"></script>
+                      <script src="{static_url}js/jquery-3.3.1.min.js"></script>
+                      <link rel="stylesheet" href="{static_url}css/bootstrap.min.css">
+                      <link rel="stylesheet" href="{static_url}css/themes.css">
                     </head>
                     <body>
                     <div id="viewer" class="spreads"></div>
@@ -1002,7 +1002,8 @@ class CustomRead:
                     </body>
                     </html>""".format(
                             back_url=back_url, row_url=row_url, url_id=url_id, 
-                            epub_cfi=epub_cfi, root_url_loc=cls.ROOT_URL_LOCATION
+                            epub_cfi=epub_cfi, root_url_loc=cls.ROOT_URL_LOCATION,
+                            static_url=settings.STATIC_URL
                             )
                     data = bytes(html, "utf-8")
             elif row.url:
@@ -1082,13 +1083,13 @@ class CustomRead:
             <head>
                 <meta charset="utf-8">
                 <title>{title}</title>
-                <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-                <link rel="stylesheet" href="/static/css/bootstrap.min.css.map">
-                <script src="/static/js/jquery-3.3.1.min.js"></script>
-                <script src="/static/js/popper.min.js"></script>
-                <script src="/static/js/bootstrap.min.js"></script>
-                <link rel="stylesheet" href="/static/css/summernote-bs4.css">
-                <script src="/static/js/summernote-bs4.js"></script>
+                <link rel="stylesheet" href="{static_url}css/bootstrap.min.css">
+                <link rel="stylesheet" href="{static_url}css/bootstrap.min.css.map">
+                <script src="{static_url}js/jquery-3.3.1.min.js"></script>
+                <script src="{static_url}js/popper.min.js"></script>
+                <script src="{static_url}js/bootstrap.min.js"></script>
+                <link rel="stylesheet" href="{static_url}css/summernote-bs4.css">
+                <script src="{static_url}js/summernote-bs4.js"></script>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <meta name="referrer" content="no-referrer">
             </head>
@@ -1162,7 +1163,7 @@ class CustomRead:
             
         </body>
         </html>
-        """.format(title="Notes", content=content)
+        """.format(title="Notes", content=content, static_url=settings.STATIC_URL)
         return template
     
     @classmethod
@@ -1348,7 +1349,7 @@ class CustomRead:
             <head>
                 <meta charset="utf-8">
                 <title>{title}</title>
-                <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+                <link rel="stylesheet" href="{static_url}css/bootstrap.min.css">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <meta name="referrer" content="no-referrer">
             </head>
@@ -1389,8 +1390,8 @@ class CustomRead:
                     </div>
                 </div>
             </div>
-        <script src="/static/js/jquery-3.3.1.min.js"></script>
-        <script src="/static/js/annotator.min.js"></script>
+        <script src="{static_url}js/jquery-3.3.1.min.js"></script>
+        <script src="{static_url}js/annotator.min.js"></script>
         <script>
                 {annot_script}
                 {js_post}
@@ -1421,7 +1422,7 @@ class CustomRead:
                    card_bg=card_bg, card_tab=card_tab,
                    annot_script=cls.ANNOTATION_SCRIPT,
                    js_post=cls.JS_POST, html_pos_y=html_pos_y,
-                   pdf_annot=pdf_annot)
+                   pdf_annot=pdf_annot, static_url=settings.STATIC_URL)
         return template
 
     @classmethod

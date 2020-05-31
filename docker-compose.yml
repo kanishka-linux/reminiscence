@@ -27,8 +27,6 @@ services:
       - db
 
   db:
-    environment:
-      - POSTGRES_HOST_AUTH_METHOD=trust
     image: postgres:11
     env_file:
       - ./docker.env
