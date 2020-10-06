@@ -1,4 +1,4 @@
-From python:3.6-slim-stretch
+FROM python:3.6-slim-stretch
 
 WORKDIR /usr/src/reminiscence
 

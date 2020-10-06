@@ -2,11 +2,9 @@ version: '3'
 
 services:
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
+    image: nginx
     volumes:
-      - .:/usr/src/reminiscence
+      - ./nginx.conf /etc/nginx/nginx.conf
     ports:
       - "80:80"
     depends_on:

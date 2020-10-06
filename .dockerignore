@@ -1,6 +1,6 @@
-**/.git
-**/archive
-**/static
-**/logs
-**/db
-**/tmp
+.git
+archive
+static
+logs
+db
+tmp
