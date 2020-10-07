@@ -20,5 +20,3 @@ RUN mkdir -p logs archive tmp
 
 RUN python manage.py applysettings --docker yes
 RUN python manage.py generatesecretkey
-
-ENTRYPOINT [ "./entrypoint.sh" ]
