@@ -1,5 +1,5 @@
 #!/bin/sh
-while ! nc -w 1 -z ${POSTGRES_HOSTNAME} 5432; do sleep 0.1; done;
+while ! nc -w 1 -z ${DB_HOST} 5432; do sleep 0.1; done;
 python manage.py migrate;
 python manage.py createdefaultsu;
 python manage.py collectstatic --no-input;

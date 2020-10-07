@@ -4,3 +4,4 @@ static
 logs
 db
 tmp
+docker.env
