@@ -2,7 +2,7 @@ REPO_OWNER:='reminiscence'
 MULTIARCH:=false
 ARCHS:=linux/amd64
 ifeq ($(MULTIARCH), true)
-	ARCHS:=linux/amd64,linux/arm/v7,linux/arm/v6,linux/arm64/v8,linux/ppc64le,linux/s390x,linux/386
+	ARCHS:=linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x,linux/386
 endif
 VERSION:='latest'
 
