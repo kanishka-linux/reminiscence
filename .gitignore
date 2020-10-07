@@ -8,3 +8,5 @@ static/nltk_data/
 db/
 logs/
 tmp/
+static/admin/
+static/rest_framework/
