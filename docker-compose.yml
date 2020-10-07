@@ -17,10 +17,6 @@ services:
       - ./docker.env
     ports:
       - "8000:8000"
-    volumes:
-      - ./static:/usr/src/reminiscence/static/
-      - ./archive:/usr/src/reminiscence/archive/
-      - ./logs:/usr/src/reminiscence/logs/
     depends_on:
       - db
 
