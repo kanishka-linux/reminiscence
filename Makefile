@@ -10,7 +10,9 @@ all: setup build
 
 setup:
 	@./buildx.sh
-build:
-	docker buildx build \
+clean:
+	@sudo rm -rf logs db archive static/admin static/rest_framework
+build: clean
+	docker buildx build $(ENV) \
 	--platform $(ARCHS) \
 	--push --tag $(REPO_OWNER)/reminiscence:$(VERSION) .
