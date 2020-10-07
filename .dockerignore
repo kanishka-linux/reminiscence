@@ -1,4 +1,6 @@
 .git
+.vscode
+.mypy_cache
 archive
 static
 logs

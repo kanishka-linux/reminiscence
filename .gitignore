@@ -10,3 +10,5 @@ logs/
 tmp/
 static/admin/
 static/rest_framework/
+.vscode
+.mypy_cache

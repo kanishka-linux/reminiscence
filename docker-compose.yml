@@ -13,7 +13,6 @@ services:
 
   web:
     build: .
-    entrypoint: "./entrypoint.sh"
     env_file:
       - ./docker.env
     ports:
