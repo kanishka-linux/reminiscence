@@ -14,7 +14,7 @@ djangorestframework==3.10.2
 gunicorn==19.9.0
 idna==2.7
 kombu==4.2.1
-lxml==4.6.2
+lxml==4.6.3
 multidict==4.3.1
 nltk==3.4.5
 psycopg2==2.7.5
