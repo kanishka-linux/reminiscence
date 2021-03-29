@@ -10,7 +10,7 @@ chardet==3.0.4
 cssselect==1.0.3
 Django==2.2.18
 django-widget-tweaks==1.4.2
-djangorestframework==3.10.2
+djangorestframework==3.11.2
 gunicorn==19.9.0
 idna==2.7
 kombu==4.2.1
