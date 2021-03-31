@@ -2,11 +2,10 @@ version: '3'
 
 services:
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
+    image: nginx
     volumes:
       - .:/usr/src/reminiscence
+      - ./nginx.conf:/etc/nginx/nginx.conf
     ports:
       - "80:80"
     depends_on:
@@ -14,15 +13,10 @@ services:
 
   web:
     build: .
-    command: bash -c "while ! nc -w 1 -z db 5432; do sleep 0.1; done; python manage.py migrate; python manage.py createdefaultsu; python manage.py collectstatic --no-input; if [ ! -d '/usr/src/reminiscence/static/nltk_data' ]; then echo 'wait..downloading..nltk_data'; python manage.py nltkdownload; fi; gunicorn --max-requests 1000 --worker-class gthread --workers 4 --thread 10 --timeout 300 --bind 0.0.0.0:8000 reminiscence.wsgi"
     env_file:
       - ./docker.env
     ports:
       - "8000:8000"
-    volumes:
-      - ./static:/usr/src/reminiscence/static/
-      - ./archive:/usr/src/reminiscence/archive/
-      - ./logs:/usr/src/reminiscence/logs/
     depends_on:
       - db
 
