@@ -155,7 +155,8 @@ Table of Contents
     
     $ pip install -r requirements.txt
     
-    **Note:** you may get a error while Pyscopg2 will be installing (tested and encountered it On Windows and Ubuntu 20.04) of configuring a `pg_config` (see this [issue](https://github.com/kanishka-linux/reminiscence/issues/57)). Edit 20th Line in `requirements.txt` file i.e. `psycopg2==2.7.5` to `psycopg2-binary` and run the above command again to fix the error
+    **Note:** you may get a error while Pyscopg2 will be installing (tested and encountered it On Windows and Ubuntu 20.04) of configuring a `pg_config`
+    (see issue #57). Edit 20th Line in `requirements.txt` file i.e. `psycopg2==2.7.5` to `psycopg2-binary` and run the above command again to fix the error
     
     $ mkdir logs archive tmp
     
