@@ -145,7 +145,7 @@ Table of Contents
     $ virtualenv -p python3 venv 
     
     $ source venv/bin/activate
-    (On Windows, run `.\venv\Scripts\activate`)
+    (On Windows, run .\venv\Scripts\activate )
     
     $ cd venv
     
@@ -189,7 +189,7 @@ Table of Contents
         $ cd venv
     
         $ source bin/activate
-        (On Windows, run `.\Scripts\activate`)
+        (On Windows, run .\Scripts\activate )
     
         $ cd venv/reminiscence
     
