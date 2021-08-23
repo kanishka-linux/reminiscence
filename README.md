@@ -113,6 +113,26 @@ Table of Contents
 3. Installation of above dependencies in Debian or Ubuntu based distros
 
         $ sudo apt install virtualenv wkhtmltopdf redis-server chromium-browser
+        
+4. Installation of above dependencies in Windows        
+   
+        First Install virtualenv using pip(pip3)
+        $ pip install virtualenv
+        
+        You can install other applications using scoop (or chocolatey/winget but I prefer scoop) or from their official website
+        
+        To Install Using scoop
+        $ scoop install wkhtmltopdf chromium redis5
+        
+        If you get error while installing chromium (its because `chromium` isn't in the main bucket so you'll have to add the extra bucket if you hadn't), do this 
+        $ scoop bucket add extras 
+        $ scoop install chromium
+        
+        To install manually grab the installer from Github and install them
+        
+        Wkhtmltopdf - https://github.com/wkhtmltopdf/packaging/releases
+        Chromium    - https://github.com/macchrome/winchrome/releases
+        Redis       - https://github.com/tporadowski/redis/releases 
 
 **Note:** Name of above dependencies may change depending on distro or OS, so install accordingly. Once above dependencies are installed, execute following commands, which are distro/platform independent. 
     
@@ -122,9 +142,10 @@ Table of Contents
     
     $ cd reminiscence
     
-    $ virtualenv -p python3 venv
+    $ virtualenv -p python3 venv 
     
     $ source venv/bin/activate
+    (On Windows, run .\venv\Scripts\activate )
     
     $ cd venv
     
@@ -133,6 +154,9 @@ Table of Contents
     $ cd reminiscence
     
     $ pip install -r requirements.txt
+    
+    **Note:** you may get a error while Pyscopg2 will be installing (tested and encountered it On Windows and Ubuntu 20.04) of configuring a `pg_config`
+    (see issue #57). Edit 20th Line in `requirements.txt` file i.e. `psycopg2==2.7.5` to `psycopg2-binary` and run the above command again to fix the error
     
     $ mkdir logs archive tmp
     
@@ -166,6 +190,7 @@ Table of Contents
         $ cd venv
     
         $ source bin/activate
+        (On Windows, run .\Scripts\activate )
     
         $ cd venv/reminiscence
     
