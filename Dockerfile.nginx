@@ -1,2 +1,5 @@
 FROM nginx:latest
 COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./docker.env /
+RUN /bin/bash -c 'source /docker.env && sed -i "s|location /static/|location $STATIC_URL|g" /etc/nginx/nginx.conf'
+RUN rm /docker.env
