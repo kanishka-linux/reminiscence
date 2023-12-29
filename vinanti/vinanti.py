@@ -270,7 +270,7 @@ class Vinanti:
     def __start_non_block_loop_old__(self, tasks_dict, loop):
         asyncio.set_event_loop(loop)
         if not self.sem:
-            self.sem = asyncio.Semaphore(self.max_requests, loop=loop)
+            self.sem = asyncio.Semaphore(self.max_requests)
         tasks = []
         for key, val in tasks_dict.items():
             #url, onfinished, hdrs, method, kargs, length = val
@@ -282,7 +282,7 @@ class Vinanti:
     def __start_non_block_loop__(self, tasks_dict, loop):
         asyncio.set_event_loop(loop)
         if not self.sem:
-            self.sem = asyncio.Semaphore(self.max_requests, loop=loop)
+            self.sem = asyncio.Semaphore(self.max_requests)
         for key, val in tasks_dict.items():
             asyncio.ensure_future(self.__start_fetching__(*val, loop))
         loop.run_forever()
