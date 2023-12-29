@@ -32,17 +32,12 @@ from vinanti import Vinanti
 logger = logging.getLogger(__name__)
 
 class ImportBookmarks:
-    
-    vnt = Vinanti(block=False,
+
+    vnt = Vinanti(block=settings.VINANTI_BLOCK,
                   hdrs={'User-Agent':settings.USER_AGENT},
                   max_requests=settings.VINANTI_MAX_REQUESTS,
                   backend=settings.VINANTI_BACKEND)
-                  
-    vnt_task = Vinanti(block=False, group_task=False,
-                       backend='function',
-                       multiprocess=settings.MULTIPROCESS_VINANTI,
-                       max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS)
-    
+
     @classmethod
     def import_bookmarks(cls, usr, settings_row, import_file, mode='file'):
         book_dict = cls.convert_bookmark_to_dict(import_file, mode=mode)
