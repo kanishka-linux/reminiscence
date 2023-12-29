@@ -46,7 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 class CustomRead:
-    
+
     readable_format = [
         'text/plain', 'text/html', 'text/htm',
         'text/css', 'application/xhtml+xml',
@@ -60,11 +60,17 @@ class CustomRead:
         "application/pdf", "image/jpg", "image/jpeg",
         "image/png", "text/plain", "text/html",
         "text/htm"])
-        
-    vnt_noblock = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
-                  backend=settings.VINANTI_BACKEND,
-                  max_requests=settings.VINANTI_MAX_REQUESTS)
-    vnt = Vinanti(block=True, hdrs={'User-Agent':settings.USER_AGENT})
+
+    vnt_noblock = Vinanti(
+                    block=settings.VINANTI_BLOCK,
+                    hdrs={'User-Agent': settings.USER_AGENT},
+                    backend=settings.VINANTI_BACKEND,
+                    max_requests=settings.VINANTI_MAX_REQUESTS
+                    )
+    vnt = Vinanti(
+            block=settings.VINANTI_BLOCK,
+            hdrs={'User-Agent': settings.USER_AGENT}
+            )
     fav_path = settings.FAVICONS_STATIC
     ROOT_URL_LOCATION = settings.ROOT_URL_LOCATION
     VIDEO_ID_DICT = OrderedDict()
@@ -73,7 +79,7 @@ class CustomRead:
         var postRequest = function() {
         this.post = function(url, params, token, callbak) {
             var http_req = new XMLHttpRequest();
-            http_req.onreadystatechange = function() { 
+            http_req.onreadystatechange = function() {
                 if (http_req.readyState == 4 && http_req.status == 200)
                     {callbak(http_req.responseText);}
             }
@@ -110,7 +116,7 @@ class CustomRead:
             }}
             }};
             }};
-            
+
                 var app = new annotator.App();
                 var loc = '{root_url_loc}/annotate'
                 var csrftoken = getCookie('csrftoken');
@@ -137,7 +143,7 @@ class CustomRead:
                 return cookieValue;
             }};
     """.format(root_url_loc=ROOT_URL_LOCATION)
-    
+
     @classmethod
     def get_archived_file(cls, usr, url_id, mode='html', req=None, return_path=False):
         qset = Library.objects.filter(usr=usr, id=url_id)
@@ -155,6 +161,8 @@ class CustomRead:
                     media_path = fln + '.png'
                 elif mode == 'html':
                     media_path = fln + '.htm'
+                    if not os.path.exists(media_path):
+                        media_path = fln + '.html'
             elif mode == 'archive' and media_path:
                 mdir, _ = os.path.split(media_path)
                 filelist = os.listdir(mdir)
@@ -173,7 +181,6 @@ class CustomRead:
                     qlist = UserSettings.objects.filter(usrid=usr)
                     if qlist and not qlist[0].media_streaming:
                         streaming_mode = False
-                        
             if media_path and os.path.exists(media_path):
                 mtype = guess_type(media_path)[0]
                 if not mtype:
@@ -240,7 +247,7 @@ class CustomRead:
                 return render(req, 'archive_not_found.html', {'path':back_path})
         else:
             return HttpResponse(status=404)
-    
+
     @classmethod
     def get_archived_video(cls, request, username, video_id):
         if video_id in cls.VIDEO_ID_DICT:
@@ -276,7 +283,7 @@ class CustomRead:
                     response['Accept-Ranges'] = 'bytes'
                     return response
         return HttpResponse(status=404)
-    
+
     @classmethod
     def generate_archive_media_playlist(cls, server, usr, directory):
         qset = Library.objects.filter(usr=usr, directory=directory)
@@ -389,7 +396,7 @@ class CustomRead:
                 with open(media_html, encoding='utf-8', mode='r', errors='ignore') as fd:
                     content = fd.read()
         return content
-        
+
     @classmethod
     def read_customized(cls, usr, url_id, mode='read', req=None):
         qlist = Library.objects.filter(usr=usr, id=url_id).select_related()
@@ -441,7 +448,7 @@ class CustomRead:
                             pdfstart, pdf_pos_y, pagination_value = pdf_pos.rsplit('-')
                         except Exception as err:
                             logger.error(err)
-                    
+
                     pdf_template = """
                         <!DOCTYPE html>
                     <html>
@@ -477,7 +484,7 @@ class CustomRead:
                         <script>
                         </script>
                         <script>
-                            
+
                             // URL of PDF document
                             var pdfObject = null;
                             var pdfURL = '{pdf_url}';
@@ -501,12 +508,12 @@ class CustomRead:
                                 pdfstart = 1;
                             }}
                             var container = document.getElementById("container");
-                            
+
                             var page_render = (pdf, i, page_count) => new Promise(
                                 function(resolve, reject){{
-                                    
+
                                     pdf.getPage(i).then(function(page){{
-                                        
+
                                         var checkId = document.getElementById("pageId-"+i.toString());
                                         if (checkId == null || checkId == undefined){{
                                             var div = document.createElement("div");
@@ -529,7 +536,7 @@ class CustomRead:
                                             canvasContext: context,
                                             viewport: viewport
                                         }};
-                                        
+
                                         page.render(renderContext).promise.then(function() {{
                                         return page.getTextContent();
                                         }}).then(function(textContent) {{
@@ -545,7 +552,7 @@ class CustomRead:
                                                 container: textLayerDiv,
                                                 textDivs: [],
                                             }});
-                                            
+
                                             console.log(scale, dpr)
                                             back_link.innerHTML = "Wait.."+i.toString() +"/"+ pdf.numPages.toString();
                                             if (i == pdf.numPages || page_count == page_display){{
@@ -563,7 +570,7 @@ class CustomRead:
 
                             {get_cookies}
                             {js_post}
-                            
+
                             function getAnnotations(){{
                                 var pageUri = function () {{
                                     return {{
@@ -582,7 +589,7 @@ class CustomRead:
                                 app.start().then(function () {{
                                 app.annotations.load({{uri: window.location.pathname}});
                                 }});
-                                    
+
                             }}
 
                             function getNextPage(){{
@@ -616,7 +623,7 @@ class CustomRead:
                                         document.documentElement.scrollTop = document.body.scrollHeight;
                                     }});
                             }}
-                            
+
                             window.onload = () => {{
                                 window.initPDFViewer = function(pdfURL) {{
                                   pdfjsLib.getDocument(pdfURL).promise.then(pdf =>
@@ -664,7 +671,7 @@ class CustomRead:
                                     page_status.value = "";
                                     getNextPage();
                                 }}
-                                
+
                               }}
                             }});
 
@@ -678,10 +685,10 @@ class CustomRead:
                                     pagination_elem.value = "";
                                     getNextPage();
                                 }}
-                                
+
                               }}
-                            }}); 
-                            
+                            }});
+
                             back_link.addEventListener("click", goBackLastPage, false);
 
                             var keyListener = function(e){{
@@ -696,15 +703,15 @@ class CustomRead:
                             }};
                             document.addEventListener("keyup", keyListener, false);
 
-                            
+
                             next.addEventListener("click", function(){{
                               getNextPage();
                             }}, false);
-                            
+
                             prev.addEventListener("click", function(){{
                               getPrevPage();
                             }}, false);
-                            
+
                         }}
                         </script>
                       </body>
@@ -743,7 +750,7 @@ class CustomRead:
                     <body>
                     <div id="viewer" class="spreads"></div>
                       <div id="reader" class="container">
-                        
+
                           <div class="row">
                             <button id="prev" class="col-sm-3 btn btn-sm">Prev</button>
                             <button id="pages" class="col-sm-3 btn btn-sm"></button>
@@ -795,8 +802,8 @@ class CustomRead:
                             rendition.on("keyup", keyListener);
                             document.addEventListener("keyup", keyListener, false);
 
-                            
-                            
+
+
                             function navigate(val){{
                                 if(val == "prev"){{
                                     rendition.prev().then(function(){{
@@ -850,7 +857,7 @@ class CustomRead:
                                     }}
                                 }}
                             }}
-                            
+
                             book.loaded.navigation.then(function(toc){{
                                 console.log(toc);
                                 var $select = document.getElementById("toc"),
@@ -870,7 +877,7 @@ class CustomRead:
                                         return false;
                                 }};
 
-                                
+
                             rendition.themes.default({{
                               h2: {{
                                 'font-size': '180%'
@@ -879,7 +886,7 @@ class CustomRead:
                                 "margin": '10px',
                                 "text-indent": "1em"
                               }},
-                              
+
                               body: {{
                                 color: "#000",
                                 background: "#fff",
@@ -889,14 +896,14 @@ class CustomRead:
                                   padding: '0px',
                                   widows: '2',
                                   orphans: '2'
-                                
+
                               }}
                             }});
-                                
+
                             }});
-                            
-                            
-                            
+
+
+
                             rendition.hooks.content.register(function (view) {{
                                       var adder = [
                                         ['.annotator-adder, .annotator-outer', ['position', 'fixed']]
@@ -909,7 +916,7 @@ class CustomRead:
                                                     //ann.uri = window.location.href;
                                                     z = window.location.href.split("#");
                                                     final_url = window.location.pathname;
-                                                    
+
                                                     if (z.length == 2){{
                                                         final_url = final_url + "#" + z[1];
                                                         }}
@@ -917,7 +924,7 @@ class CustomRead:
                                                 }}
                                                 }};
                                                 }};
-                                                
+
                                                     var app = new view.window.annotator.App();
                                                     var loc = '{root_url_loc}/annotate'
                                                     var csrftoken = getCookie('csrftoken');
@@ -927,31 +934,31 @@ class CustomRead:
                                                     app.start().then(function () {{
                                                     z = window.location.href.split("#");
                                                     final_url = window.location.pathname;
-                                                    
+
                                                     if (z.length == 2){{
                                                         final_url = final_url + "#" + z[1];
                                                         }}
                                                     app.annotations.load({{uri: final_url}});
-                                                    
+
                                                     //reference-https://stackoverflow.com/questions/2264072/detect-a-finger-swipe-through-javascript-on-the-iphone-and-android
-                                                    
-                                                    view.document.body.addEventListener('touchstart', handleTouchStart, false);        
+
+                                                    view.document.body.addEventListener('touchstart', handleTouchStart, false);
                                                     view.document.body.addEventListener('touchmove', handleTouchMove, false);
 
-                                                    var xDown = null;                                                        
-                                                    var yDown = null;                                                        
+                                                    var xDown = null;
+                                                    var yDown = null;
 
-                                                    function handleTouchStart(evt) {{                                         
-                                                        xDown = evt.touches[0].clientX;                                      
-                                                        yDown = evt.touches[0].clientY;   
-                                                    }};                                                
+                                                    function handleTouchStart(evt) {{
+                                                        xDown = evt.touches[0].clientX;
+                                                        yDown = evt.touches[0].clientY;
+                                                    }};
 
                                                     function handleTouchMove(evt) {{
                                                         if ( ! xDown || ! yDown ) {{
                                                             return;
                                                         }}
 
-                                                        var xUp = evt.touches[0].clientX;                                    
+                                                        var xUp = evt.touches[0].clientX;
                                                         var yUp = evt.touches[0].clientY;
 
                                                         var xDiff = xDown - xUp;
@@ -961,21 +968,21 @@ class CustomRead:
                                                             if ( xDiff > 0 ) {{
                                                                 next.click();
                                                             }} else {{
-                                                                prev.click(); 
-                                                            }}                       
+                                                                prev.click();
+                                                            }}
                                                         }} else {{
                                                             if ( yDiff > 0 ) {{
-                                                                /* up swipe */ 
-                                                            }} else {{ 
+                                                                /* up swipe */
+                                                            }} else {{
                                                                 /* down swipe */
-                                                            }}                                                                 
+                                                           }}
                                                         }}
                                                         /* reset values */
                                                         xDown = null;
-                                                        yDown = null;                                             
+                                                        yDown = null;
                                                     }};
-                                                    
-                                                    
+
+
                                                     }});
 
                                                 function getCookie(name) {{
@@ -994,10 +1001,10 @@ class CustomRead:
                                                     return cookieValue;
                                                 }};
 
-                                                          
+
                                             }})
                             }})
-                            
+
                       </script>
                     </body>
                     </html>""".format(
@@ -1108,7 +1115,7 @@ class CustomRead:
             </div>
             </div>
 
-            
+
             <script> $('#summernote').summernote({{placeholder: "Text..", tabsize: 10, height: 700, width: "100%"}});
             $("#summernote").summernote("code", `{content}`);
             var save_btn = document.getElementById('save');
@@ -1159,12 +1166,12 @@ class CustomRead:
                 }}
             }};
              </script>
-            
+
         </body>
         </html>
         """.format(title="Notes", content=content)
         return template
-    
+
     @classmethod
     def get_content(cls, row, url_id, media_path):
         data = ""
@@ -1188,7 +1195,7 @@ class CustomRead:
                     cls.get_favicon_link(req.html, row.url,
                                          final_favicon_path)
         return data
-    
+
     @classmethod
     def format_html(cls, row, media_path, content=None, custom_html=False):
         media_dir, file_path = os.path.split(media_path)
@@ -1247,7 +1254,7 @@ class CustomRead:
                             link['class'] = 'img-thumbnail'
                     else:
                         link['href'] = nlnk
-        
+
         if custom_html:
             ndata = soup.prettify()
             if soup.title:
@@ -1282,7 +1289,7 @@ class CustomRead:
             new_tag.string = """
                             {js_post}
                             {get_cookies}
-                            
+
                             back = document.getElementById("##back@@##@@link##");
                             window.scrollBy(0, {html_pos_y});
                             back.addEventListener("click", function(){{
@@ -1300,15 +1307,15 @@ class CustomRead:
                                 console.log(response);
                                 window.history.back();
                               }})
-                              
+
                             }}, false)
                         """.format(html_pos_y=html_pos_y, js_post=cls.JS_POST, get_cookies=cls.GET_COOKIES)
             soup.find("body").append(new_tag)
-            
+
             data = soup.prettify()
         return bytes(data, 'utf-8')
-        
-    
+
+
     @classmethod
     def custom_template(cls, title, content, row):
         html_pos_y = 0
@@ -1353,11 +1360,11 @@ class CustomRead:
                 <meta name="referrer" content="no-referrer">
             </head>
         <body>
-            
+
             <div class="container-fluid">
-               
+
                 <div class="row">
-                    
+
                     <div class="col-sm {card_bg}">
                         <div class='card text-left {card_bg} mb-3'>
                             <div class='card-header'>
@@ -1379,7 +1386,7 @@ class CustomRead:
                                     </li>
                                 </ul>
                             </div>
-                            
+
                             <div class='card-body'>
                                 <button id="##back@@##@@link##" class="btn btn-primary btn-sm position-fixed" style="bottom:2px;right:2px;">&lt-</button>
                                 <h5 class="card-title">{title}</h5>
@@ -1452,7 +1459,7 @@ class CustomRead:
         result = re.sub(r'(</br>)+', '', result)
         content = cls.custom_template(title, result, row)
         return content
-    
+
     @classmethod
     def get_favicon_link(cls, data, url_name, final_favicon_path):
         soup = BeautifulSoup(data, 'lxml')
@@ -1475,7 +1482,7 @@ class CustomRead:
                     favicon_link = urlp.scheme + '://' + urlp.netloc + '/favicon.ico'
             if favicon_link:
                 cls.vnt_noblock.get(favicon_link, out=final_favicon_path)
-    
+
     @classmethod
     def is_human_readable(cls, mtype):
         human_readable = False
