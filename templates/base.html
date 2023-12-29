@@ -5,7 +5,7 @@
     <title>{% block title %}Reminiscence{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
+    <meta name="referrer" content="origin">
   </head>
   {% block body %} 
   <body>
@@ -34,7 +34,10 @@
                     <span class="dropdown-item" data-val="upload-settings" api-url="{{root}}/{{user.username}}/api/request">Upload</span>
                     <a class="dropdown-item" href="{% url 'password_change' %}">Password</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{% url 'logout' %}">Log out</a>
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button class="dropdown-item" type="submit">Log out</button>
+                    </form>
                   </div>
                 </li>
             </ul>
