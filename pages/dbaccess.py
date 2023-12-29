@@ -19,14 +19,12 @@ along with Reminiscence.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import re
-import json
 import shutil
 import logging
 import urllib.parse
 from functools import partial
 from urllib.parse import urlparse
 from mimetypes import guess_extension, guess_type
-from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
 from vinanti import Vinanti
@@ -35,24 +33,46 @@ from .models import Library, Tags, URLTags, UserSettings
 from .summarize import Summarizer
 
 import subprocess
-from celery.decorators import task
+
+try:
+    from celery.decorators import task
+except Exception as err:
+    print(err)
+    from celery import shared_task as task
+
+
+try:
+    from asgiref.sync import sync_to_async, async_to_sync
+except ImportError:
+    pass
+
 
 logger = logging.getLogger(__name__)
 
 
 class DBAccess:
-    
-    vnt = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
-                  max_requests=settings.VINANTI_MAX_REQUESTS,
-                  backend=settings.VINANTI_BACKEND, timeout=300)
-    vntbook = Vinanti(block=False, hdrs={'User-Agent':settings.USER_AGENT},
-                      max_requests=settings.VINANTI_MAX_REQUESTS,
-                      backend=settings.VINANTI_BACKEND, timeout=300)
-    vnt_task = Vinanti(block=False, group_task=False,
-                       backend='function',
-                       multiprocess=settings.MULTIPROCESS_VINANTI,
-                       max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS)
-    
+
+    vnt = Vinanti(
+                block=settings.VINANTI_BLOCK,
+                hdrs={'User-Agent': settings.USER_AGENT},
+                max_requests=settings.VINANTI_MAX_REQUESTS,
+                backend=settings.VINANTI_BACKEND, timeout=300
+                )
+
+    vntbook = Vinanti(
+                    block=settings.VINANTI_BLOCK,
+                    hdrs={'User-Agent': settings.USER_AGENT},
+                    max_requests=settings.VINANTI_MAX_REQUESTS,
+                    backend=settings.VINANTI_BACKEND, timeout=300
+                    )
+
+    vnt_task = Vinanti(
+                    block=settings.VINANTI_BLOCK, group_task=False,
+                    backend='function',
+                    multiprocess=settings.MULTIPROCESS_VINANTI,
+                    max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS
+                    )
+
     @classmethod
     def add_new_url(cls, usr, request, directory, row,
                     is_media_link=False, url_name=None,
@@ -142,6 +162,8 @@ class DBAccess:
         part = partial(cls.url_fetch_completed, usr, url_name,
                        directory, archive_html, row, settings_row,
                        media_path, media_element, save_favicon)
+        if not settings.VINANTI_BLOCK:
+            part = sync_to_async(part)
         if row:
             cls.vntbook.get(url_name, onfinished=part)
         else:
@@ -342,6 +364,9 @@ class DBAccess:
                          settings_row, row, url_name,
                          media_path, media_element):
         if settings_row.save_pdf:
+            part = partial(cls.finished_processing, 'pdf')
+            if not settings.VINANTI_BLOCK:
+                part = sync_to_async(part)
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
                 'wkhtmltopdf', '--custom-header',
@@ -357,9 +382,12 @@ class DBAccess:
             else:
                 cls.vnt_task.function(
                     cls.convert_to_pdf_png_task, cmd,
-                    onfinished=partial(cls.finished_processing, 'pdf')
+                    onfinished=part
                 )
         if settings_row.save_png:
+            part = partial(cls.finished_processing, 'image')
+            if not settings.VINANTI_BLOCK:
+                part = sync_to_async(part)
             png = os.path.join(media_path_parent, str(row.id)+'.png')
             cmd = [
                 'wkhtmltoimage', '--quality', str(settings_row.png_quality),
@@ -375,9 +403,12 @@ class DBAccess:
             else:
                 cls.vnt_task.function(
                     cls.convert_to_pdf_png_task, cmd,
-                    onfinished=partial(cls.finished_processing, 'image')
+                    onfinished=part
                 )
         if media_element or row.media_element:
+            part = partial(cls.finished_processing, 'media')
+            if not settings.VINANTI_BLOCK:
+                part = sync_to_async(part)
             out = os.path.join(media_path_parent, str(row.id)+'.mp4')
             cmd_str = settings_row.download_manager.format(iurl=url_name, output=out)
             cmd = cmd_str.split()
@@ -388,7 +419,7 @@ class DBAccess:
                 else:
                     cls.vnt_task.function(
                         cls.convert_to_pdf_png_task, cmd,
-                        onfinished=partial(cls.finished_processing, 'media')
+                        onfinished=part
                     )
     
     @classmethod
@@ -398,6 +429,9 @@ class DBAccess:
         if not os.path.exists(media_path_parent):
             os.makedirs(media_path_parent)
         if mode == 'pdf':
+            part = partial(cls.finished_processing, 'pdf')
+            if not settings.VINANTI_BLOCK:
+                part = sync_to_async(part)
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
                 settings.CHROMIUM_COMMAND, '--headless', '--disable-gpu',
@@ -409,9 +443,12 @@ class DBAccess:
             else:
                 cls.vnt_task.function(
                     cls.convert_to_pdf_png_task, cmd,
-                    onfinished=partial(cls.finished_processing, 'pdf')
+                    onfinished=part
                 )
         elif mode == 'dom':
+            part = partial(cls.finished_processing, 'html')
+            if not settings.VINANTI_BLOCK:
+                part = sync_to_async(part)
             htm = os.path.join(media_path_parent, str(row.id)+'.htm')
             cmd = [
                 settings.CHROMIUM_COMMAND, '--headless', '--disable-gpu',
@@ -424,7 +461,7 @@ class DBAccess:
             else:
                 cls.vnt_task.function(
                     cls.getdom_task_chromium, cmd, htm,
-                    onfinished=partial(cls.finished_processing, 'html')
+                    onfinished=part
                 )
         
     
