@@ -96,7 +96,7 @@ Table of Contents
 
 # Installation
 
-1. First make sure that **python 3.5.2+** (recommended version is 3.6.5+) is installed on system and install following packages using native package manager.
+1. First make sure that **python 3.9+** (recommended version is 3.10+) is installed on system and install following packages using native package manager.
 
         1. virtualenv
     
@@ -123,6 +123,8 @@ Table of Contents
     $ cd reminiscence
     
     $ virtualenv -p python3 venv
+
+    $ python3 -m venv venv (for python3.10+)
     
     $ source venv/bin/activate
     
