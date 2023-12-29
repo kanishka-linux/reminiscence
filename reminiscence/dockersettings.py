@@ -212,7 +212,7 @@ ARCHIVE_LOCATION = os.path.join(BASE_DIR, 'archive')
 
 TMP_LOCATION = os.path.join(BASE_DIR, 'tmp')
 
-USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:60.0) Gecko/20100101 Firefox/60.0'
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:109.0) Gecko/20100101 Firefox/121.0'
 
 NLTK_DATA_PATH = os.path.join(BASE_DIR, 'static', 'nltk_data')
 
@@ -235,6 +235,7 @@ MULTIPROCESS_VINANTI_MAX_REQUESTS = 4
 # Vinanti async HTTP client settings
 
 VINANTI_BACKEND = 'aiohttp'
+VINANTI_BLOCK = False
 VINANTI_MAX_REQUESTS = 50
 
 DOWNLOAD_MANAGERS_ALLOWED = ['curl', 'wget']
@@ -246,3 +247,5 @@ DOWNLOAD_MANAGERS_ALLOWED = ['curl', 'wget']
 CHROMIUM_COMMAND = "chromium"
 
 CHROMIUM_SANDBOX = False
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
