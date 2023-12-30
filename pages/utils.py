@@ -100,10 +100,13 @@ class ImportBookmarks:
                 or settings_row.auto_summary or settings_row.autotag)):
             for row in qlist:
                 if row.url:
-                    dbxs.process_add_url(usr, row.url, row.directory,
-                                         archive_html=False, row=row,
-                                         settings_row=settings_row,
-                                         media_path=row.media_path)
+                    dbxs.process_add_url.delay(
+                            usr.id, row.url,
+                            row.directory,
+                            archive_html=False,
+                            row_id=row.id,
+                            media_path=row.media_path
+                            )
             
             
     @staticmethod
