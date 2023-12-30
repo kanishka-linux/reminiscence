@@ -372,7 +372,7 @@ class Vinanti:
         if cookie:
             self.cookie_session.update({netloc:cookie})
         
-    async def __finished_task_postprocess__(self, session, netloc,
+    def __finished_task_postprocess__(self, session, netloc,
                                       onfinished, task_num,
                                       url, backend, loop,
                                       crawl, crawl_object,
@@ -403,10 +403,10 @@ class Vinanti:
                 logger.info('\nAll remaining {} tasks given to event loop\n'
                             .format(task_count))
                 logger.info('\nTask Queue now empty\n')
-        if onfinished is not None:
+        if onfinished:
             logger.info('arranging callback, task {} {}'
                         .format(task_num, url))
-            await onfinished(task_num, url, result)
+            onfinished(task_num, url, result)
             logger.info('callback completed, task {} {}'
                         .format(task_num, url))
         if crawl and crawl_object and result:
@@ -507,7 +507,7 @@ class Vinanti:
                 response = await future
 
             
-            await self.__finished_task_postprocess__(session, netloc, onfinished,
+            self.__finished_task_postprocess__(session, netloc, onfinished,
                                                task_num, url, backend, loop,
                                                crawl, crawl_object, url_obj,
                                                response)
