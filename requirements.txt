@@ -14,7 +14,7 @@ click-didyoumean==0.3.0
 click-plugins==1.1.1
 click-repl==0.3.0
 cssselect==1.2.0
-Django==5.0
+Django==4.2.8
 django-widget-tweaks==1.5.0
 djangorestframework==3.14.0
 frozenlist==1.4.1
