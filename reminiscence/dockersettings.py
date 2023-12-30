@@ -216,7 +216,7 @@ USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:109.0) Gecko/20100101 Fir
 
 NLTK_DATA_PATH = os.path.join(BASE_DIR, 'static', 'nltk_data')
 
-USE_CELERY = False
+USE_CELERY = True
 BROKER_URL = 'redis://localhost:6379'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
@@ -229,13 +229,13 @@ ALLOW_ANY_ONE_SIGNUP = False
 
 # Vinanti Multiprocess Settings for background tasks
 
-MULTIPROCESS_VINANTI = False
+MULTIPROCESS_VINANTI = True
 MULTIPROCESS_VINANTI_MAX_REQUESTS = 4
 
 # Vinanti async HTTP client settings
 
-VINANTI_BACKEND = 'aiohttp'
-VINANTI_BLOCK = False
+VINANTI_BACKEND = 'urllib'
+VINANTI_BLOCK = True
 VINANTI_MAX_REQUESTS = 50
 
 DOWNLOAD_MANAGERS_ALLOWED = ['curl', 'wget']
