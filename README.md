@@ -146,9 +146,9 @@ Table of Contents
     
     $ python manage.py createsuperuser
 
-    $ python manage.py runserver 127.0.0.1:8000 
+    $ python manage.py runserver 0.0.0.0:8000
     
-    open 127.0.0.1:8000 using any browser, login and start adding links
+    open 0.0.0.0:8000 using any browser, login and start adding links
     
     **Note:** replace localhost address with local ip address of your server
             
@@ -157,13 +157,15 @@ Table of Contents
     Admin interface available at: /admin/
               
 
-#### Setting up Celery (optional):
+#### Setting up Celery (mandatory from v0.4 onwards):
 
 1. Generating PDFs and PNGs are resource intesive and time consuming. We can delegate these tasks to celery, in order to execute them in the background. 
     
-        Edit reminiscence/settings.py file and set USE_CELERY = True
+        Edit reminiscence/settings.py file and set `USE_CELERY = True`
     
 2. Now open another terminal in the same topmost project directory and execute following commands:
+
+        $ sudo systemctl start redis-server
     
         $ cd venv
     
@@ -171,12 +173,8 @@ Table of Contents
     
         $ cd venv/reminiscence
     
-        $ celery -A reminiscence worker --loglevel=info
+        $ celery -A reminiscence worker --loglevel=info -c 4 --detach
     
-3. launch redis-server from another terminal
-    
-        $ redis-server
-        
 ## Using Docker
 
 Using docker is convenient compared to normal installation method described above. It will take care of configuration and setting up of gunicorn, nginx and also postgresql database. (Setting and running up these three things can be a bit cumbersome, if done manually, which is described below in separate section.) It will also automatically download headless version of wkhtmltopdf from official github repository (Since, many distros do not package wkhtmltopdf with headless feature) and nltk data set, apart from installing python based dependencies.
