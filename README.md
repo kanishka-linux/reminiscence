@@ -100,7 +100,9 @@ Table of Contents
 
         1. virtualenv
     
-        2. wkhtmltopdf (for html to pdf/png conversion)
+        2. ~wkhtmltopdf (for html to pdf/png conversion)~ deprecated from v4.0+ due to security vulnerability.
+
+            * [hlspy](https://github.com/kanishka-linux/hlspy) is now default headless browser which is based on QTWebEngine.
     
         3. redis-server (optional)
 
@@ -108,11 +110,11 @@ Table of Contents
     
 2. Installation of above dependencies in Arch or Arch based distros
 
-        $ sudo pacman -S python-virtualenv wkhtmltopdf redis chromium
+        $ sudo pacman -S python-virtualenv redis chromium
     
 3. Installation of above dependencies in Debian or Ubuntu based distros
 
-        $ sudo apt install virtualenv wkhtmltopdf redis-server chromium-browser
+        $ sudo apt install virtualenv redis-server chromium-browser
 
 **Note:** Name of above dependencies may change depending on distro or OS, so install accordingly. Once above dependencies are installed, execute following commands, which are distro/platform independent. 
     
@@ -133,6 +135,8 @@ Table of Contents
     $ git clone https://github.com/kanishka-linux/reminiscence.git
     
     $ cd reminiscence
+
+    $ source hlspy.env
     
     $ pip install -r requirements.txt
     
@@ -172,6 +176,8 @@ Table of Contents
         $ source bin/activate
     
         $ cd venv/reminiscence
+
+        $ source hlspy.env
     
         $ celery -A reminiscence worker --loglevel=info -c 4 --detach
     
