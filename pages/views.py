@@ -345,7 +345,7 @@ def record_epub_loc(request, epub_loc):
     
 @login_required
 def navigate_directory(request, username, directory=None, tagname=None, epub_loc=None):
-    
+
     usr = request.user
     base_dir = '{}/{}/{}'.format(settings.ROOT_URL_LOCATION, usr, directory)
     usr_list = []
@@ -355,7 +355,7 @@ def navigate_directory(request, username, directory=None, tagname=None, epub_loc
     if directory or tagname:
         if epub_loc:
             return record_epub_loc(request, epub_loc)
-            
+
         place_holder = 'Enter URL'
         if request.method == 'POST' and directory:
             form = AddURL(request.POST)
@@ -377,7 +377,7 @@ def navigate_directory(request, username, directory=None, tagname=None, epub_loc
             if usr_list is None:
                 return redirect('home')
         nlist = dbxs.populate_usr_list(usr, usr_list)
-        
+
         page = request.GET.get('page', 1)
         row = UserSettings.objects.filter(usrid=usr)
         if row and row[0].pagination_value:
@@ -943,9 +943,10 @@ def api_points(request, username):
                             set_row = qlist[0]
                         else:
                             set_row = None
-                        dbxs.process_add_url(usr, row.url, dirname,
-                                             archive_html=True, row=row,
-                                             settings_row=set_row)
+                        dbxs.process_add_url.delay(
+                                usr.id, row.url, dirname,
+                                archive_html=True, row_id=row.id
+                                )
                         dict_val.update({'status':'ok'})
                     return HttpResponse(json.dumps(dict_val))
                         

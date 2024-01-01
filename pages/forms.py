@@ -45,12 +45,18 @@ class AddDir(forms.Form):
             logger.info('adding {} to Bookmark'.format(url))
             if not qdir and len(url) > 9:
                 Library.objects.create(usr=usr, directory=self.DEFAULT_DIRECTORY, timestamp=timezone.now()).save()
-                dbxs.process_add_url(usr, url, self.DEFAULT_DIRECTORY, False)
+                dbxs.process_add_url.delay(
+                        usr.id, url,
+                        self.DEFAULT_DIRECTORY,False
+                        )
                 logger.debug('add--bookmark')
             elif qdir and len(url) > 9:
                 nqdir = qdir.filter(url=url)
                 if not nqdir:
-                    dbxs.process_add_url(usr, url, self.DEFAULT_DIRECTORY, False)
+                    dbxs.process_add_url.delay(
+                            usr, url,
+                            self.DEFAULT_DIRECTORY, False
+                            )
         else:
             dirname = re.sub(r'/|:|#|\?|\\\\|\%', '-', dirname)
             if dirname:

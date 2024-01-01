@@ -505,6 +505,7 @@ class Vinanti:
                                               complete_function_request,
                                               url, kargs)
                 response = await future
+
             
             self.__finished_task_postprocess__(session, netloc, onfinished,
                                                task_num, url, backend, loop,

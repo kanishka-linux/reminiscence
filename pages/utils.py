@@ -32,17 +32,12 @@ from vinanti import Vinanti
 logger = logging.getLogger(__name__)
 
 class ImportBookmarks:
-    
-    vnt = Vinanti(block=False,
+
+    vnt = Vinanti(block=settings.VINANTI_BLOCK,
                   hdrs={'User-Agent':settings.USER_AGENT},
                   max_requests=settings.VINANTI_MAX_REQUESTS,
                   backend=settings.VINANTI_BACKEND)
-                  
-    vnt_task = Vinanti(block=False, group_task=False,
-                       backend='function',
-                       multiprocess=settings.MULTIPROCESS_VINANTI,
-                       max_requests=settings.MULTIPROCESS_VINANTI_MAX_REQUESTS)
-    
+
     @classmethod
     def import_bookmarks(cls, usr, settings_row, import_file, mode='file'):
         book_dict = cls.convert_bookmark_to_dict(import_file, mode=mode)
@@ -105,10 +100,13 @@ class ImportBookmarks:
                 or settings_row.auto_summary or settings_row.autotag)):
             for row in qlist:
                 if row.url:
-                    dbxs.process_add_url(usr, row.url, row.directory,
-                                         archive_html=False, row=row,
-                                         settings_row=settings_row,
-                                         media_path=row.media_path)
+                    dbxs.process_add_url.delay(
+                            usr.id, row.url,
+                            row.directory,
+                            archive_html=False,
+                            row_id=row.id,
+                            media_path=row.media_path
+                            )
             
             
     @staticmethod
