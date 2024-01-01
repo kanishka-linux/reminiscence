@@ -2,6 +2,7 @@
 
 Self-hosted Bookmark and Archive manager
 
+
 Table of Contents
 =================
 
@@ -180,10 +181,14 @@ Table of Contents
         $ source hlspy.env
     
         $ celery -A reminiscence worker --loglevel=info -c 4 --detach
-    
+
 ## Using Docker
 
+**Note:** Following procedure won't work exactly from v4.0+, users are advised to make changes in respective Dockerfile or docker-compose to make it work
+
 Using docker is convenient compared to normal installation method described above. It will take care of configuration and setting up of gunicorn, nginx and also postgresql database. (Setting and running up these three things can be a bit cumbersome, if done manually, which is described below in separate section.) It will also automatically download headless version of wkhtmltopdf from official github repository (Since, many distros do not package wkhtmltopdf with headless feature) and nltk data set, apart from installing python based dependencies.
+
+**Note:** from v4.0+, `wkhtmltopdf` is replaced with `hlspy`. Users are advised to migrate to v4.0 due to security vulnerability in wkhtmltopdf. If users are finding it difficult to migrate then they should atleast disable automatic pdf/png generation of a web-page for older reminiscence version and use chromium instead manually for pdf generation.
 
 1. Install docker and docker-compose
 
