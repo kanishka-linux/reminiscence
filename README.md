@@ -104,18 +104,28 @@ Table of Contents
         2. ~wkhtmltopdf (for html to pdf/png conversion)~ deprecated from v4.0+ due to security vulnerability.
 
             * [hlspy](https://github.com/kanishka-linux/hlspy) is now default headless browser which is based on QTWebEngine.
-    
-        3. redis-server (optional)
 
-        4. chromium (optional from v0.2+)
+        3. hlspy (mandatory from v4.0+)
+    
+        4. redis-server
+
+        5. chromium (optional from v0.2+)
+
+        6. PyQt5
+
+        7. PyQtWebEngine
     
 2. Installation of above dependencies in Arch or Arch based distros
 
-        $ sudo pacman -S python-virtualenv redis chromium
+        $ sudo pacman -S python-virtualenv redis chromium python-pyqt5 qt5-webengine python-pyqtwebengine
     
 3. Installation of above dependencies in Debian or Ubuntu based distros
 
-        $ sudo apt install virtualenv redis-server chromium-browser
+        $ sudo apt install virtualenv redis-server chromium-browser python3-pyqt5 python3-pyqt5.qtwebengine
+
+4. Install `hlspy`
+
+        $ sudo pip3 install git+https://github.com/kanishka-linux/hlspy
 
 **Note:** Name of above dependencies may change depending on distro or OS, so install accordingly. Once above dependencies are installed, execute following commands, which are distro/platform independent. 
     
