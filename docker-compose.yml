@@ -25,12 +25,11 @@ services:
       - ./logs:/usr/src/reminiscence/logs/
     depends_on:
       - db
-      - redis
 
   worker:
     build:
       context: .
-      dockerfile: Dockerfile.celery
+      dockerfile: Dockerfile.worker
     depends_on:
       - db
       - redis
@@ -41,7 +40,7 @@ services:
       - ./static:/usr/src/reminiscence/static/
       - ./archive:/usr/src/reminiscence/archive/
       - ./logs:/usr/src/reminiscence/logs/
-    command: bash -c "while ! nc -w 1 -z redis 6379; do sleep 0.1; done; celery -A reminiscence worker --loglevel=info -c 4 --logfile=cel.out --detach"
+    command: bash -c "celery -A reminiscence worker --loglevel=info -c 4"
 
   db:
     image: postgres:13
