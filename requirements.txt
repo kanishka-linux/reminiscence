@@ -19,7 +19,6 @@ django-widget-tweaks==1.5.0
 djangorestframework==3.14.0
 frozenlist==1.4.1
 gunicorn==21.2.0
-hlspy @ git+https://github.com/kanishka-linux/hlspy@0db579304ccac2992a38d4d54d27b9ae8efe326f
 idna==3.6
 joblib==1.3.2
 kombu==5.3.4
