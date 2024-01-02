@@ -3,15 +3,16 @@ FROM python:3.10-slim-bookworm
 WORKDIR /usr/src/reminiscence
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y netcat-traditional htop \
+  && apt-get install --no-install-recommends -y chromium netcat-traditional git htop \
   && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
+RUN pip install PyQt5 PyQtWebEngine sip git+https://github.com/kanishka-linux/hlspy
+
 COPY . /usr/src/reminiscence
 
 RUN mkdir -p logs archive tmp \
   && python manage.py applysettings --docker yes \
-  && python manage.py generatesecretkey

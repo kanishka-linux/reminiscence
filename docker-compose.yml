@@ -26,8 +26,24 @@ services:
     depends_on:
       - db
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    depends_on:
+      - db
+      - redis
+      - web
+    env_file:
+      - ./docker.env
+    volumes:
+      - ./static:/usr/src/reminiscence/static/
+      - ./archive:/usr/src/reminiscence/archive/
+      - ./logs:/usr/src/reminiscence/logs/
+    command: bash -c "celery -A reminiscence worker --loglevel=info -c 4"
+
   db:
-    image: postgres:11
+    image: postgres:13
     env_file:
       - ./docker.env
     # instead of using the env_file above for providing db-user-credentials 
@@ -37,3 +53,8 @@ services:
     #  - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./db:/var/lib/postgresql/data/
+
+  redis:
+    image: redis:7.2
+    ports:
+      - '6379:6379'

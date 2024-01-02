@@ -1,26 +1,30 @@
-From python:3.6-slim-stretch
+FROM python:3.10-slim-bookworm
 
 WORKDIR /usr/src/reminiscence
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y chromium netcat wget \
-  && wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.raspbian.stretch_armhf.deb \
-  && apt-get install -y ./wkhtmltox_0.12.5-1.raspbian.stretch_armhf.deb \
-  && rm ./wkhtmltox_0.12.5-1.raspbian.stretch_armhf.deb \
-  && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt .
-RUN apt-get update && apt-get install -y \
+        && apt-get install --no-install-recommends -y \
         build-essential \
         libpq-dev \
         libxml2 \
         libxml2-dev \
         libxslt1-dev \
         python-dev \
+        python3-pyqt5 \
+        python3-pyqt5.qtwebengine \
         libpython3-all-dev \
-        zlib1g-dev
+        zlib1g-dev \
+        chromium \
+        netcat-traditional \
+        git \
+        htop \
+        && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
 
 RUN pip install -r requirements.txt
+
+RUN pip install PyQt5 PyQtWebEngine sip git+https://github.com/kanishka-linux/hlspy
 
 COPY . /usr/src/reminiscence
 
