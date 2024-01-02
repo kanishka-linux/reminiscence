@@ -3,7 +3,7 @@ FROM python:3.10-slim-bookworm
 WORKDIR /usr/src/reminiscence
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y netcat-traditional redis-server git \
+  && apt-get install --no-install-recommends -y netcat-traditional htop \
   && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
