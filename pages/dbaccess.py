@@ -392,6 +392,8 @@ class DBAccess:
                 'hlspy',
                 '--user-agent="{}"'.format(settings.USER_AGENT),
                 '--print-pdf={}'.format(pdf),
+                '--output=False',
+                '--tmp-dir=/tmp',
                 url_name
             ]
             if settings.USE_XVFB:
@@ -412,6 +414,8 @@ class DBAccess:
                 '--show-window',
                 '--timeout=60',
                 '--grab-window={}'.format(png),
+                '--output=False',
+                '--tmp-dir=/tmp',
                 url_name
             ]
             if settings.USE_XVFB:
