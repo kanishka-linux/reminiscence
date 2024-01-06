@@ -24,7 +24,7 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-RUN pip git+https://github.com/kanishka-linux/hlspy
+RUN pip install git+https://github.com/kanishka-linux/hlspy
 
 COPY . /usr/src/reminiscence
 
