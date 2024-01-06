@@ -389,8 +389,10 @@ class DBAccess:
             part = partial(cls.finished_processing, 'pdf')
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
-                'hlspy', '--user-agent', settings.USER_AGENT,
-                '--print-pdf={}'.format(pdf), url_name
+                'hlspy',
+                '--user-agent="{}"'.format(settings.USER_AGENT),
+                '--print-pdf={}'.format(pdf),
+                url_name
             ]
             if settings.USE_XVFB:
                 cmd = ['xvfb-run', '--auto-servernum'] + cmd
@@ -405,9 +407,12 @@ class DBAccess:
             part = partial(cls.finished_processing, 'image')
             png = os.path.join(media_path_parent, str(row.id)+'.png')
             cmd = [
-                'hlspy', '--user-agent', settings.USER_AGENT,
-                '--show-window', '--timeout=60',
-                '--grab-window={}'.format(png), url_name
+                'hlspy',
+                '--user-agent="{}"'.format(settings.USER_AGENT),
+                '--show-window',
+                '--timeout=60',
+                '--grab-window={}'.format(png),
+                url_name
             ]
             if settings.USE_XVFB:
                 cmd = ['xvfb-run', '--auto-servernum'] + cmd
