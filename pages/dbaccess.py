@@ -390,7 +390,7 @@ class DBAccess:
             pdf = os.path.join(media_path_parent, str(row.id)+'.pdf')
             cmd = [
                 'hlspy',
-                '--user-agent="{}"'.format(settings.USER_AGENT),
+                '--user-agent={}'.format(settings.USER_AGENT),
                 '--print-pdf={}'.format(pdf),
                 '--output=False',
                 '--tmp-dir=/tmp',
@@ -410,7 +410,7 @@ class DBAccess:
             png = os.path.join(media_path_parent, str(row.id)+'.png')
             cmd = [
                 'hlspy',
-                '--user-agent="{}"'.format(settings.USER_AGENT),
+                '--user-agent={}'.format(settings.USER_AGENT),
                 '--show-window',
                 '--timeout=60',
                 '--grab-window={}'.format(png),
